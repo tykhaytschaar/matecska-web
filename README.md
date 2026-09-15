@@ -1,4 +1,35 @@
-# Matecska (iOS)
+# Matecska
+
+Írásbeli alapműveleteket gyakoroltató app gyerekeknek. Két változat él a repóban:
+
+- **`web/`** – a fő kódbázis: Svelte 5 + Vite PWA, ez lesz Capacitorral az iOS és az Android
+  app is. Minden új funkció ide kerül.
+- **`Matecska/`** – az eredeti SwiftUI iOS app, befagyasztva; addig marad, amíg a webes
+  változat el nem éri ugyanazt a tudást.
+
+## Webes változat (`web/`)
+
+```bash
+cd web
+npm ci            # függőségek (csak a web/node_modules-ba)
+npm run dev       # fejlesztői szerver
+npm test          # Vitest
+npm run check     # svelte-check
+npm run build     # dist/ (PWA, service worker, manifest)
+npm run preview   # a build kipróbálása
+```
+
+Deploy: a `.github/workflows/web-pages.yml` minden `main`-re push után teszteli, buildeli
+és GitHub Pages-re teszi a `web/` mappát (`BASE_PATH` = a repó neve).
+
+Szerkezet: `src/core` (tiszta TypeScript modell: műveletek, feladatok, pontozás, gyakorlás-
+állapot, karakterek, profil), `src/store` (profil tárolása; most localStorage, később
+Capacitor Preferences vagy backend), `src/sprites` (animált sprite), `src/ui` (képernyők),
+`tests/` (Vitest). A profil JSON-sémája azonos az iOS app `profile.json` fájljával.
+
+Ikonok: `../matecska/.venv/bin/python tools/make_icons.py` a `web/public/icons` mappába.
+
+## iOS változat (SwiftUI, `Matecska/`)
 
 Írásbeli alapműveleteket gyakoroltató SwiftUI app gyerekeknek. Két háromjegyű szám
 (vagy háromjegyű és egyjegyű) műveletét kell rubrikákba beírt számjegyekkel megoldani,

@@ -1,0 +1,134 @@
+:root {
+  color-scheme: light dark;
+  --paper: #fdf6e3;
+  --ink: #2b2d42;
+  --card: #ffffff;
+  --bar: #1f2a44;
+  --flame: #e07a1f;
+  --flame-soft: rgba(224, 122, 31, 0.15);
+  --gold: #f6c04a;
+  --heart: #ff5a5f;
+  --green: #34c759;
+  --red: #ff3b30;
+  --ink-soft: rgba(43, 45, 66, 0.35);
+  --ink-faint: rgba(43, 45, 66, 0.12);
+  --radius: 20px;
+  --radius-cell: 12px;
+  --cell: clamp(44px, 12.5vw, 56px);
+  --cell-gap: 8px;
+  --font: system-ui, -apple-system, 'SF Pro Rounded', 'Segoe UI', Roboto, sans-serif;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --paper: #1f2a44;
+    --ink: #fdf6e3;
+    --card: #2b3a5c;
+    --bar: #141c30;
+    --flame: #f28c28;
+    --flame-soft: rgba(242, 140, 40, 0.2);
+    --ink-soft: rgba(253, 246, 227, 0.35);
+    --ink-faint: rgba(253, 246, 227, 0.12);
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font);
+  font-variant-numeric: tabular-nums;
+  -webkit-text-size-adjust: 100%;
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior: none;
+}
+
+#app {
+  min-height: 100dvh;
+  display: flex;
+  justify-content: center;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  border: none;
+  background: none;
+  padding: 0;
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+button:disabled {
+  cursor: default;
+}
+
+/* Egy „telefon-oszlop” asztali böngészőben is */
+.screen {
+  width: 100%;
+  max-width: 430px;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  padding: calc(env(safe-area-inset-top, 0px) + 12px) 20px calc(env(safe-area-inset-bottom, 0px) + 16px);
+  gap: 16px;
+}
+
+.card {
+  background: var(--card);
+  border: 2px solid var(--ink);
+  border-radius: var(--radius);
+}
+
+.chunky {
+  width: 100%;
+  padding: 14px 16px;
+  border-radius: var(--radius);
+  border: 2px solid var(--ink);
+  background: var(--flame);
+  color: #fff;
+  font-weight: 700;
+  font-size: 1.125rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: transform 0.1s ease, opacity 0.1s ease;
+}
+
+.chunky:active:not(:disabled) {
+  transform: scale(0.98);
+  opacity: 0.85;
+}
+
+.chunky:disabled {
+  background: var(--ink-soft);
+  border-color: transparent;
+}
+
+.chunky.bar {
+  background: var(--bar);
+}
+
+.digit {
+  font-size: clamp(1.9rem, 8vw, 2.5rem);
+  font-weight: 600;
+  line-height: 1;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
