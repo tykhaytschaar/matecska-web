@@ -10,35 +10,76 @@
   let { session, onSelect }: Props = $props();
 
   const info = $derived(OPERATION_INFO[session.operation]);
-  const [first, second] = $derived(session.exercise.operands);
+  const exercise = $derived(session.exercise);
+  const [first, second] = $derived(exercise.operands);
   const count = $derived(session.cells.length);
 
-  /** Oszlopok az egymás alatti elrendezésben: legalább egy oszlop az előjelnek a leghosszabb szám előtt. */
-  const columns = $derived(Math.max(count, Math.max(String(first).length, String(second).length) + 1));
+  /**
+   * Oszlopok az egymás alatti elrendezésben: a leghosszabb sor, ahol a második sor
+   * az előjel oszlopát is tartalmazza. Az üres hely sora a rubrikák számával számít.
+   */
+  const columns = $derived(
+    Math.max(
+      exercise.blank === 'first' ? count : String(first).length,
+      (exercise.blank === 'second' ? count : String(second).length) + 1,
+      exercise.blank === 'result' ? count : String(exercise.result).length,
+    ),
+  );
 
-  function digitCells(value: number, prefix: string | null): (string | null)[] {
+  interface Glyph {
+    text: string;
+    sign: boolean;
+  }
+
+  /** Egy szám jobbra igazítva `columns` oszlopban; az előjel közvetlenül a szám elé kerül. */
+  function digitGlyphs(value: number, prefix: string | null): Glyph[] {
     const digits = String(value).split('');
     const padding = columns - digits.length;
     return Array.from({ length: columns }, (_, index) => {
       const digitIndex = index - padding;
-      if (digitIndex >= 0) return digits[digitIndex];
-      if (index === padding - 1 && prefix) return prefix;
-      return null;
+      if (digitIndex >= 0) return { text: digits[digitIndex], sign: false };
+      if (index === padding - 1 && prefix) return { text: prefix, sign: true };
+      return { text: '', sign: false };
     });
   }
 </script>
 
+{#snippet cells(size: string = 'var(--cell)', gap: string = 'var(--cell-gap)')}
+  <AnswerCells cells={session.cells} selectedIndex={session.selectedIndex} outcome={session.outcome} {onSelect} {size} {gap} />
+{/snippet}
+
+{#snippet digitRow(value: number, prefix: string | null)}
+  <div class="row">
+    {#each digitGlyphs(value, prefix) as glyph}
+      <span class="glyph digit" class:sign={glyph.sign}>{glyph.text}</span>
+    {/each}
+  </div>
+{/snippet}
+
 {#if info.layout === 'stacked'}
   <div class="stacked" style:--columns={columns}>
-    {#each [digitCells(first, null), digitCells(second, info.symbol)] as row}
+    {#if exercise.blank === 'first'}
+      {@render cells()}
+    {:else}
+      {@render digitRow(first, null)}
+    {/if}
+
+    {#if exercise.blank === 'second'}
       <div class="row">
-        {#each row as glyph, index}
-          <span class="glyph digit" class:sign={glyph !== null && index < columns - String(first).length && glyph === info.symbol}>{glyph ?? ''}</span>
-        {/each}
+        <span class="glyph digit sign">{info.symbol}</span>
+        {@render cells()}
       </div>
-    {/each}
+    {:else}
+      {@render digitRow(second, info.symbol)}
+    {/if}
+
     <div class="rule"></div>
-    <AnswerCells cells={session.cells} selectedIndex={session.selectedIndex} outcome={session.outcome} {onSelect} />
+
+    {#if exercise.blank === 'result'}
+      {@render cells()}
+    {:else}
+      {@render digitRow(exercise.result, null)}
+    {/if}
   </div>
 {:else if info.layout === 'productRow'}
   <div class="stacked" style:--columns={count}>
@@ -46,12 +87,12 @@
       <span>{first}</span><span class="sign">{info.symbol}</span><span>{second}</span>
     </div>
     <div class="rule"></div>
-    <AnswerCells cells={session.cells} selectedIndex={session.selectedIndex} outcome={session.outcome} {onSelect} />
+    {@render cells()}
   </div>
 {:else}
   <div class="equation digit">
     <span>{first}</span><span class="sign">{info.symbol}</span><span>{second}</span><span class="sign">=</span>
-    <AnswerCells cells={session.cells} selectedIndex={session.selectedIndex} outcome={session.outcome} {onSelect} size="var(--cell-compact)" gap="6px" />
+    {@render cells('var(--cell-compact)', '6px')}
   </div>
 {/if}
 
@@ -65,6 +106,7 @@
   .row {
     display: flex;
     gap: var(--cell-gap);
+    align-items: center;
   }
   .glyph {
     width: var(--cell);

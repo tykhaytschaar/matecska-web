@@ -45,7 +45,7 @@ describe('gyakorlás-állapot', () => {
 
   it('ezres átvitel kihagyva: helytelen, helyes válasz és levonás; utána nem módosítható', () => {
     let s = submit(enterAll(session('addition', 750, 640), [0, 9, 3]), 1); // 1390
-    expect(s.outcome).toEqual({ kind: 'wrong', correctAnswer: 1390, score: { base: 0, bonus: 0, penalty: 5 } });
+    expect(s.outcome).toEqual({ kind: 'wrong', correctAnswer: 1390, score: { base: 0, bonus: 0, penalty: 1 } });
     const after = enterDigit(s, 1);
     expect(after.cells[0]).toBeNull();
     expect(deleteDigit(after)).toBe(after);
@@ -67,10 +67,23 @@ describe('gyakorlás-állapot', () => {
     expect(s.cells[1]).toBeNull(); expect(s.selectedIndex).toBe(1);
   });
 
-  it.each(OPERATIONS)('rubrikaszám művelet szerint: %s', (op) => {
-    const s = createSession(op, 0);
+  it.each(OPERATIONS)('rubrikaszám művelet szerint, ha az eredmény az üres hely: %s', (op) => {
+    const s = createSession(op, 0, makeExercise(op, 300, op === 'addition' || op === 'subtraction' ? 200 : 5));
     expect(s.cells.length).toBe(OPERATION_INFO[op].answerCellCount);
     expect(s.selectedIndex).toBe(OPERATION_INFO[op].answerCellCount - 1);
+  });
+
+  it('operandus az üres hely: három rubrika, az operandus a helyes válasz', () => {
+    let s = createSession('addition', 0, makeExercise('addition', 352, 636, 'first'));
+    expect(s.cells.length).toBe(3);
+    expect(s.exercise.answer).toBe(352);
+    s = submit(enterAll(s, [2, 5, 3]), 1);
+    expect(s.outcome?.kind).toBe('correct');
+
+    let t = createSession('subtraction', 0, makeExercise('subtraction', 805, 347, 'second'));
+    expect(t.cells.length).toBe(3);
+    t = submit(enterAll(t, [8, 4, 3]), 1); // 348, rossz
+    expect(t.outcome).toEqual({ kind: 'wrong', correctAnswer: 347, score: { base: 0, bonus: 0, penalty: 1 } });
   });
 
   it('osztás és szorzás helyes válasza, türelmesebb bónusszal', () => {

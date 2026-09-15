@@ -29,7 +29,7 @@ export const PATIENT_TIMING: BonusTiming = { fullBonusUntil: 5, decayIntervalMs:
 
 export const BASE_POINTS = 10;
 export const MAX_BONUS = 10;
-export const WRONG_ANSWER_PENALTY = 5;
+export const WRONG_ANSWER_PENALTY = 1;
 
 /** A még járó bónusz pontban: teljes, majd periódusonként eggyel kevesebb. */
 export function bonus(elapsed: number, timing: BonusTiming): number {
@@ -45,7 +45,7 @@ export function bonusFraction(elapsed: number, timing: BonusTiming): number {
 
 /**
  * Helyes válasz: alap pont + sebességbónusz.
- * Helytelen válasz: levonás (az alap pont fele).
+ * Helytelen válasz: 1 pont levonás.
  */
 export function points(correct: boolean, elapsed: number, timing: BonusTiming): ScoreBreakdown {
   if (!correct) return { base: 0, bonus: 0, penalty: WRONG_ANSWER_PENALTY };

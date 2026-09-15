@@ -1,4 +1,4 @@
-import { randomExercise, type Exercise } from './exercise';
+import { answerCellCount, randomExercise, type Exercise } from './exercise';
 import { OPERATION_INFO, type MathOperation } from './operation';
 import { points, type ScoreBreakdown } from './scoring';
 
@@ -24,14 +24,15 @@ export interface SessionState {
 }
 
 export function cellCount(state: SessionState): number {
-  return OPERATION_INFO[state.operation].answerCellCount;
+  return state.cells.length;
 }
 
 export function createSession(operation: MathOperation, now: number, exercise?: Exercise): SessionState {
-  const count = OPERATION_INFO[operation].answerCellCount;
+  const current = exercise ?? randomExercise(operation);
+  const count = answerCellCount(current);
   return {
     operation,
-    exercise: exercise ?? randomExercise(operation),
+    exercise: current,
     cells: Array<number | null>(count).fill(null),
     selectedIndex: count - 1,
     outcome: null,

@@ -39,8 +39,8 @@ describe('pontozás', () => {
 
   it('helytelen válasz: levonás, nincs alap és bónusz', () => {
     const s = points(false, 1, QUICK_TIMING);
-    expect(s).toEqual({ base: 0, bonus: 0, penalty: 5 });
-    expect(totalPoints(s)).toBe(-5);
+    expect(s).toEqual({ base: 0, bonus: 0, penalty: 1 });
+    expect(totalPoints(s)).toBe(-1);
   });
 
   it('a bónuszarány a bónusz tizede, lépcsőzve', () => {

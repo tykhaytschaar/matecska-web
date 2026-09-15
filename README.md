@@ -4,6 +4,19 @@
 Svelte 5 + Vite PWA), amit Capacitor csomagol natív iOS és később Android appá.
 Az eredeti SwiftUI iOS változat a `2842602` commitig a git-történetben megtalálható.
 
+## Funkciók
+
+- Összeadás, kivonás, szorzás egyjegyűvel, osztás egyjegyűvel (maradék nélkül), írásbeli
+  elrendezésben, rubrikákba beírt számjegyekkel.
+- Összeadásnál és kivonásnál véletlen az üres hely: 50% az eredmény, 25-25% az első vagy a
+  második operandus; szorzásnál és osztásnál mindig az eredmény.
+- Pontozás: helyes válasz 10 alap + max 10 gyorsasági bónusz (összeadás/kivonás 3 s-ig,
+  szorzás/osztás 5 s-ig teljes, utána periódusonként, alapból másodpercenként eggyel
+  kevesebb); helytelen válasz −1. Az összpont nem megy nulla alá.
+- Helyben mentett profil: pontszám, műveletenkénti statisztika, birtokolt és kiválasztott
+  karakter. Karakterek képernyő; a katalógus egy elem hozzáadásával bővíthető.
+- A macska sprite és az animációk a GameBoy-os [matecska](../matecska) projektből.
+
 ## Webes változat (`web/`)
 
 ```bash
@@ -20,8 +33,8 @@ Deploy: a `.github/workflows/web-pages.yml` minden `main`-re push után teszteli
 és GitHub Pages-re teszi a `web/` mappát (`BASE_PATH` = a repó neve).
 
 Szerkezet: `src/core` (tiszta TypeScript modell: műveletek, feladatok, pontozás, gyakorlás-
-állapot, karakterek, profil), `src/store` (profil tárolása; most localStorage, később
-Capacitor Preferences vagy backend), `src/sprites` (animált sprite), `src/ui` (képernyők),
+állapot, karakterek, profil), `src/store` és `src/platform` (profil tárolása: böngészőben
+localStorage, natívan Capacitor Preferences, később backend), `src/sprites` (animált sprite), `src/ui` (képernyők),
 `tests/` (Vitest). A profil JSON-sémája azonos az iOS app `profile.json` fájljával.
 
 Ikonok: `../matecska/.venv/bin/python tools/make_icons.py` a `web/public/icons` mappába
