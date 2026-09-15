@@ -6,8 +6,19 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXContainerItemProxy section */
+		B100000000000000000000A9 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = A100000000000000000000E0 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = A100000000000000000000E1;
+			remoteInfo = Matecska;
+		};
+/* End PBXContainerItemProxy section */
+
 /* Begin PBXFileReference section */
 		A100000000000000000000A1 /* Matecska.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Matecska.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		B100000000000000000000A1 /* MatecskaTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MatecskaTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -16,10 +27,22 @@
 			path = Matecska;
 			sourceTree = "<group>";
 		};
+		B100000000000000000000B1 /* MatecskaTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = MatecskaTests;
+			sourceTree = "<group>";
+		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		A100000000000000000000C1 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		B100000000000000000000C1 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -33,6 +56,7 @@
 			isa = PBXGroup;
 			children = (
 				A100000000000000000000B1 /* Matecska */,
+				B100000000000000000000B1 /* MatecskaTests */,
 				A100000000000000000000D2 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -41,6 +65,7 @@
 			isa = PBXGroup;
 			children = (
 				A100000000000000000000A1 /* Matecska.app */,
+				B100000000000000000000A1 /* MatecskaTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -70,6 +95,29 @@
 			productReference = A100000000000000000000A1 /* Matecska.app */;
 			productType = "com.apple.product-type.application";
 		};
+		B100000000000000000000E1 /* MatecskaTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = B100000000000000000000F2 /* Build configuration list for PBXNativeTarget "MatecskaTests" */;
+			buildPhases = (
+				B100000000000000000000C2 /* Sources */,
+				B100000000000000000000C1 /* Frameworks */,
+				B100000000000000000000C3 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				B100000000000000000000A8 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				B100000000000000000000B1 /* MatecskaTests */,
+			);
+			name = MatecskaTests;
+			packageProductDependencies = (
+			);
+			productName = MatecskaTests;
+			productReference = B100000000000000000000A1 /* MatecskaTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -82,6 +130,10 @@
 				TargetAttributes = {
 					A100000000000000000000E1 = {
 						CreatedOnToolsVersion = 16.0;
+					};
+					B100000000000000000000E1 = {
+						CreatedOnToolsVersion = 16.0;
+						TestTargetID = A100000000000000000000E1;
 					};
 				};
 			};
@@ -100,12 +152,20 @@
 			projectRoot = "";
 			targets = (
 				A100000000000000000000E1 /* Matecska */,
+				B100000000000000000000E1 /* MatecskaTests */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
 		A100000000000000000000C3 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		B100000000000000000000C3 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -122,7 +182,22 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		B100000000000000000000C2 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		B100000000000000000000A8 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = A100000000000000000000E1 /* Matecska */;
+			targetProxy = B100000000000000000000A9 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		A100000000000000000000F3 /* Debug */ = {
@@ -188,8 +263,8 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = HFAY65L8KS;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = HFAY65L8KS;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = Matecska;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -216,8 +291,8 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = HFAY65L8KS;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = HFAY65L8KS;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = Matecska;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -238,6 +313,42 @@
 			};
 			name = Release;
 		};
+		B100000000000000000000F5 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = HFAY65L8KS;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.matecska.MatecskaTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Matecska.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Matecska";
+			};
+			name = Debug;
+		};
+		B100000000000000000000F6 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = HFAY65L8KS;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.matecska.MatecskaTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Matecska.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Matecska";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -255,6 +366,15 @@
 			buildConfigurations = (
 				A100000000000000000000F5 /* Debug */,
 				A100000000000000000000F6 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		B100000000000000000000F2 /* Build configuration list for PBXNativeTarget "MatecskaTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				B100000000000000000000F5 /* Debug */,
+				B100000000000000000000F6 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
