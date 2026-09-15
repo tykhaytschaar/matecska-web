@@ -31,15 +31,15 @@
 
 <style>
   .slot {
-    height: 88px;
+    height: var(--banner-height);
     width: 100%;
     display: flex;
     align-items: center;
   }
   .banner {
     width: 100%;
-    max-height: 88px;
-    padding: 10px 20px;
+    max-height: var(--banner-height);
+    padding: 8px 20px;
     border-radius: var(--radius);
     color: #fff;
     text-align: center;
@@ -55,7 +55,7 @@
     background: var(--red);
   }
   .title {
-    font-size: 1.15rem;
+    font-size: clamp(1rem, 2.2svh, 1.15rem);
     font-weight: 700;
   }
   .detail {
@@ -63,7 +63,7 @@
     opacity: 0.95;
   }
   .detail strong {
-    font-size: 1.6rem;
+    font-size: clamp(1.25rem, 2.8svh, 1.6rem);
     font-weight: 700;
     vertical-align: middle;
     margin-left: 4px;

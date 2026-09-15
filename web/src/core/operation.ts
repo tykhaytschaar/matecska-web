@@ -14,6 +14,9 @@ export type ProblemLayout =
   /** `456 : 8 =` és a rubrikák ugyanabban a sorban (osztás). */
   | 'equationRow';
 
+/** Merre halad a kijelölés beírás után. Írásbeli összeadásnál jobbról balra, osztásnál balról jobbra. */
+export type EntryDirection = 'rtl' | 'ltr';
+
 export interface OperationInfo {
   title: string;
   /** Magyar iskolai jelölés: a szorzás pont, az osztás kettőspont. */
@@ -22,13 +25,14 @@ export interface OperationInfo {
   /** Hány rubrikába kell beírni a választ. */
   answerCellCount: number;
   bonusTiming: BonusTiming;
+  entryDirection: EntryDirection;
 }
 
 export const OPERATION_INFO: Record<MathOperation, OperationInfo> = {
-  addition: { title: 'Összeadás', symbol: '+', layout: 'stacked', answerCellCount: 4, bonusTiming: QUICK_TIMING },
-  subtraction: { title: 'Kivonás', symbol: '−', layout: 'stacked', answerCellCount: 3, bonusTiming: QUICK_TIMING },
-  multiplication: { title: 'Szorzás', symbol: '·', layout: 'productRow', answerCellCount: 4, bonusTiming: PATIENT_TIMING },
-  division: { title: 'Osztás', symbol: ':', layout: 'equationRow', answerCellCount: 3, bonusTiming: PATIENT_TIMING },
+  addition: { title: 'Összeadás', symbol: '+', layout: 'stacked', answerCellCount: 4, bonusTiming: QUICK_TIMING, entryDirection: 'rtl' },
+  subtraction: { title: 'Kivonás', symbol: '−', layout: 'stacked', answerCellCount: 3, bonusTiming: QUICK_TIMING, entryDirection: 'rtl' },
+  multiplication: { title: 'Szorzás', symbol: '·', layout: 'productRow', answerCellCount: 4, bonusTiming: PATIENT_TIMING, entryDirection: 'rtl' },
+  division: { title: 'Osztás', symbol: ':', layout: 'equationRow', answerCellCount: 3, bonusTiming: PATIENT_TIMING, entryDirection: 'ltr' },
 };
 
 export function isMathOperation(value: unknown): value is MathOperation {

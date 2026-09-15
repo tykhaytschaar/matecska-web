@@ -28,18 +28,18 @@
   .keypad {
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: clamp(6px, 1.2svh, 10px);
     width: 100%;
     max-width: 360px;
     margin: 0 auto;
   }
   .row {
     display: flex;
-    gap: 10px;
+    gap: clamp(6px, 1.2svh, 10px);
   }
   .key {
     flex: 1;
-    height: 52px;
+    height: var(--key-height);
     border-radius: 16px;
     border: 2px solid var(--ink-soft);
     background: var(--card);

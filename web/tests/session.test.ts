@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { makeExercise } from '../src/core/exercise';
 import { OPERATION_INFO, OPERATIONS, type MathOperation } from '../src/core/operation';
 import {
-  canSubmit, createSession, deleteDigit, elapsedSeconds, enterDigit, nextExercise, selectCell, submit,
+  canSubmit, createSession, deleteDigit, elapsedSeconds, enteredValue, enterDigit, isValidEntry, nextExercise, selectCell, selectScratch, submit,
 } from '../src/core/session';
 
 function session(op: MathOperation, a: number, b: number, now = 0) {
@@ -27,6 +27,70 @@ describe('gyakorlás-állapot', () => {
     s = enterAll(s, [8, 9]); expect(s.selectedIndex).toBe(0);
     s = enterDigit(s, 1);
     expect(s.selectedIndex).toBe(0); expect(s.cells[0]).toBe(1);
+  });
+
+  it.each([
+    [[1, 5, null], true, 15],
+    [[null, null, 1], true, 1],
+    [[9, 8, 8, null], true, 988],
+    [[4, null, 5], false, 0],
+    [[null, null, null], false, 0],
+    [[1, null, null, 2], false, 0],
+  ] as const)('érvényesség és érték: %j → érvényes %s, érték %s', (cells, valid, value) => {
+    expect(isValidEntry(cells)).toBe(valid);
+    const s = { ...createSession('addition', 0, makeExercise('addition', 100, 100)), cells: [...cells] };
+    expect(canSubmit(s)).toBe(valid);
+    if (valid) expect(enteredValue(s)).toBe(value);
+  });
+
+  it('osztás: balról jobbra halad, az utolsó rubrika üresen maradhat', () => {
+    let s = session('division', 150, 10); // 15 — de az osztó egyjegyű a játékban; itt csak a bevitel irányát teszteljük
+    expect(s.selectedIndex).toBe(0);
+    s = enterDigit(s, 1); expect(s.selectedIndex).toBe(1);
+    s = enterDigit(s, 5); expect(s.selectedIndex).toBe(2);
+    expect(s.cells).toEqual([1, 5, null]);
+    expect(canSubmit(s)).toBe(true);
+    expect(enteredValue(s)).toBe(15);
+    s = enterDigit(s, 7); expect(s.selectedIndex).toBe(2);
+    s = deleteDigit(s); expect(s.cells).toEqual([1, 5, null]); expect(s.selectedIndex).toBe(2);
+    s = deleteDigit(s); expect(s.cells).toEqual([1, null, null]); expect(s.selectedIndex).toBe(1);
+  });
+
+  it('segédrács csak osztásnál: annyi sor, ahány jegyű a hányados, három oszlop', () => {
+    expect(session('addition', 352, 636).scratch).toEqual([]);
+    expect(session('multiplication', 352, 6).scratch).toEqual([]);
+    expect(session('division', 486, 6).scratch).toEqual([[null, null, null], [null, null, null]]); // 81
+    expect(session('division', 684, 6).scratch.length).toBe(3); // 114
+  });
+
+  it('segédrács: kijelölés, beírás balról jobbra, törlés, és nem érinti a beküldést', () => {
+    let s = session('division', 456, 8); // 57
+    s = selectScratch(s, 0, 1);
+    expect(s.scratchSelection).toEqual({ row: 0, col: 1 });
+    s = enterDigit(s, 5); s = enterDigit(s, 6);
+    expect(s.scratch[0]).toEqual([null, 5, 6]);
+    expect(s.scratchSelection).toEqual({ row: 0, col: 2 }); // a sor végén megáll
+    s = enterDigit(s, 9);
+    expect(s.scratch[0]).toEqual([null, 5, 9]);
+    s = deleteDigit(s); expect(s.scratch[0]).toEqual([null, 5, null]);
+    s = deleteDigit(s); expect(s.scratch[0]).toEqual([null, null, null]); expect(s.scratchSelection?.col).toBe(1);
+    expect(s.cells).toEqual([null, null, null]); // a válasz rubrikái érintetlenek
+    expect(canSubmit(s)).toBe(false);
+    s = selectCell(s, 0);
+    expect(s.scratchSelection).toBeNull();
+    s = enterAll(s, [5, 7]);
+    s = selectScratch(s, 1, 2); s = enterDigit(s, 0);
+    expect(canSubmit(s)).toBe(true);
+    const done = submit(s, 1);
+    expect(done.outcome?.kind).toBe('correct');
+    expect(enterDigit(done, 3)).toBe(done);
+  });
+
+  it('osztás: háromjegyű osztandó, egyjegyű osztó, kétjegyű hányados beküldve az utolsó üres rubrikával', () => {
+    let s = session('division', 456, 8); // 57
+    s = enterAll(s, [5, 7]);
+    expect(s.cells).toEqual([5, 7, null]);
+    expect(submit(s, 1).outcome?.kind).toBe('correct');
   });
 
   it('helyes válasz üres bal szélső rubrikával (üres = 0), teljes bónusszal', () => {
@@ -70,7 +134,7 @@ describe('gyakorlás-állapot', () => {
   it.each(OPERATIONS)('rubrikaszám művelet szerint, ha az eredmény az üres hely: %s', (op) => {
     const s = createSession(op, 0, makeExercise(op, 300, op === 'addition' || op === 'subtraction' ? 200 : 5));
     expect(s.cells.length).toBe(OPERATION_INFO[op].answerCellCount);
-    expect(s.selectedIndex).toBe(OPERATION_INFO[op].answerCellCount - 1);
+    expect(s.selectedIndex).toBe(op === 'division' ? 0 : OPERATION_INFO[op].answerCellCount - 1);
   });
 
   it('operandus az üres hely: három rubrika, az operandus a helyes válasz', () => {
@@ -87,7 +151,7 @@ describe('gyakorlás-állapot', () => {
   });
 
   it('osztás és szorzás helyes válasza, türelmesebb bónusszal', () => {
-    const d = submit(enterAll(session('division', 456, 8), [7, 5]), 5); // 57
+    const d = submit(enterAll(session('division', 456, 8), [5, 7]), 5); // 57, balról jobbra
     expect(d.outcome?.kind).toBe('correct');
     expect(d.outcome?.score.bonus).toBe(10);
     const m = submit(enterAll(session('multiplication', 352, 6), [2, 1, 1, 2]), 10); // 2112

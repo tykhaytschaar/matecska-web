@@ -6,8 +6,9 @@
   interface Props {
     session: SessionState;
     onSelect: (index: number) => void;
+    onSelectScratch?: (row: number, col: number) => void;
   }
-  let { session, onSelect }: Props = $props();
+  let { session, onSelect, onSelectScratch = () => {} }: Props = $props();
 
   const info = $derived(OPERATION_INFO[session.operation]);
   const exercise = $derived(session.exercise);
@@ -17,14 +18,30 @@
   /**
    * Oszlopok az egymás alatti elrendezésben: a leghosszabb sor, ahol a második sor
    * az előjel oszlopát is tartalmazza. Az üres hely sora a rubrikák számával számít.
+   * Szorzásnál a `352 · 6` sor jegyei és a jel egy-egy oszlop; a szorzat rubrikái a szorzandó
+   * alá kerülnek (egyesek az egyesek alatt), a `· 6` jobbra kilóg mellettük, mint a füzetben.
    */
+  const productTrail = $derived(1 + String(second).length);
   const columns = $derived(
-    Math.max(
-      exercise.blank === 'first' ? count : String(first).length,
-      (exercise.blank === 'second' ? count : String(second).length) + 1,
-      exercise.blank === 'result' ? count : String(exercise.result).length,
-    ),
+    info.layout === 'productRow'
+      ? Math.max(count, String(first).length) + productTrail
+      : Math.max(
+          exercise.blank === 'first' ? count : String(first).length,
+          (exercise.blank === 'second' ? count : String(second).length) + 1,
+          exercise.blank === 'result' ? count : String(exercise.result).length,
+        ),
   );
+
+  /** Szorzás sora: szorzandó jegyei, műveleti jel, szorzó jegyei, jobbra zárva `columns` oszlopban. */
+  const productGlyphs = $derived.by((): Glyph[] => {
+    const body: Glyph[] = [
+      ...String(first).split('').map((d) => ({ text: d, sign: false })),
+      { text: info.symbol, sign: true },
+      ...String(second).split('').map((d) => ({ text: d, sign: false })),
+    ];
+    const padding = Array.from({ length: columns - body.length }, () => ({ text: '', sign: false }));
+    return [...padding, ...body];
+  });
 
   interface Glyph {
     text: string;
@@ -45,7 +62,15 @@
 </script>
 
 {#snippet cells(size: string = 'var(--cell)', gap: string = 'var(--cell-gap)')}
-  <AnswerCells cells={session.cells} selectedIndex={session.selectedIndex} outcome={session.outcome} {onSelect} {size} {gap} />
+  <AnswerCells
+    cells={session.cells}
+    selectedIndex={session.selectedIndex}
+    outcome={session.outcome}
+    active={session.scratchSelection === null}
+    {onSelect}
+    {size}
+    {gap}
+  />
 {/snippet}
 
 {#snippet digitRow(value: number, prefix: string | null)}
@@ -82,17 +107,50 @@
     {/if}
   </div>
 {:else if info.layout === 'productRow'}
-  <div class="stacked" style:--columns={count}>
-    <div class="inline digit">
-      <span>{first}</span><span class="sign">{info.symbol}</span><span>{second}</span>
+  <div class="stacked" style:--columns={columns}>
+    <div class="row">
+      {#each productGlyphs as glyph}
+        <span class="glyph digit" class:sign={glyph.sign}>{glyph.text}</span>
+      {/each}
     </div>
     <div class="rule"></div>
-    {@render cells()}
+    <div class="row">
+      {@render cells()}
+      {#each { length: productTrail } as _}
+        <span class="glyph" aria-hidden="true"></span>
+      {/each}
+    </div>
   </div>
 {:else}
-  <div class="equation digit">
-    <span>{first}</span><span class="sign">{info.symbol}</span><span>{second}</span><span class="sign">=</span>
-    {@render cells('var(--cell-compact)', '6px')}
+  <!-- Osztás: `456 : 8 = [ ][ ][ ]` rubrikaszélességű oszlopokban, alatta a nem kötelező
+       maradék-rács az osztandó jegyei alatt, mint a füzetben. -->
+  <div class="division">
+    <div class="row compact">
+      {#each String(first).split('') as d}
+        <span class="glyph digit">{d}</span>
+      {/each}
+      <span class="glyph narrow digit sign">{info.symbol}</span>
+      {#each String(second).split('') as d}
+        <span class="glyph digit">{d}</span>
+      {/each}
+      <span class="glyph narrow digit sign">=</span>
+      {@render cells('var(--cell-compact)', 'var(--gap-compact)')}
+    </div>
+    {#each session.scratch as scratchRow, row}
+      <div class="row compact scratch">
+        <AnswerCells
+          cells={scratchRow}
+          selectedIndex={session.scratchSelection?.row === row ? session.scratchSelection.col : -1}
+          outcome={session.outcome}
+          active={session.scratchSelection?.row === row}
+          muted
+          label="maradék-rubrika"
+          onSelect={(col) => onSelectScratch(row, col)}
+          size="var(--cell-compact)"
+          gap="var(--gap-compact)"
+        />
+      </div>
+    {/each}
   </div>
 {/if}
 
@@ -123,18 +181,23 @@
     background: var(--ink);
     width: calc(var(--columns) * var(--cell) + (var(--columns) - 1) * var(--cell-gap));
   }
-  .inline {
+  .division {
+    --cell-compact: clamp(32px, min(9.2vw, 5.6svh), 46px);
+    --gap-compact: 4px;
     display: flex;
-    gap: 14px;
-    align-items: center;
-    height: var(--cell);
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--gap-compact);
   }
-  .equation {
-    --cell-compact: clamp(40px, 11vw, 50px);
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: clamp(1.6rem, 7vw, 2.25rem);
-    white-space: nowrap;
+  .compact {
+    gap: var(--gap-compact);
+  }
+  .compact .glyph {
+    width: var(--cell-compact);
+    height: var(--cell-compact);
+    font-size: clamp(1.4rem, 6vw, 2rem);
+  }
+  .compact .glyph.narrow {
+    width: calc(var(--cell-compact) * 0.6);
   }
 </style>

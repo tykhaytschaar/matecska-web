@@ -14,8 +14,12 @@
   --ink-faint: rgba(43, 45, 66, 0.12);
   --radius: 20px;
   --radius-cell: 12px;
-  --cell: clamp(44px, 12.5vw, 56px);
-  --cell-gap: 8px;
+  /* Méretek, amik a nézetablak magasságához is igazodnak (svh: a böngészősávokkal együtt is elfér). */
+  --cell: clamp(40px, min(12.5vw, 6.5svh), 56px);
+  --cell-gap: clamp(6px, 1svh, 8px);
+  --key-height: clamp(40px, 5.6svh, 52px);
+  --banner-height: clamp(64px, 10svh, 88px);
+  --gap: clamp(8px, 1.8svh, 16px);
   --font: system-ui, -apple-system, 'SF Pro Rounded', 'Segoe UI', Roboto, sans-serif;
 }
 
@@ -75,11 +79,11 @@ button:disabled {
 .screen {
   width: 100%;
   max-width: 430px;
-  min-height: 100dvh;
+  min-height: 100svh;
   display: flex;
   flex-direction: column;
-  padding: calc(env(safe-area-inset-top, 0px) + 12px) 20px calc(env(safe-area-inset-bottom, 0px) + 16px);
-  gap: 16px;
+  padding: calc(env(safe-area-inset-top, 0px) + 8px) 20px calc(env(safe-area-inset-bottom, 0px) + 12px);
+  gap: var(--gap);
 }
 
 .card {
@@ -90,7 +94,7 @@ button:disabled {
 
 .chunky {
   width: 100%;
-  padding: 14px 16px;
+  padding: clamp(10px, 1.6svh, 14px) 16px;
   border-radius: var(--radius);
   border: 2px solid var(--ink);
   background: var(--flame);

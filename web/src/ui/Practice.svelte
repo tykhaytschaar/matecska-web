@@ -11,6 +11,7 @@
     isSubmitted,
     nextExercise,
     selectCell,
+    selectScratch,
     submit,
     type SessionState,
   } from '../core/session';
@@ -78,10 +79,14 @@
       session = deleteDigit(session);
     } else if (event.key === 'Enter') {
       submitted ? handleNext() : handleSubmit();
-    } else if (event.key === 'ArrowLeft') {
-      session = selectCell(session, session.selectedIndex - 1);
-    } else if (event.key === 'ArrowRight') {
-      session = selectCell(session, session.selectedIndex + 1);
+    } else if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
+      const step = event.key === 'ArrowLeft' ? -1 : 1;
+      const sel = session.scratchSelection;
+      session = sel ? selectScratch(session, sel.row, sel.col + step) : selectCell(session, session.selectedIndex + step);
+    } else if ((event.key === 'ArrowDown' || event.key === 'ArrowUp') && session.scratch.length > 0) {
+      const sel = session.scratchSelection;
+      const row = sel ? sel.row + (event.key === 'ArrowDown' ? 1 : -1) : event.key === 'ArrowDown' ? 0 : -1;
+      session = row < 0 ? selectCell(session, session.selectedIndex) : selectScratch(session, row, sel?.col ?? 0);
     } else if (event.key === 'Escape') {
       onBack();
     } else {
@@ -106,7 +111,11 @@
   <div class="spacer"></div>
 
   <div class="problem">
-    <Problem {session} onSelect={(index) => (session = selectCell(session, index))} />
+    <Problem
+      {session}
+      onSelect={(index) => (session = selectCell(session, index))}
+      onSelectScratch={(row, col) => (session = selectScratch(session, row, col))}
+    />
   </div>
 
   <BonusBar {fraction} bonus={bonusNow} />
@@ -138,7 +147,7 @@
     display: flex;
     align-items: center;
     gap: 8px;
-    min-height: 44px;
+    min-height: 40px;
   }
   .back {
     width: 40px;
