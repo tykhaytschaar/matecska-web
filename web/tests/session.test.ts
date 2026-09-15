@@ -38,7 +38,7 @@ describe('gyakorlás-állapot', () => {
   });
 
   it('lassú helyes válasz: nincs bónusz', () => {
-    const s = submit(enterAll(session('subtraction', 500, 123), [7, 7, 3]), 12); // 377
+    const s = submit(enterAll(session('subtraction', 500, 123), [7, 7, 3]), 20); // 377, 3 + 10 mp után elfogy a bónusz
     expect(s.outcome?.kind).toBe('correct');
     expect(s.outcome?.score.bonus).toBe(0);
   });

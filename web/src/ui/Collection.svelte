@@ -15,7 +15,7 @@
 <div class="screen">
   <header class="top">
     <button type="button" class="back" onclick={onBack} aria-label="Vissza a főképernyőre">‹</button>
-    <h1>Gyűjtemény</h1>
+    <h1>Karakterek</h1>
     <PointsBadge points={store.profile.totalPoints} compact />
   </header>
 
@@ -31,14 +31,12 @@
         disabled={!owned}
         onclick={() => store.select(character)}
       >
-        <CharacterSprite {character} mood={selected ? 'happy' : 'idle'} size={96} />
+        <div class="sprite-box">
+          <CharacterSprite {character} mood={selected ? 'happy' : 'idle'} size={96} />
+        </div>
         <span class="name">{character.name}</span>
         {#if !owned}
           <span class="meta">🔒 {character.price} pont</span>
-        {:else if selected}
-          <span class="meta chosen">✓ Kiválasztva</span>
-        {:else}
-          <span class="meta">○ Választ</span>
         {/if}
       </button>
     {/each}
@@ -87,12 +85,18 @@
     gap: 10px;
     padding: 16px;
     color: var(--ink);
-    min-height: 190px;
+    min-height: 200px;
     justify-content: center;
   }
+  /* A kiválasztott karakter vastag, színes keretet kap; a többi a sima kártyakeretet. */
   .item.selected {
     box-shadow: inset 0 0 0 2px var(--flame);
     border-color: var(--flame);
+  }
+  /* Fejtér az örülő animáció ugrásának (max 4 px × 6 = 24 px), hogy ne lógjon ki a kártyából. */
+  .sprite-box {
+    padding-top: 24px;
+    line-height: 0;
   }
   .locked {
     filter: saturate(0);
@@ -105,9 +109,6 @@
     font-size: 0.9rem;
     font-weight: 600;
     color: var(--ink-soft);
-  }
-  .chosen {
-    color: var(--flame);
   }
   .soon {
     border: 2px dashed var(--ink-soft);

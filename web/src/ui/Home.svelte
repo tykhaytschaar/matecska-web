@@ -38,7 +38,7 @@
 
   <div class="spacer"></div>
 
-  <button type="button" class="chunky bar" onclick={onCollection}>▦ Gyűjtemény</button>
+  <button type="button" class="chunky bar" onclick={onCollection}>▦ Karakterek</button>
 </div>
 
 <style>
