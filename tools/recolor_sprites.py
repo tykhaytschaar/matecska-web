@@ -3,7 +3,7 @@
 
 Bemenet: ../matecska/assets/matecska_sprites_1x.png (240x16, 15 db 16x16 kocka,
 DMG zöld rámpa: világos #8BAC0F, közép #306230, sötét #0F380F, átlátszó háttér).
-Kimenet: Matecska/Assets.xcassets/CatSprites.imageset/CatSprites.png
+Kimenet: web/public/sprites/cat.png
 
 A paletták a GameBoy projekt src/render.c fájljából származnak.
 Futtatás: ../matecska/.venv/bin/python tools/recolor_sprites.py
@@ -13,7 +13,7 @@ from PIL import Image
 
 ROOT = Path(__file__).resolve().parent.parent
 SRC = ROOT.parent / "matecska" / "assets" / "matecska_sprites_1x.png"
-DST = ROOT / "Matecska" / "Assets.xcassets" / "CatSprites.imageset" / "CatSprites.png"
+DST = ROOT / "web" / "public" / "sprites" / "cat.png"
 
 FRAME = 16
 DMG = {"L": (0x8B, 0xAC, 0x0F), "M": (0x30, 0x62, 0x30), "D": (0x0F, 0x38, 0x0F)}

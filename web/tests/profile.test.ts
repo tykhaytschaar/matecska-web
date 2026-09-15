@@ -26,12 +26,12 @@ describe('profil', () => {
     expect(p.stats.addition).toEqual({ solved: 3, correct: 1 });
   });
 
-  it('mentés és visszatöltés körút', () => {
+  it('mentés és visszatöltés körút', async () => {
     const storage = memoryStorage();
     const p = recordScore(dummyProfile(), { base: 10, bonus: 3, penalty: 0 }, true, 'division');
-    saveProfile(storage, p);
-    expect(storage.load()).not.toBeNull();
-    const reloaded = loadProfile(storage);
+    await saveProfile(storage, p);
+    expect(await storage.load()).not.toBeNull();
+    const reloaded = await loadProfile(storage);
     expect(reloaded).toEqual(p);
     expect(reloaded.totalPoints).toBe(13);
     expect(reloaded.stats.division?.correct).toBe(1);
@@ -52,10 +52,10 @@ describe('profil', () => {
     expect(JSON.parse(serializeProfile(p!))).toMatchObject({ totalPoints: 137, selectedCharacterID: 'cat' });
   });
 
-  it('hibás adatnál dummy profilt ad', () => {
+  it('hibás adatnál dummy profilt ad', async () => {
     expect(parseProfile('nem json')).toBeNull();
     expect(parseProfile('{"id": 3}')).toBeNull();
-    expect(loadProfile(memoryStorage('{}')).name).toBe('Játékos');
+    expect((await loadProfile(memoryStorage('{}'))).name).toBe('Játékos');
   });
 
   it('karakter feloldása pontért és kiválasztása', () => {

@@ -14,6 +14,7 @@
     submit,
     type SessionState,
   } from '../core/session';
+  import { resultFeedback, tapFeedback } from '../platform/haptics';
   import CharacterSprite, { type Mood } from '../sprites/CharacterSprite.svelte';
   import type { ProfileStore } from '../store/profileStore.svelte';
   import BonusBar from './BonusBar.svelte';
@@ -59,6 +60,7 @@
     const outcome = session.outcome;
     if (!outcome) return;
     mood = outcome.kind === 'correct' ? 'happy' : 'yuck';
+    resultFeedback(outcome.kind === 'correct');
     store.record(outcome.score, outcome.kind === 'correct', operation);
   }
 
@@ -114,8 +116,14 @@
 
   <Keypad
     disabled={submitted}
-    onDigit={(digit) => (session = enterDigit(session, digit))}
-    onDelete={() => (session = deleteDigit(session))}
+    onDigit={(digit) => {
+      tapFeedback();
+      session = enterDigit(session, digit);
+    }}
+    onDelete={() => {
+      tapFeedback();
+      session = deleteDigit(session);
+    }}
   />
 
   {#if submitted}

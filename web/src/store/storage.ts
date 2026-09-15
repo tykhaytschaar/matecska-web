@@ -1,10 +1,10 @@
 /**
- * A profil tárolásának absztrakciója. Most localStorage; később Capacitor Preferences
- * vagy szerveroldali fiók kerülhet mögé a felület módosítása nélkül.
+ * A profil tárolásának absztrakciója. Aszinkron, hogy natív tároló (Capacitor Preferences)
+ * és később szerveroldali fiók is kerülhessen mögé a felület módosítása nélkül.
  */
 export interface ProfileStorage {
-  load(): string | null;
-  save(json: string): void;
+  load(): Promise<string | null>;
+  save(json: string): Promise<void>;
 }
 
 export const PROFILE_KEY = 'matecska.profile';
@@ -12,27 +12,28 @@ export const PROFILE_KEY = 'matecska.profile';
 export function memoryStorage(initial: string | null = null): ProfileStorage {
   let value = initial;
   return {
-    load: () => value,
-    save: (json) => {
+    load: async () => value,
+    save: async (json) => {
       value = json;
     },
   };
 }
 
+/** Böngészős tároló localStorage-ban; privát módban vagy letiltott tárhelynél némán tárolás nélkül fut. */
 export function browserStorage(key: string = PROFILE_KEY): ProfileStorage {
   return {
-    load: () => {
+    load: async () => {
       try {
         return globalThis.localStorage?.getItem(key) ?? null;
       } catch {
         return null;
       }
     },
-    save: (json) => {
+    save: async (json) => {
       try {
         globalThis.localStorage?.setItem(key, json);
       } catch {
-        // privát mód vagy letiltott tárhely: a játék tárolás nélkül is működik
+        // nincs tárhely: a játék tárolás nélkül is működik
       }
     },
   };

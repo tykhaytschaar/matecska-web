@@ -1,11 +1,11 @@
 import { dummyProfile, parseProfile, serializeProfile, type PlayerProfile } from '../core/profile';
 import type { ProfileStorage } from './storage';
 
-export function loadProfile(storage: ProfileStorage): PlayerProfile {
-  const json = storage.load();
+export async function loadProfile(storage: ProfileStorage): Promise<PlayerProfile> {
+  const json = await storage.load();
   return (json && parseProfile(json)) || dummyProfile();
 }
 
-export function saveProfile(storage: ProfileStorage, profile: PlayerProfile): void {
-  storage.save(serializeProfile(profile));
+export async function saveProfile(storage: ProfileStorage, profile: PlayerProfile): Promise<void> {
+  await storage.save(serializeProfile(profile));
 }

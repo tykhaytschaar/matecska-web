@@ -1,16 +1,23 @@
 import type { GameCharacter } from '../core/characters';
 import type { MathOperation } from '../core/operation';
-import { recordScore, selectCharacter, unlockCharacter, type PlayerProfile } from '../core/profile';
+import { dummyProfile, recordScore, selectCharacter, unlockCharacter, type PlayerProfile } from '../core/profile';
 import type { ScoreBreakdown } from '../core/scoring';
 import { loadProfile, saveProfile } from './persistence';
 import type { ProfileStorage } from './storage';
 
 /** Reaktív profil-állapot: minden módosítás új profilt ad és azonnal ment. */
 export class ProfileStore {
-  profile = $state<PlayerProfile>() as PlayerProfile;
+  profile = $state<PlayerProfile>(dummyProfile());
+  /** Igaz, ha a tárolóból már betöltődött a mentett profil. */
+  ready = $state(false);
 
   constructor(private readonly storage: ProfileStorage) {
-    this.profile = loadProfile(storage);
+    void this.load();
+  }
+
+  private async load(): Promise<void> {
+    this.profile = await loadProfile(this.storage);
+    this.ready = true;
   }
 
   record(score: ScoreBreakdown, correct: boolean, operation: MathOperation): void {
@@ -30,6 +37,6 @@ export class ProfileStore {
 
   private commit(profile: PlayerProfile): void {
     this.profile = profile;
-    saveProfile(this.storage, profile);
+    void saveProfile(this.storage, profile);
   }
 }
