@@ -17,7 +17,7 @@
   } from '../core/session';
   import { resultFeedback, tapFeedback } from '../platform/haptics';
   import CharacterSprite, { type Mood } from '../sprites/CharacterSprite.svelte';
-  import type { ProfileStore } from '../store/profileStore.svelte';
+  import type { PlayerStore } from '../store/playerStore.svelte';
   import BonusBar from './BonusBar.svelte';
   import Keypad from './Keypad.svelte';
   import PointsBadge from './PointsBadge.svelte';
@@ -25,7 +25,7 @@
   import ResultBanner from './ResultBanner.svelte';
 
   interface Props {
-    store: ProfileStore;
+    store: PlayerStore;
     mode: PracticeMode;
     onBack: () => void;
     /** Tesztelhetőség: előre beállított kezdőállapot. */
@@ -62,7 +62,7 @@
     if (!outcome) return;
     mood = outcome.kind === 'correct' ? 'happy' : 'yuck';
     resultFeedback(outcome.kind === 'correct');
-    store.record(outcome.score, outcome.kind === 'correct', info.operation);
+    store.record(outcome.score, outcome.kind === 'correct', mode);
   }
 
   function handleNext() {

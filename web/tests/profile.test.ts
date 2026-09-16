@@ -3,8 +3,8 @@ import { CAT, type GameCharacter } from '../src/core/characters';
 import {
   dummyProfile, ownsCharacter, parseProfile, recordScore, resetStats, selectCharacter, selectedCharacter, serializeProfile, unlockCharacter,
 } from '../src/core/profile';
-import { loadProfile, saveProfile } from '../src/store/persistence';
-import { memoryStorage } from '../src/store/storage';
+import { loadLegacyProfile } from '../src/store/localCache';
+import { LEGACY_PROFILE_KEY, memoryStorage } from '../src/store/storage';
 
 describe('profil', () => {
   it('alapból dummy profil: 0 pont, macska birtokban és kiválasztva', () => {
@@ -34,15 +34,13 @@ describe('profil', () => {
     expect(ownsCharacter(p, CAT.id)).toBe(true);
   });
 
-  it('mentés és visszatöltés körút', async () => {
-    const storage = memoryStorage();
+  it('a fiók előtti helyi profil beolvasható a régi kulcsról', async () => {
     const p = recordScore(dummyProfile(), { base: 10, bonus: 3, penalty: 0 }, true, 'division');
-    await saveProfile(storage, p);
-    expect(await storage.load()).not.toBeNull();
-    const reloaded = await loadProfile(storage);
+    const storage = memoryStorage({ [LEGACY_PROFILE_KEY]: serializeProfile(p) });
+    const reloaded = await loadLegacyProfile(storage);
     expect(reloaded).toEqual(p);
-    expect(reloaded.totalPoints).toBe(13);
-    expect(reloaded.stats.division?.correct).toBe(1);
+    expect(reloaded?.totalPoints).toBe(13);
+    expect(await loadLegacyProfile(memoryStorage())).toBeNull();
   });
 
   it('az iOS app profile.json formátumát beolvassa', () => {
@@ -60,10 +58,10 @@ describe('profil', () => {
     expect(JSON.parse(serializeProfile(p!))).toMatchObject({ totalPoints: 137, selectedCharacterID: 'cat' });
   });
 
-  it('hibás adatnál dummy profilt ad', async () => {
+  it('hibás adatnál null', async () => {
     expect(parseProfile('nem json')).toBeNull();
     expect(parseProfile('{"id": 3}')).toBeNull();
-    expect((await loadProfile(memoryStorage('{}'))).name).toBe('Játékos');
+    expect(await loadLegacyProfile(memoryStorage({ [LEGACY_PROFILE_KEY]: '{}' }))).toBeNull();
   });
 
   it('karakter feloldása pontért és kiválasztása', () => {

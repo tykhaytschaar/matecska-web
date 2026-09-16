@@ -37,6 +37,9 @@ jobs:
         env:
           # A repó neve az alap útvonal GitHub Pages alatt; saját domainnél "/"-re állítandó.
           BASE_PATH: /${{ github.event.repository.name }}/
+          # Supabase projekt (Settings → Secrets and variables → Actions → Variables). Nyilvános értékek.
+          VITE_SUPABASE_URL: ${{ vars.SUPABASE_URL }}
+          VITE_SUPABASE_KEY: ${{ vars.SUPABASE_KEY }}
       - uses: actions/upload-pages-artifact@v5
         with:
           path: web/dist

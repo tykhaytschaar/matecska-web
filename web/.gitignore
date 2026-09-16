@@ -3,3 +3,5 @@ dist/
 dev-dist/
 .vite/
 *.log
+.env.local
+.env.*.local

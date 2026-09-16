@@ -3,16 +3,25 @@
   import { CAT } from '../core/characters';
   import { OPERATION_INFO, OPERATIONS } from '../core/operation';
   import CharacterSprite from '../sprites/CharacterSprite.svelte';
-  import type { ProfileStore } from '../store/profileStore.svelte';
+  import type { AccountStore } from '../store/account.svelte';
+  import { DEV_MODE_TAPS, type DevMode } from '../store/devMode.svelte';
+  import type { PlayerStore } from '../store/playerStore.svelte';
 
   interface Props {
-    store: ProfileStore;
+    store: PlayerStore;
+    account: AccountStore;
+    devMode: DevMode;
     onBack: () => void;
+    onSignOut: () => Promise<void>;
+    onDeleteAccount: () => Promise<void>;
   }
-  let { store, onBack }: Props = $props();
+  let { store, account, devMode, onBack, onSignOut, onDeleteAccount }: Props = $props();
 
-  /** A nullázás két koppintás: az első csak a megerősítő gombokat mutatja. */
-  let confirmingReset = $state(false);
+  /** Melyik veszélyes művelet vár megerősítésre: fióktörlés vagy egy gyerek nullázása. */
+  let confirming = $state<{ kind: 'delete' } | { kind: 'reset'; playerId: string } | null>(null);
+  let busy = $state(false);
+  let error = $state<string | null>(null);
+  let taps = 0;
 
   const stats = $derived(
     OPERATIONS.map((operation) => {
@@ -20,12 +29,6 @@
       return { operation, ...s, ratio: s.solved > 0 ? Math.round((s.correct / s.solved) * 100) : null };
     }),
   );
-  const totalSolved = $derived(stats.reduce((sum, s) => sum + s.solved, 0));
-
-  function handleReset() {
-    store.resetStats();
-    confirmingReset = false;
-  }
 
   const rows = [
     { label: 'Verzió', value: APP_INFO.version },
@@ -33,10 +36,37 @@
     { label: 'Fejlesztő', value: APP_INFO.developer },
   ];
 
+  const syncLabel = $derived(
+    store.syncStatus === 'synced' ? 'Szinkronizálva' : store.syncStatus === 'pending' ? 'Feltöltés folyamatban' : 'Nincs kapcsolat',
+  );
+
+  /** Rejtett kapcsoló: néhány koppintás a verziósorra. */
+  function tapVersion() {
+    taps += 1;
+    if (taps >= DEV_MODE_TAPS) {
+      taps = 0;
+      devMode.toggle();
+    }
+  }
+
+  async function run(action: () => Promise<void>, failure: string) {
+    if (busy) return;
+    busy = true;
+    error = null;
+    try {
+      await action();
+      confirming = null;
+    } catch {
+      error = failure;
+    } finally {
+      busy = false;
+    }
+  }
+
   function handleKey(event: KeyboardEvent) {
     if (event.key === 'Escape') {
       event.preventDefault();
-      if (confirmingReset) confirmingReset = false;
+      if (confirming) confirming = null;
       else onBack();
     }
   }
@@ -46,12 +76,10 @@
 
 <div class="screen">
   <header class="top">
-    <button type="button" class="back" onclick={onBack} aria-label="Vissza a főképernyőre">‹</button>
+    <button type="button" class="back" onclick={onBack} aria-label="Vissza">‹</button>
     <h1>Infó</h1>
     <span class="placeholder"></span>
   </header>
-
-  <div class="spacer"></div>
 
   <div class="hero">
     <CharacterSprite character={CAT} size={96} />
@@ -60,46 +88,95 @@
   </div>
 
   <dl class="card info">
-    {#each rows as row}
-      <div class="row">
-        <dt>{row.label}</dt>
-        <dd>{row.value}</dd>
-      </div>
+    {#each rows as row, i}
+      {#if i === 0}
+        <button type="button" class="row tappable" onclick={tapVersion}>
+          <dt>{row.label}</dt>
+          <dd>{row.value}</dd>
+        </button>
+      {:else}
+        <div class="row">
+          <dt>{row.label}</dt>
+          <dd>{row.value}</dd>
+        </div>
+      {/if}
     {/each}
   </dl>
 
-  <section class="card stats" aria-labelledby="stats-title">
-    <h2 id="stats-title">Statisztika</h2>
-    <table>
-      <thead>
-        <tr><th scope="col">Művelet</th><th scope="col" class="num">Megoldott</th><th scope="col" class="num">Helyes</th></tr>
-      </thead>
-      <tbody>
-        {#each stats as s}
-          <tr>
-            <th scope="row"><span class="sym">{OPERATION_INFO[s.operation].symbol}</span>{OPERATION_INFO[s.operation].title}</th>
-            <td class="num">{s.solved}</td>
-            <td class="num">{s.correct}{#if s.ratio !== null}<span class="ratio">{s.ratio}%</span>{/if}</td>
-          </tr>
-        {/each}
-      </tbody>
-    </table>
-    {#if confirmingReset}
+  {#if store.active}
+    <section class="card block" aria-labelledby="stats-title">
+      <h2 id="stats-title">{store.profile.name} statisztikája</h2>
+      <table>
+        <thead>
+          <tr><th scope="col">Művelet</th><th scope="col" class="num">Megoldott</th><th scope="col" class="num">Helyes</th></tr>
+        </thead>
+        <tbody>
+          {#each stats as s}
+            <tr>
+              <th scope="row"><span class="sym">{OPERATION_INFO[s.operation].symbol}</span>{OPERATION_INFO[s.operation].title}</th>
+              <td class="num">{s.solved}</td>
+              <td class="num">{s.correct}{#if s.ratio !== null}<span class="ratio">{s.ratio}%</span>{/if}</td>
+            </tr>
+          {/each}
+        </tbody>
+      </table>
+      <span class="meta">{syncLabel}</span>
+    </section>
+  {/if}
+
+  <section class="card block" aria-labelledby="account-title">
+    <h2 id="account-title">Szülői fiók</h2>
+    <span class="email">{account.user?.email}</span>
+    {#if confirming?.kind === 'delete'}
       <div class="confirm">
-        <span>Biztosan nullázod? A pontok megmaradnak.</span>
+        <span>Biztosan törlöd a fiókot? Minden gyerek, pont és statisztika végleg elvész.</span>
         <div class="actions">
-          <button type="button" class="pill" onclick={() => (confirmingReset = false)}>Mégse</button>
-          <button type="button" class="pill danger" onclick={handleReset}>Nullázás</button>
+          <button type="button" class="pill" onclick={() => (confirming = null)} disabled={busy}>Mégse</button>
+          <button type="button" class="pill danger" disabled={busy} onclick={() => run(onDeleteAccount, 'A törlés nem sikerült. Van internetkapcsolat?')}>
+            {busy ? 'Törlés…' : 'Végleges törlés'}
+          </button>
         </div>
       </div>
     {:else}
-      <button type="button" class="pill reset" disabled={totalSolved === 0} onclick={() => (confirmingReset = true)}>
-        Statisztika nullázása
-      </button>
+      <div class="actions">
+        <button type="button" class="pill" disabled={busy} onclick={() => run(onSignOut, 'A kijelentkezés nem sikerült.')}>
+          {busy ? 'Kijelentkezés…' : 'Kijelentkezés'}
+        </button>
+        <button type="button" class="pill danger" disabled={busy} onclick={() => (confirming = { kind: 'delete' })}>Fiók törlése</button>
+      </div>
     {/if}
+    {#if error}<p class="error" role="alert">{error}</p>{/if}
   </section>
 
-  <div class="spacer"></div>
+  {#if devMode.on}
+    <section class="card block dev" aria-labelledby="dev-title">
+      <h2 id="dev-title">Fejlesztői mód</h2>
+      {#each store.players as listing (listing.player.id)}
+        <div class="dev-row">
+          <span class="dev-name">{listing.player.name}</span>
+          {#if confirming?.kind === 'reset' && confirming.playerId === listing.player.id}
+            <div class="actions">
+              <button type="button" class="pill" onclick={() => (confirming = null)} disabled={busy}>Mégse</button>
+              <button
+                type="button"
+                class="pill danger"
+                disabled={busy}
+                onclick={() => run(() => store.resetPlayer(listing.player.id), 'A nullázás nem sikerült. Van internetkapcsolat?')}
+              >
+                {busy ? 'Nullázás…' : 'Biztosan'}
+              </button>
+            </div>
+          {:else}
+            <button type="button" class="pill" disabled={busy} onclick={() => (confirming = { kind: 'reset', playerId: listing.player.id })}>
+              Stat nullázása
+            </button>
+          {/if}
+        </div>
+      {/each}
+      <span class="meta">A nullázás a pontot, a statisztikát és a megvett karaktereket is törli.</span>
+      <button type="button" class="pill self-end" onclick={() => devMode.toggle()}>Fejlesztői mód ki</button>
+    </section>
+  {/if}
 </div>
 
 <style>
@@ -130,9 +207,6 @@
   .placeholder {
     width: 40px;
   }
-  .spacer {
-    flex: 1;
-  }
   .hero {
     display: flex;
     flex-direction: column;
@@ -160,9 +234,14 @@
     align-items: baseline;
     gap: 16px;
     padding: 12px 0;
+    width: 100%;
   }
   .row + .row {
     border-top: 1px solid var(--ink-faint);
+  }
+  .tappable {
+    text-align: left;
+    cursor: default;
   }
   dt {
     font-weight: 600;
@@ -173,7 +252,7 @@
     font-weight: 600;
     text-align: right;
   }
-  .stats {
+  .block {
     padding: 14px 16px 16px;
     display: flex;
     flex-direction: column;
@@ -215,8 +294,15 @@
     font-size: 0.8rem;
     color: var(--ink-soft);
   }
+  .meta {
+    font-size: 0.8rem;
+    color: var(--ink-soft);
+  }
+  .email {
+    font-weight: 600;
+    overflow-wrap: anywhere;
+  }
   .pill {
-    align-self: flex-end;
     padding: 8px 14px;
     border-radius: 999px;
     border: 2px solid var(--line);
@@ -225,12 +311,15 @@
     color: var(--ink);
   }
   .pill:disabled {
-    color: var(--ink-soft);
+    opacity: 0.5;
   }
   .pill.danger {
     background: var(--red);
     border-color: transparent;
     color: #fff;
+  }
+  .self-end {
+    align-self: flex-end;
   }
   .confirm {
     display: flex;
@@ -242,5 +331,22 @@
     display: flex;
     justify-content: flex-end;
     gap: 8px;
+    flex-wrap: wrap;
+  }
+  .error {
+    margin: 0;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--red);
+  }
+  .dev-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .dev-name {
+    font-weight: 600;
+    overflow-wrap: anywhere;
   }
 </style>

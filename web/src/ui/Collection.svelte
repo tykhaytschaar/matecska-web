@@ -2,11 +2,11 @@
   import { CATALOG } from '../core/characters';
   import { ownsCharacter } from '../core/profile';
   import CharacterSprite from '../sprites/CharacterSprite.svelte';
-  import type { ProfileStore } from '../store/profileStore.svelte';
+  import type { PlayerStore } from '../store/playerStore.svelte';
   import PointsBadge from './PointsBadge.svelte';
 
   interface Props {
-    store: ProfileStore;
+    store: PlayerStore;
     onBack: () => void;
   }
   let { store, onBack }: Props = $props();

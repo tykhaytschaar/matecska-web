@@ -1,10 +1,10 @@
 <script lang="ts">
   import { MODE_INFO, modesOf, OPERATION_INFO, type MathOperation, type PracticeMode } from '../core/operation';
-  import type { ProfileStore } from '../store/profileStore.svelte';
+  import type { PlayerStore } from '../store/playerStore.svelte';
   import PointsBadge from './PointsBadge.svelte';
 
   interface Props {
-    store: ProfileStore;
+    store: PlayerStore;
     operation: MathOperation;
     onPick: (mode: PracticeMode) => void;
     onBack: () => void;

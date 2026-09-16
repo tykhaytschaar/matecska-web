@@ -1,39 +1,51 @@
 /**
- * A profil tárolásának absztrakciója. Aszinkron, hogy natív tároló (Capacitor Preferences)
- * és később szerveroldali fiók is kerülhessen mögé a felület módosítása nélkül.
+ * Kulcs–érték tároló absztrakciója. Aszinkron, hogy natív tároló (Capacitor Preferences)
+ * és böngészős localStorage ugyanazon a felületen legyen elérhető.
  */
-export interface ProfileStorage {
-  load(): Promise<string | null>;
-  save(json: string): Promise<void>;
+export interface KeyValueStorage {
+  get(key: string): Promise<string | null>;
+  set(key: string, value: string): Promise<void>;
+  remove(key: string): Promise<void>;
 }
 
-export const PROFILE_KEY = 'matecska.profile';
+/** A fiók előtti, egyprofilos változat kulcsa; az első gyerek létrehozásakor átvesszük. */
+export const LEGACY_PROFILE_KEY = 'matecska.profile';
 
-export function memoryStorage(initial: string | null = null): ProfileStorage {
-  let value = initial;
+export function memoryStorage(initial: Record<string, string> = {}): KeyValueStorage {
+  const map = new Map(Object.entries(initial));
   return {
-    load: async () => value,
-    save: async (json) => {
-      value = json;
+    get: async (key) => map.get(key) ?? null,
+    set: async (key, value) => {
+      map.set(key, value);
+    },
+    remove: async (key) => {
+      map.delete(key);
     },
   };
 }
 
 /** Böngészős tároló localStorage-ban; privát módban vagy letiltott tárhelynél némán tárolás nélkül fut. */
-export function browserStorage(key: string = PROFILE_KEY): ProfileStorage {
+export function browserStorage(): KeyValueStorage {
   return {
-    load: async () => {
+    get: async (key) => {
       try {
         return globalThis.localStorage?.getItem(key) ?? null;
       } catch {
         return null;
       }
     },
-    save: async (json) => {
+    set: async (key, value) => {
       try {
-        globalThis.localStorage?.setItem(key, json);
+        globalThis.localStorage?.setItem(key, value);
       } catch {
         // nincs tárhely: a játék tárolás nélkül is működik
+      }
+    },
+    remove: async (key) => {
+      try {
+        globalThis.localStorage?.removeItem(key);
+      } catch {
+        // nincs mit törölni
       }
     },
   };

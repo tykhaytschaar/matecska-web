@@ -23,9 +23,17 @@ Az eredeti SwiftUI iOS változat a `2842602` commitig a git-történetben megtal
   feladatoknál azonnal, az írásbeli összeadásnál/kivonásnál 3 s, szorzásnál/osztásnál 5 s
   után kezd fogyni, periódusonként (alapból másodpercenként) eggyel. Helytelen válasz −1;
   az összpont nem megy nulla alá.
-- Helyben mentett profil: pontszám, műveletenkénti (fő kategória szerinti) statisztika,
-  birtokolt és kiválasztott karakter. Karakterek képernyő; a katalógus egy elem
-  hozzáadásával bővíthető.
+- Szülői fiók és gyerekprofilok: a szülő e-mail címére kapott kóddal lép be (jelszó nincs,
+  regisztráció és belépés ugyanaz a lépés), alatta tetszőleges számú gyerek becenévvel.
+  Gyerekenként külön pont, műveletenkénti statisztika, birtokolt és kiválasztott karakter.
+  A gyerekváltó a főképernyőn a gyerek nevére koppintva nyílik.
+- Offline-first: a válaszok helyben mentődnek és rövid késleltetéssel a szerverre kerülnek;
+  net nélkül a függő események megmaradnak a következő alkalomig. Az Infó képernyő mutatja
+  a szinkron állapotát.
+- Infó képernyő: verzió, az aktív gyerek statisztikája, kijelentkezés és fióktörlés. Rejtett
+  fejlesztői mód (7 koppintás a verziósorra): gyerekenként a statisztika, pont és karakterek
+  nullázása.
+- Karakterek képernyő; a katalógus egy elem hozzáadásával bővíthető.
 - Infó képernyő a főképernyő MATECSKA feliratára koppintva: verzió (a `web/package.json`-ból), a build ideje és a
   fejlesztő neve; a verziót és az időbélyeget a Vite fordításkor injektálja. Ugyanitt a
   műveletenkénti statisztika (megoldott, helyes, arány) és a nullázása, ami a pontokat nem érinti.
@@ -45,12 +53,38 @@ npm run preview   # a build kipróbálása
 ```
 
 Deploy: a `.github/workflows/web-pages.yml` minden `main`-re push után teszteli, buildeli
-és GitHub Pages-re teszi a `web/` mappát (`BASE_PATH` = a repó neve).
+és GitHub Pages-re teszi a `web/` mappát (`BASE_PATH` = a repó neve). A Supabase-adatok a repó
+Actions-változóiból jönnek (`SUPABASE_URL`, `SUPABASE_KEY`).
+
+### Backend (Supabase)
+
+A szülői fiók, a gyerekek és az eseménynapló egy Supabase-projektben él; a kliens közvetlenül
+hívja, saját szerver nincs. Beállítás egyszer:
+
+1. Projekt a [supabase.com](https://supabase.com) oldalon (ingyenes szint, EU régió).
+2. SQL Editor: a `supabase/schema.sql` tartalmát futtasd le (táblák, RLS, `player_summaries`
+   nézet, `reset_player` és `delete_account` függvények). Újrafuttatható.
+3. Authentication → Sign In / Providers → Email: bekapcsolva, „Confirm email" ki.
+   Authentication → Emails → Magic Link sablon: a link helyett a `{{ .Token }}` kód legyen a levélben.
+4. Project Settings → API: a Project URL és a publishable (anon) kulcs a `web/.env.local`-ba
+   (`VITE_SUPABASE_URL`, `VITE_SUPABASE_KEY`, minta: `web/.env.example`), és a GitHub repó
+   Actions-változói közé (`SUPABASE_URL`, `SUPABASE_KEY`).
+5. Élesben saját SMTP kell (Authentication → SMTP Settings), mert a beépített küldő óránként csak
+   néhány levelet enged.
+
+Adatmodell: `players` (szülő, becenév, kiválasztott karakter, a fiók előtti helyi profil egyszeri
+átvétele), `attempts` (egy beküldött válasz: művelet, alkategória, helyes-e, könyvelt pont),
+`purchases` (karaktervásárlás). A pont és a stat ezekből számolódik; az esemény-azonosítót a kliens
+adja, így az újraküldés idempotens.
+
+Szerver nélküli fejlesztéshez `VITE_FAKE_BACKEND=1` a `.env.local`-ban: memóriabeli utánzat,
+bármilyen hatjegyű kód belép, az adatok a böngésző localStorage-ában maradnak.
 
 Szerkezet: `src/core` (tiszta TypeScript modell: műveletek és alkategóriák, feladatok,
-pontozás, gyakorlás-állapot, karakterek, profil), `src/store` és `src/platform` (profil tárolása: böngészőben
-localStorage, natívan Capacitor Preferences, később backend), `src/sprites` (animált sprite), `src/ui` (képernyők),
-`tests/` (Vitest). A profil JSON-sémája azonos az iOS app `profile.json` fájljával.
+pontozás, gyakorlás-állapot, karakterek, profil, események és a gyerek állapotának levezetése),
+`src/store` (bejelentkezés, gyerekek és szinkron; helyi gyorstár böngészőben localStorage-ban,
+natívan Capacitor Preferences-ben; Supabase-kliens), `src/platform` (platformválasztás, Supabase
+vagy fejlesztői utánzat), `src/sprites` (animált sprite), `src/ui` (képernyők), `tests/` (Vitest).
 
 Ikonok: `../matecska/.venv/bin/python tools/make_icons.py` a `web/public/icons` mappába
 (és az iOS-projekt AppIcon + Splash képeibe, ha a `web/ios` létezik).

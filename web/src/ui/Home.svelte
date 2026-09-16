@@ -2,16 +2,17 @@
   import { OPERATION_INFO, OPERATIONS, type MathOperation } from '../core/operation';
   import { selectedCharacter } from '../core/profile';
   import CharacterSprite from '../sprites/CharacterSprite.svelte';
-  import type { ProfileStore } from '../store/profileStore.svelte';
+  import type { PlayerStore } from '../store/playerStore.svelte';
   import PointsBadge from './PointsBadge.svelte';
 
   interface Props {
-    store: ProfileStore;
+    store: PlayerStore;
     onPractice: (operation: MathOperation) => void;
     onCollection: () => void;
     onAbout: () => void;
+    onPlayers: () => void;
   }
-  let { store, onPractice, onCollection, onAbout }: Props = $props();
+  let { store, onPractice, onCollection, onAbout, onPlayers }: Props = $props();
 </script>
 
 <div class="screen">
@@ -24,6 +25,7 @@
 
   <div class="hero">
     <CharacterSprite character={selectedCharacter(store.profile)} size={144} />
+    <button type="button" class="who" onclick={onPlayers} aria-label="Gyerek váltása">{store.profile.name}</button>
   </div>
 
   <h1>Mit gyakoroljunk?</h1>
@@ -66,7 +68,26 @@
   }
   .hero {
     display: flex;
-    justify-content: center;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+  }
+  /* A gyerek neve kattintható: a gyerekválasztót nyitja. */
+  .who {
+    padding: 6px 16px;
+    border-radius: 999px;
+    border: 2px solid var(--line);
+    background: var(--card);
+    box-shadow: var(--shadow);
+    font-weight: 600;
+    color: var(--ink);
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .who:active {
+    opacity: 0.6;
   }
   h1 {
     margin: 0;
