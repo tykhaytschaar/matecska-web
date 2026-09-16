@@ -9,7 +9,7 @@ export interface SyncResult {
 }
 
 /**
- * Egy gyerek helyi állapotának egyeztetése a szerverrel: a módosult sor és a függő
+ * Egy játékos helyi állapotának egyeztetése a szerverrel: a módosult sor és a függő
  * események felmennek, majd a friss összesítés lejön. Hiba (pl. nincs net) esetén a helyi
  * állapot marad, a függő események megőrződnek, és a státusz `offline`.
  *

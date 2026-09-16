@@ -8,7 +8,7 @@ export interface PlayerListing {
 
 /**
  * A szerver felülete a bejelentkezett szülő nevében. A jogosultságot a szerver ellenőrzi
- * (Supabase RLS); itt csak a saját gyerekek érhetők el.
+ * (Supabase RLS); itt csak a saját játékosok érhetők el.
  */
 export interface Backend {
   listPlayers(): Promise<PlayerListing[]>;
@@ -17,7 +17,7 @@ export interface Backend {
   /** Idempotens: már ismert azonosítójú eseményt csendben átugor. */
   pushEvents(events: PlayerEvent[]): Promise<void>;
   fetchSummary(playerId: string): Promise<PlayerSummary>;
-  /** Fejlesztői mód: a gyerek minden eseményének és átvett adatának törlése. */
+  /** Fejlesztői mód: a játékos minden eseményének és átvett adatának törlése. */
   resetPlayer(playerId: string): Promise<void>;
 }
 

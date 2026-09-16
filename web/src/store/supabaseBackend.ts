@@ -8,6 +8,7 @@ interface PlayerRow {
   name: string;
   selected_character_id: string;
   imported: unknown;
+  point_adjustment: number | null;
   created_at: string;
 }
 
@@ -15,7 +16,6 @@ interface SummaryRow {
   player_id: string;
   points_delta: number | string;
   stats: unknown;
-  purchased_character_ids: string[] | null;
 }
 
 function toRecord(row: PlayerRow): PlayerRecord {
@@ -24,6 +24,7 @@ function toRecord(row: PlayerRow): PlayerRecord {
     name: row.name,
     selectedCharacterID: row.selected_character_id,
     imported: parseImported(row.imported),
+    pointAdjustment: Number(row.point_adjustment) || 0,
     createdAt: row.created_at,
   };
 }
@@ -32,7 +33,6 @@ function toSummary(row: SummaryRow): PlayerSummary {
   return {
     pointsDelta: Number(row.points_delta) || 0,
     stats: parseStats(row.stats),
-    purchasedCharacterIDs: row.purchased_character_ids ?? [],
   };
 }
 
@@ -69,15 +69,18 @@ export function supabaseBackend(client: SupabaseClient): Backend {
     async updatePlayer(player: PlayerRecord): Promise<void> {
       const { error } = await client
         .from('players')
-        .update({ name: player.name, selected_character_id: player.selectedCharacterID, imported: player.imported })
+        .update({
+          name: player.name,
+          selected_character_id: player.selectedCharacterID,
+          imported: player.imported,
+          point_adjustment: player.pointAdjustment,
+        })
         .eq('id', player.id);
       if (error) fail(error);
     },
 
     async pushEvents(events: PlayerEvent[]): Promise<void> {
-      const attempts = events
-        .filter((e) => e.kind === 'attempt')
-        .map((e) => ({
+      const attempts = events.map((e) => ({
           id: e.id,
           player_id: e.playerId,
           operation: e.operation,
@@ -86,18 +89,8 @@ export function supabaseBackend(client: SupabaseClient): Backend {
           points: e.points,
           created_at: e.createdAt,
         }));
-      const purchases = events
-        .filter((e) => e.kind === 'purchase')
-        .map((e) => ({ id: e.id, player_id: e.playerId, character_id: e.characterId, price: e.price, created_at: e.createdAt }));
       if (attempts.length) {
         const { error } = await client.from('attempts').upsert(attempts, { onConflict: 'id', ignoreDuplicates: true });
-        if (error) fail(error);
-      }
-      if (purchases.length) {
-        // Ugyanazt a karaktert két eszközről is megvehették: a második csendben elmarad.
-        const { error } = await client
-          .from('purchases')
-          .upsert(purchases, { onConflict: 'player_id,character_id', ignoreDuplicates: true });
         if (error) fail(error);
       }
     },

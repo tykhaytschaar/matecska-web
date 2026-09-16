@@ -28,17 +28,12 @@ export function fakeServices(storage: KeyValueStorage): { auth: AuthClient; back
   const persist = () => storage.set(DB_KEY, JSON.stringify({ players, events: [...events.values()] }));
 
   const summaryOf = (playerId: string): PlayerSummary => {
-    const summary: PlayerSummary = { pointsDelta: 0, stats: {}, purchasedCharacterIDs: [] };
+    const summary: PlayerSummary = { pointsDelta: 0, stats: {} };
     for (const e of events.values()) {
       if (e.playerId !== playerId) continue;
-      if (e.kind === 'attempt') {
-        summary.pointsDelta += e.points;
-        const prev = summary.stats[e.operation] ?? { solved: 0, correct: 0 };
-        summary.stats[e.operation] = { solved: prev.solved + 1, correct: prev.correct + (e.correct ? 1 : 0) };
-      } else {
-        summary.pointsDelta -= e.price;
-        summary.purchasedCharacterIDs.push(e.characterId);
-      }
+      summary.pointsDelta += e.points;
+      const prev = summary.stats[e.operation] ?? { solved: 0, correct: 0 };
+      summary.stats[e.operation] = { solved: prev.solved + 1, correct: prev.correct + (e.correct ? 1 : 0) };
     }
     return summary;
   };
@@ -89,6 +84,7 @@ export function fakeServices(storage: KeyValueStorage): { auth: AuthClient; back
         name,
         selectedCharacterID: 'cat',
         imported,
+        pointAdjustment: 0,
         createdAt: new Date().toISOString(),
       };
       players.push(player);
@@ -114,7 +110,7 @@ export function fakeServices(storage: KeyValueStorage): { auth: AuthClient; back
       await latency();
       for (const [id, e] of events) if (e.playerId === playerId) events.delete(id);
       const i = players.findIndex((p) => p.id === playerId);
-      if (i >= 0) players[i] = { ...players[i], imported: null, selectedCharacterID: 'cat' };
+      if (i >= 0) players[i] = { ...players[i], imported: null, selectedCharacterID: 'cat', pointAdjustment: 0 };
       await persist();
     },
   };

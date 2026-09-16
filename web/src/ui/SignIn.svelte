@@ -67,7 +67,7 @@
   <div class="hero">
     <CharacterSprite character={CAT} size={96} />
     <span class="name">Matecska</span>
-    <span class="tagline">Szülői belépés</span>
+    <span class="tagline">Belépés</span>
   </div>
 
   {#if step === 'email'}
@@ -113,7 +113,7 @@
     </form>
   {/if}
 
-  <p class="note">A gyerekek a szülő fiókja alatt játszanak; róluk csak becenevet és pontokat tárolunk.</p>
+  <p class="note">A játékosok egy közös fiók alatt játszanak; róluk csak becenevet és pontokat tárolunk.</p>
 
   <div class="spacer"></div>
 </div>

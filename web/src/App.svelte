@@ -30,7 +30,7 @@
   let screen = $state<Screen>({ kind: 'home' });
   const goHome = () => (screen = { kind: 'home' });
 
-  /** A bejelentkezett szülőhöz tartozó gyerekek; fiókváltásnál újraépül. */
+  /** A bejelentkezett fiókhoz tartozó játékosok; fiókváltásnál újraépül. */
   let store = $state<PlayerStore | null>(null);
   $effect(() => {
     const userId = account?.user?.id ?? null;

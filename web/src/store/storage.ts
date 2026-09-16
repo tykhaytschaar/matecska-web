@@ -8,7 +8,7 @@ export interface KeyValueStorage {
   remove(key: string): Promise<void>;
 }
 
-/** A fiók előtti, egyprofilos változat kulcsa; az első gyerek létrehozásakor átvesszük. */
+/** A fiók előtti, egyprofilos változat kulcsa; az első játékos létrehozásakor átvesszük. */
 export const LEGACY_PROFILE_KEY = 'matecska.profile';
 
 export function memoryStorage(initial: Record<string, string> = {}): KeyValueStorage {

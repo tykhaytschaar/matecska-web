@@ -1,4 +1,4 @@
-import { CAT, findCharacter, type GameCharacter } from './characters';
+import { CAT, findCharacter, unlockedCharacterIDs, type GameCharacter } from './characters';
 import { isMathOperation, type MathOperation } from './operation';
 import { totalPoints, type ScoreBreakdown } from './scoring';
 
@@ -55,9 +55,11 @@ export function recordScore(
   operation: MathOperation,
 ): PlayerProfile {
   const previous = profile.stats[operation] ?? { solved: 0, correct: 0 };
+  const total = Math.max(0, profile.totalPoints + totalPoints(score));
   return {
     ...profile,
-    totalPoints: Math.max(0, profile.totalPoints + totalPoints(score)),
+    totalPoints: total,
+    ownedCharacterIDs: unlockedCharacterIDs(total),
     stats: {
       ...profile.stats,
       [operation]: { solved: previous.solved + 1, correct: previous.correct + (correct ? 1 : 0) },
@@ -73,16 +75,6 @@ export function resetStats(profile: PlayerProfile): PlayerProfile {
 export function selectCharacter(profile: PlayerProfile, character: GameCharacter): PlayerProfile {
   if (!ownsCharacter(profile, character.id)) return profile;
   return { ...profile, selectedCharacterID: character.id };
-}
-
-/** Karakter megvásárlása pontért; `null`, ha nem lehet (már megvan, vagy kevés a pont). */
-export function unlockCharacter(profile: PlayerProfile, character: GameCharacter): PlayerProfile | null {
-  if (ownsCharacter(profile, character.id) || profile.totalPoints < character.price) return null;
-  return {
-    ...profile,
-    totalPoints: profile.totalPoints - character.price,
-    ownedCharacterIDs: [...profile.ownedCharacterIDs, character.id],
-  };
 }
 
 /** Óvatos beolvasás: hibás vagy hiányos adatnál `null`. */

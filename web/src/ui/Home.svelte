@@ -1,7 +1,8 @@
 <script lang="ts">
   import { OPERATION_INFO, OPERATIONS, type MathOperation } from '../core/operation';
   import { selectedCharacter } from '../core/profile';
-  import CharacterSprite from '../sprites/CharacterSprite.svelte';
+  import { HOME_WALK } from '../core/walk';
+  import CharacterStage from '../sprites/CharacterStage.svelte';
   import type { PlayerStore } from '../store/playerStore.svelte';
   import PointsBadge from './PointsBadge.svelte';
 
@@ -24,8 +25,8 @@
   <div class="spacer"></div>
 
   <div class="hero">
-    <CharacterSprite character={selectedCharacter(store.profile)} size={144} />
-    <button type="button" class="who" onclick={onPlayers} aria-label="Gyerek váltása">{store.profile.name}</button>
+    <CharacterStage character={selectedCharacter(store.profile)} size={112} mood="walk" walk={HOME_WALK} />
+    <button type="button" class="who" onclick={onPlayers} aria-label="Játékos váltása">{store.profile.name}</button>
   </div>
 
   <h1>Mit gyakoroljunk?</h1>
@@ -72,7 +73,7 @@
     align-items: center;
     gap: 10px;
   }
-  /* A gyerek neve kattintható: a gyerekválasztót nyitja. */
+  /* A játékos neve kattintható: a játékosválasztót nyitja. */
   .who {
     padding: 6px 16px;
     border-radius: 999px;

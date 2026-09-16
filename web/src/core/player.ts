@@ -1,15 +1,17 @@
-import { CAT, findCharacter } from './characters';
+import { CAT, findCharacter, unlockedCharacterIDs } from './characters';
 import type { PlayerEvent } from './events';
 import { isMathOperation, type MathOperation } from './operation';
 import type { OperationStats, PlayerProfile } from './profile';
 
-/** Egy gyerek sora a szerveren. */
+/** Egy játékos sora a szerveren. */
 export interface PlayerRecord {
   id: string;
   name: string;
   selectedCharacterID: string;
   /** A fiók előtti, készüléken gyűjtött adatok egyszeri átvétele; egyébként `null`. */
   imported: ImportedProfile | null;
+  /** Fejlesztői módban beállított pontkorrekció; a pont ennyivel tér el a válaszok összegétől. */
+  pointAdjustment: number;
   createdAt: string;
 }
 
@@ -19,18 +21,17 @@ export interface ImportedProfile {
   ownedCharacterIDs: string[];
 }
 
-/** A szerver összesítése a gyerek eseménynaplójából (`player_summaries` nézet). */
+/** A szerver összesítése a játékos eseménynaplójából (`player_summaries` nézet). */
 export interface PlayerSummary {
-  /** Válaszokért kapott pont mínusz a vásárlások ára. */
+  /** A válaszokért kapott pontok összege. */
   pointsDelta: number;
   stats: Partial<Record<MathOperation, OperationStats>>;
-  purchasedCharacterIDs: string[];
 }
 
-export const EMPTY_SUMMARY: PlayerSummary = { pointsDelta: 0, stats: {}, purchasedCharacterIDs: [] };
+export const EMPTY_SUMMARY: PlayerSummary = { pointsDelta: 0, stats: {} };
 
 /**
- * A gyerek helyi állapota: a szerverről ismert sor és összesítés, plusz a még fel nem
+ * A játékos helyi állapota: a szerverről ismert sor és összesítés, plusz a még fel nem
  * töltött események. A képernyőkön látott profil ebből számolódik.
  */
 export interface PlayerState {
@@ -60,37 +61,32 @@ function addStats(
 export function buildProfile(state: PlayerState): PlayerProfile {
   const { player, summary, pending } = state;
   const stats: PlayerProfile['stats'] = {};
-  const owned = new Set<string>([CAT.id]);
   let points = 0;
 
   if (player.imported) {
     points += player.imported.totalPoints;
     addStats(stats, player.imported.stats);
-    player.imported.ownedCharacterIDs.forEach((id) => owned.add(id));
   }
-  points += summary.pointsDelta;
+  points += summary.pointsDelta + player.pointAdjustment;
   addStats(stats, summary.stats);
-  summary.purchasedCharacterIDs.forEach((id) => owned.add(id));
 
   for (const event of pending) {
-    if (event.kind === 'attempt') {
-      points += event.points;
-      const prev = stats[event.operation] ?? { solved: 0, correct: 0 };
-      stats[event.operation] = { solved: prev.solved + 1, correct: prev.correct + (event.correct ? 1 : 0) };
-    } else {
-      points -= event.price;
-      owned.add(event.characterId);
-    }
+    points += event.points;
+    const prev = stats[event.operation] ?? { solved: 0, correct: 0 };
+    stats[event.operation] = { solved: prev.solved + 1, correct: prev.correct + (event.correct ? 1 : 0) };
   }
 
-  const selected = owned.has(player.selectedCharacterID) && findCharacter(player.selectedCharacterID)
+  // A karakterek pontküszöbre oldódnak fel, a pont nem fogy: a birtoklás az összpontból következik.
+  const total = Math.max(0, points);
+  const owned = unlockedCharacterIDs(total);
+  const selected = owned.includes(player.selectedCharacterID) && findCharacter(player.selectedCharacterID)
     ? player.selectedCharacterID
     : CAT.id;
   return {
     id: player.id,
     name: player.name,
-    totalPoints: Math.max(0, points),
-    ownedCharacterIDs: [...owned],
+    totalPoints: total,
+    ownedCharacterIDs: owned,
     selectedCharacterID: selected,
     stats,
   };
@@ -99,8 +95,7 @@ export function buildProfile(state: PlayerState): PlayerProfile {
 /** A fiók nélküli helyi profilból átvehető adat; `null`, ha nincs mit átvenni. */
 export function importFrom(profile: PlayerProfile): ImportedProfile | null {
   const hasStats = Object.values(profile.stats).some((s) => s && s.solved > 0);
-  const hasCharacters = profile.ownedCharacterIDs.some((id) => id !== CAT.id);
-  if (profile.totalPoints <= 0 && !hasStats && !hasCharacters) return null;
+  if (profile.totalPoints <= 0 && !hasStats) return null;
   return {
     totalPoints: profile.totalPoints,
     stats: profile.stats,

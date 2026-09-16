@@ -24,7 +24,7 @@ class FakeBackend implements Backend {
   }
   async createPlayer(name: string, imported: ImportedProfile | null): Promise<PlayerRecord> {
     this.guard('create');
-    const player = { id: `p${this.players.length + 1}`, name, selectedCharacterID: 'cat', imported, createdAt: '' };
+    const player = { id: `p${this.players.length + 1}`, name, selectedCharacterID: 'cat', imported, pointAdjustment: 0, createdAt: '' };
     this.players.push(player);
     return player;
   }
@@ -38,17 +38,12 @@ class FakeBackend implements Backend {
   }
   async fetchSummary(playerId: string): Promise<PlayerSummary> {
     this.guard('summary');
-    const summary: PlayerSummary = { pointsDelta: 0, stats: {}, purchasedCharacterIDs: [] };
+    const summary: PlayerSummary = { pointsDelta: 0, stats: {} };
     for (const e of this.events.values()) {
       if (e.playerId !== playerId) continue;
-      if (e.kind === 'attempt') {
-        summary.pointsDelta += e.points;
-        const prev = summary.stats[e.operation] ?? { solved: 0, correct: 0 };
-        summary.stats[e.operation] = { solved: prev.solved + 1, correct: prev.correct + (e.correct ? 1 : 0) };
-      } else {
-        summary.pointsDelta -= e.price;
-        summary.purchasedCharacterIDs.push(e.characterId);
-      }
+      summary.pointsDelta += e.points;
+      const prev = summary.stats[e.operation] ?? { solved: 0, correct: 0 };
+      summary.stats[e.operation] = { solved: prev.solved + 1, correct: prev.correct + (e.correct ? 1 : 0) };
     }
     return summary;
   }
@@ -58,7 +53,7 @@ class FakeBackend implements Backend {
   }
 }
 
-const player: PlayerRecord = { id: 'p1', name: 'Anna', selectedCharacterID: 'cat', imported: null, createdAt: '' };
+const player: PlayerRecord = { id: 'p1', name: 'Anna', selectedCharacterID: 'cat', imported: null, pointAdjustment: 0, createdAt: '' };
 const good = { base: 10, bonus: 5, penalty: 0 };
 
 describe('szinkron a szerverrel', () => {
@@ -129,7 +124,7 @@ describe('helyi gyorstár', () => {
     const storage = memoryStorage();
     const cache = new LocalCache(storage, 'u1');
     const other = new LocalCache(storage, 'u2');
-    const listing: PlayerListing = { player, summary: { pointsDelta: 3, stats: { addition: { solved: 1, correct: 1 } }, purchasedCharacterIDs: ['fox'] } };
+    const listing: PlayerListing = { player, summary: { pointsDelta: 3, stats: { addition: { solved: 1, correct: 1 } } } };
     await cache.savePlayers([listing]);
     await cache.saveActiveId('p1');
     const state = { ...freshState(player), pending: [attemptEvent(buildProfile(freshState(player)), good, true, 'addition-single')], dirty: true };

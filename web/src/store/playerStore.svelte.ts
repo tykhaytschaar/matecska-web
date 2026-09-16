@@ -1,7 +1,7 @@
 import type { GameCharacter } from '../core/characters';
-import { attemptEvent, purchaseEvent } from '../core/events';
+import { attemptEvent } from '../core/events';
 import type { PracticeMode } from '../core/operation';
-import { buildProfile, freshState, importFrom, type ImportedProfile, type PlayerState } from '../core/player';
+import { buildProfile, EMPTY_SUMMARY, freshState, importFrom, type ImportedProfile, type PlayerState } from '../core/player';
 import { dummyProfile, ownsCharacter, type PlayerProfile } from '../core/profile';
 import type { ScoreBreakdown } from '../core/scoring';
 import type { Backend, PlayerListing } from './backend';
@@ -13,7 +13,7 @@ import { mergePending, syncPlayer, type SyncStatus } from './sync';
 const SYNC_DELAY_MS = 1500;
 
 /**
- * A szülő gyerekei és az aktív gyerek játékállapota. Minden módosítás azonnal helyben
+ * A fiók játékosai és az aktív játékos játékállapota. Minden módosítás azonnal helyben
  * mentődik, és rövid késleltetéssel a szerverre kerül; net nélkül a függő események
  * megmaradnak a következő alkalomig.
  */
@@ -24,7 +24,7 @@ export class PlayerStore {
   ready = $state(false);
   /** A szerver elérhetetlen volt az utolsó próbálkozásnál. */
   offline = $state(false);
-  /** A fiók nélküli, korábbi helyi profil, amit az első gyerek átvehet. */
+  /** A fiók nélküli, korábbi helyi profil, amit az első játékos átvehet. */
   legacy = $state<PlayerProfile | null>(null);
 
   profile = $derived<PlayerProfile>(this.active ? buildProfile(this.active) : dummyProfile());
@@ -64,7 +64,7 @@ export class PlayerStore {
     void this.sync();
   }
 
-  /** A gyereklista frissítése a szerverről; net nélkül a gyorstár marad. */
+  /** A játékoslista frissítése a szerverről; net nélkül a gyorstár marad. */
   async refreshPlayers(): Promise<void> {
     try {
       const listing = await this.backend.listPlayers();
@@ -79,7 +79,7 @@ export class PlayerStore {
     }
   }
 
-  /** Új gyerek; ha még nincs egy sem és van korábbi helyi profil, azt átveszi. */
+  /** Új játékos; ha még nincs egy sem és van korábbi helyi profil, azt átveszi. */
   async createPlayer(name: string): Promise<void> {
     let imported: ImportedProfile | null = null;
     if (this.players.length === 0 && this.legacy) imported = importFrom(this.legacy);
@@ -89,7 +89,7 @@ export class PlayerStore {
       await removeLegacyProfile(this.storage);
       this.legacy = null;
     }
-    const listing: PlayerListing = { player, summary: { pointsDelta: 0, stats: {}, purchasedCharacterIDs: [] } };
+    const listing: PlayerListing = { player, summary: EMPTY_SUMMARY };
     this.players = [...this.players, listing];
     await this.cache.savePlayers(this.players);
     await this.activate(player.id);
@@ -124,19 +124,29 @@ export class PlayerStore {
     this.commit({ ...this.active, player: { ...this.active.player, selectedCharacterID: character.id }, dirty: true });
   }
 
-  unlock(character: GameCharacter): boolean {
-    if (!this.active || ownsCharacter(this.profile, character.id) || this.profile.totalPoints < character.price) return false;
-    const event = purchaseEvent(this.profile, character);
-    this.commit({ ...this.active, pending: [...this.active.pending, event] });
-    return true;
+  /** Fejlesztői mód: a játékos összpontja a megadott értékre áll (pontkorrekcióval, a válaszok maradnak). */
+  async setPoints(playerId: string, target: number): Promise<void> {
+    const goal = Math.max(0, Math.floor(target));
+    if (this.active?.player.id === playerId) {
+      const delta = goal - this.profile.totalPoints;
+      this.commit({ ...this.active, player: { ...this.active.player, pointAdjustment: this.active.player.pointAdjustment + delta }, dirty: true });
+      await this.flush();
+      return;
+    }
+    const listing = this.players.find((l) => l.player.id === playerId);
+    if (!listing) return;
+    const current = buildProfile(freshState(listing.player, listing.summary)).totalPoints;
+    const player = { ...listing.player, pointAdjustment: listing.player.pointAdjustment + (goal - current) };
+    await this.backend.updatePlayer(player);
+    await this.refreshPlayers();
   }
 
-  /** Fejlesztői mód: egy gyerek statisztikája, pontja és karakterei törlődnek a szerveren és helyben. */
+  /** Fejlesztői mód: egy játékos statisztikája, pontja és karakterei törlődnek a szerveren és helyben. */
   async resetPlayer(playerId: string): Promise<void> {
     await this.backend.resetPlayer(playerId);
     await this.cache.removeState(playerId);
     if (this.active?.player.id === playerId) {
-      this.active = freshState({ ...this.active.player, imported: null, selectedCharacterID: 'cat' });
+      this.active = freshState({ ...this.active.player, imported: null, selectedCharacterID: 'cat', pointAdjustment: 0 });
       await this.cache.saveState(this.active);
     }
     await this.refreshPlayers();

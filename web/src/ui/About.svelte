@@ -2,6 +2,7 @@
   import { APP_INFO, formatBuildTime } from '../core/appInfo';
   import { CAT } from '../core/characters';
   import { OPERATION_INFO, OPERATIONS } from '../core/operation';
+  import { buildProfile, freshState } from '../core/player';
   import CharacterSprite from '../sprites/CharacterSprite.svelte';
   import type { AccountStore } from '../store/account.svelte';
   import { DEV_MODE_TAPS, type DevMode } from '../store/devMode.svelte';
@@ -17,11 +18,27 @@
   }
   let { store, account, devMode, onBack, onSignOut, onDeleteAccount }: Props = $props();
 
-  /** Melyik veszélyes művelet vár megerősítésre: fióktörlés vagy egy gyerek nullázása. */
+  /** Melyik veszélyes művelet vár megerősítésre: fióktörlés vagy egy játékos nullázása. */
   let confirming = $state<{ kind: 'delete' } | { kind: 'reset'; playerId: string } | null>(null);
   let busy = $state(false);
   let error = $state<string | null>(null);
   let taps = 0;
+  /** Fejlesztői mód: játékosonként a beírt új pontszám. */
+  let pointInputs = $state<Record<string, string>>({});
+
+  /** A játékos mostani összpontja: az aktívnál a friss profilból, a többinél a szerver összesítéséből. */
+  function pointsOf(listing: (typeof store.players)[number]): number {
+    return store.active?.player.id === listing.player.id
+      ? store.profile.totalPoints
+      : buildProfile(freshState(listing.player, listing.summary)).totalPoints;
+  }
+
+  async function applyPoints(playerId: string) {
+    const value = Number(pointInputs[playerId]);
+    if (!Number.isFinite(value)) return;
+    await run(() => store.setPoints(playerId, value), 'A pont beállítása nem sikerült. Van internetkapcsolat?');
+    pointInputs = { ...pointInputs, [playerId]: '' };
+  }
 
   const stats = $derived(
     OPERATIONS.map((operation) => {
@@ -125,11 +142,11 @@
   {/if}
 
   <section class="card block" aria-labelledby="account-title">
-    <h2 id="account-title">Szülői fiók</h2>
+    <h2 id="account-title">Fiók</h2>
     <span class="email">{account.user?.email}</span>
     {#if confirming?.kind === 'delete'}
       <div class="confirm">
-        <span>Biztosan törlöd a fiókot? Minden gyerek, pont és statisztika végleg elvész.</span>
+        <span>Biztosan törlöd a fiókot? Minden játékos, pont és statisztika végleg elvész.</span>
         <div class="actions">
           <button type="button" class="pill" onclick={() => (confirming = null)} disabled={busy}>Mégse</button>
           <button type="button" class="pill danger" disabled={busy} onclick={() => run(onDeleteAccount, 'A törlés nem sikerült. Van internetkapcsolat?')}>
@@ -153,7 +170,19 @@
       <h2 id="dev-title">Fejlesztői mód</h2>
       {#each store.players as listing (listing.player.id)}
         <div class="dev-row">
-          <span class="dev-name">{listing.player.name}</span>
+          <span class="dev-name">{listing.player.name} <span class="meta">{pointsOf(listing)} pont</span></span>
+          <form class="points" onsubmit={(e) => { e.preventDefault(); void applyPoints(listing.player.id); }}>
+            <input
+              type="text"
+              inputmode="numeric"
+              pattern="[0-9]*"
+              placeholder="új pont"
+              aria-label="{listing.player.name} új pontszáma"
+              bind:value={pointInputs[listing.player.id]}
+              disabled={busy}
+            />
+            <button type="submit" class="pill" disabled={busy || !/^\d+$/.test(pointInputs[listing.player.id] ?? '')}>Beállít</button>
+          </form>
           {#if confirming?.kind === 'reset' && confirming.playerId === listing.player.id}
             <div class="actions">
               <button type="button" class="pill" onclick={() => (confirming = null)} disabled={busy}>Mégse</button>
@@ -173,7 +202,7 @@
           {/if}
         </div>
       {/each}
-      <span class="meta">A nullázás a pontot, a statisztikát és a megvett karaktereket is törli.</span>
+      <span class="meta">A pont beállítása korrekcióként kerül a játékosra, a válaszok maradnak. A nullázás a pontot és a statisztikát is törli.</span>
       <button type="button" class="pill self-end" onclick={() => devMode.toggle()}>Fejlesztői mód ki</button>
     </section>
   {/if}
@@ -343,7 +372,26 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 12px;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .points {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+  }
+  .points input {
+    font: inherit;
+    width: 6em;
+    padding: 6px 10px;
+    border-radius: 999px;
+    border: 2px solid var(--line);
+    background: var(--paper);
+    color: var(--ink);
+  }
+  .points input:focus {
+    outline: none;
+    border-color: var(--flame);
   }
   .dev-name {
     font-weight: 600;

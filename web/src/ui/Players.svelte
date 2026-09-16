@@ -7,7 +7,7 @@
 
   interface Props {
     store: PlayerStore;
-    /** Egy gyerek kiválasztása után; `onBack` csak akkor, ha van aktív gyerek, akihez visszatérhetünk. */
+    /** Egy játékos kiválasztása után; `onBack` csak akkor, ha van aktív játékos, akihez visszatérhetünk. */
     onPick: () => void;
     onBack: (() => void) | null;
     onAbout: () => void;
@@ -20,7 +20,7 @@
   let error = $state<string | null>(null);
 
   const nameValid = $derived(name.trim().length > 0 && name.trim().length <= 40);
-  /** Az első gyerek átveszi a fiók előtti helyi profilt, ha az nem üres. */
+  /** Az első játékos átveszi a fiók előtti helyi profilt, ha az nem üres. */
   const importing = $derived(store.players.length === 0 && store.legacy && store.legacy.totalPoints > 0 ? store.legacy : null);
 
   const entries = $derived(
@@ -110,7 +110,7 @@
           disabled={busy !== null}
         />
         {#if importing}
-          <p class="hint">A készüléken mentett {importing.totalPoints} pont és a statisztika ehhez a gyerekhez kerül.</p>
+          <p class="hint">A készüléken mentett {importing.totalPoints} pont és a statisztika ehhez a játékoshoz kerül.</p>
         {/if}
         {#if error}<p class="error" role="alert">{error}</p>{/if}
         <div class="actions">
@@ -122,13 +122,13 @@
       </form>
     {:else}
       <button type="button" class="item add" onclick={() => (adding = true)} disabled={busy !== null}>
-        + Új gyerek
+        + Új játékos
       </button>
     {/if}
   </div>
 
   {#if store.offline && entries.length === 0}
-    <p class="hint center">Nincs kapcsolat, a gyereklista most nem tölthető be.</p>
+    <p class="hint center">Nincs kapcsolat, a játékoslista most nem tölthető be.</p>
   {/if}
 
   <div class="spacer"></div>

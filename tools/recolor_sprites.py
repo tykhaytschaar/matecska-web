@@ -3,7 +3,8 @@
 
 Bemenet: ../matecska/assets/matecska_sprites_1x.png (240x16, 15 db 16x16 kocka,
 DMG zöld rámpa: világos #8BAC0F, közép #306230, sötét #0F380F, átlátszó háttér).
-Kimenet: web/public/sprites/cat.png
+Kimenet: web/public/sprites/cat.png, kétszeresre nagyítva (480x32, 32x32-es kockák), mert az
+app karakterei 32-es rácsban készülnek; a macska frameSize értéke a characters.ts-ben 32.
 
 A paletták a GameBoy projekt src/render.c fájljából származnak.
 Futtatás: ../matecska/.venv/bin/python tools/recolor_sprites.py
@@ -16,6 +17,7 @@ SRC = ROOT.parent / "matecska" / "assets" / "matecska_sprites_1x.png"
 DST = ROOT / "web" / "public" / "sprites" / "cat.png"
 
 FRAME = 16
+SCALE = 2
 DMG = {"L": (0x8B, 0xAC, 0x0F), "M": (0x30, 0x62, 0x30), "D": (0x0F, 0x38, 0x0F)}
 
 CAT = {"L": (0xFF, 0xB3, 0x47), "M": (0xC6, 0x5D, 0x1E), "D": (0x1A, 0x1A, 0x1A)}
@@ -57,6 +59,7 @@ def main() -> None:
             out.putpixel((x, y), (*pal[key], 255))
     if unknown:
         raise SystemExit(f"Ismeretlen színek a forrásban: {sorted(unknown)}")
+    out = out.resize((out.width * SCALE, out.height * SCALE), Image.NEAREST)
     DST.parent.mkdir(parents=True, exist_ok=True)
     out.save(DST)
     print(f"OK {DST.relative_to(ROOT)} {out.size}")

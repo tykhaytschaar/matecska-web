@@ -1,10 +1,32 @@
 import { describe, expect, it } from 'vitest';
-import { CAT, type GameCharacter } from '../src/core/characters';
+import { BLACK_CAT, CAT, CATALOG, unlockedCharacterIDs, WHITE_CAT } from '../src/core/characters';
 import {
-  dummyProfile, ownsCharacter, parseProfile, recordScore, resetStats, selectCharacter, selectedCharacter, serializeProfile, unlockCharacter,
+  dummyProfile, ownsCharacter, parseProfile, recordScore, resetStats, selectCharacter, selectedCharacter, serializeProfile,
 } from '../src/core/profile';
 import { loadLegacyProfile } from '../src/store/localCache';
 import { LEGACY_PROFILE_KEY, memoryStorage } from '../src/store/storage';
+
+describe('karakter-katalógus', () => {
+  it('minden karakter kockái a saját csíkján belül vannak, az árak nem negatívak', () => {
+    for (const c of CATALOG) {
+      const all = [...c.frames.idle, ...c.frames.walk, ...c.frames.happy, ...c.frames.yuck, c.fxFrame];
+      expect(all.every((f) => f >= 0 && f < c.frameCount)).toBe(true);
+      expect(c.frames.happyOffsets).toHaveLength(c.frames.happy.length);
+      expect(c.frames.yuckOffsets).toHaveLength(c.frames.yuck.length);
+      expect(c.unlockAt).toBeGreaterThanOrEqual(0);
+    }
+    expect(new Set(CATALOG.map((c) => c.id)).size).toBe(CATALOG.length);
+    expect(CATALOG[0]).toBe(CAT);
+    expect(CAT.unlockAt).toBe(0);
+  });
+
+  it('a karakterek pontküszöbre oldódnak fel', () => {
+    expect(unlockedCharacterIDs(0)).toEqual([CAT.id]);
+    expect(unlockedCharacterIDs(BLACK_CAT.unlockAt - 1)).toEqual([CAT.id]);
+    expect(unlockedCharacterIDs(BLACK_CAT.unlockAt)).toEqual([CAT.id, BLACK_CAT.id]);
+    expect(unlockedCharacterIDs(WHITE_CAT.unlockAt)).toEqual([CAT.id, BLACK_CAT.id, WHITE_CAT.id]);
+  });
+});
 
 describe('profil', () => {
   it('alapból dummy profil: 0 pont, macska birtokban és kiválasztva', () => {
@@ -64,16 +86,16 @@ describe('profil', () => {
     expect(await loadLegacyProfile(memoryStorage({ [LEGACY_PROFILE_KEY]: '{}' }))).toBeNull();
   });
 
-  it('karakter feloldása pontért és kiválasztása', () => {
-    const premium: GameCharacter = { ...CAT, id: 'test', name: 'Teszt', price: 30 };
+  it('a pont elérésével a karakter feloldódik, kiválasztható, és a pont nem fogy', () => {
     let p = dummyProfile();
-    expect(unlockCharacter(p, premium)).toBeNull();
-    p = recordScore(p, { base: 10, bonus: 10, penalty: 0 }, true, 'addition');
-    p = recordScore(p, { base: 10, bonus: 10, penalty: 0 }, true, 'addition');
-    const unlocked = unlockCharacter(p, premium);
-    expect(unlocked?.totalPoints).toBe(10);
-    expect(unlocked && ownsCharacter(unlocked, 'test')).toBe(true);
-    expect(selectCharacter(unlocked!, premium).selectedCharacterID).toBe('test');
-    expect(selectCharacter(p, premium).selectedCharacterID).toBe('cat');
+    expect(selectCharacter(p, BLACK_CAT).selectedCharacterID).toBe('cat');
+    for (let i = 0; i < BLACK_CAT.unlockAt / 20; i++) p = recordScore(p, { base: 10, bonus: 10, penalty: 0 }, true, 'addition');
+    expect(p.totalPoints).toBe(BLACK_CAT.unlockAt);
+    expect(ownsCharacter(p, BLACK_CAT.id)).toBe(true);
+    expect(ownsCharacter(p, WHITE_CAT.id)).toBe(false);
+    const selected = selectCharacter(p, BLACK_CAT);
+    expect(selected.selectedCharacterID).toBe(BLACK_CAT.id);
+    expect(selected.totalPoints).toBe(BLACK_CAT.unlockAt);
   });
+
 });

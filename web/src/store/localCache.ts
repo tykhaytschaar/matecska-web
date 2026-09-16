@@ -5,7 +5,7 @@ import type { PlayerListing } from './backend';
 import { LEGACY_PROFILE_KEY, type KeyValueStorage } from './storage';
 
 /**
- * A szülő fiókjához tartozó helyi gyorstár: a gyereklista és gyerekenként az állapot a
+ * A szülő fiókjához tartozó helyi gyorstár: a játékoslista és játékosonként az állapot a
  * függő eseményekkel. Felhasználónként külön kulcsok, hogy egy készüléken több fiók se
  * lásson át egymásba. Az app net nélkül ebből dolgozik.
  */
@@ -91,6 +91,7 @@ function parseRecord(raw: unknown): PlayerRecord | null {
     name: r.name,
     selectedCharacterID: typeof r.selectedCharacterID === 'string' ? r.selectedCharacterID : 'cat',
     imported: parseImported(r.imported),
+    pointAdjustment: typeof r.pointAdjustment === 'number' ? r.pointAdjustment : 0,
     createdAt: typeof r.createdAt === 'string' ? r.createdAt : '',
   };
 }
@@ -101,9 +102,6 @@ function parseSummary(raw: unknown): PlayerSummary {
   return {
     pointsDelta: typeof r.pointsDelta === 'number' ? r.pointsDelta : 0,
     stats: parseStats(r.stats),
-    purchasedCharacterIDs: Array.isArray(r.purchasedCharacterIDs)
-      ? r.purchasedCharacterIDs.filter((id): id is string => typeof id === 'string')
-      : [],
   };
 }
 
@@ -118,11 +116,8 @@ function isEvent(raw: unknown): raw is PlayerEvent {
   if (typeof raw !== 'object' || raw === null) return false;
   const r = raw as Record<string, unknown>;
   if (typeof r.id !== 'string' || typeof r.playerId !== 'string' || typeof r.createdAt !== 'string') return false;
-  if (r.kind === 'attempt') {
-    return typeof r.operation === 'string' && typeof r.mode === 'string' && typeof r.correct === 'boolean' && typeof r.points === 'number';
-  }
-  if (r.kind === 'purchase') return typeof r.characterId === 'string' && typeof r.price === 'number';
-  return false;
+  if (r.kind !== 'attempt') return false;
+  return typeof r.operation === 'string' && typeof r.mode === 'string' && typeof r.correct === 'boolean' && typeof r.points === 'number';
 }
 
 function parseState(raw: unknown): PlayerState | null {

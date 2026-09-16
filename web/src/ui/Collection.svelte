@@ -10,6 +10,7 @@
     onBack: () => void;
   }
   let { store, onBack }: Props = $props();
+
 </script>
 
 <div class="screen">
@@ -36,14 +37,13 @@
         </div>
         <span class="name">{character.name}</span>
         {#if !owned}
-          <span class="meta">🔒 {character.price} pont</span>
+          <span class="meta">🔒 {character.unlockAt} ponttól</span>
         {/if}
       </button>
     {/each}
     <div class="item soon">
       <span class="sparkle">✦</span>
       <span class="name">Hamarosan</span>
-      <span class="meta">Új karakterek pontért</span>
     </div>
   </div>
 </div>

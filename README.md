@@ -23,17 +23,20 @@ Az eredeti SwiftUI iOS változat a `2842602` commitig a git-történetben megtal
   feladatoknál azonnal, az írásbeli összeadásnál/kivonásnál 3 s, szorzásnál/osztásnál 5 s
   után kezd fogyni, periódusonként (alapból másodpercenként) eggyel. Helytelen válasz −1;
   az összpont nem megy nulla alá.
-- Szülői fiók és gyerekprofilok: a szülő e-mail címére kapott kóddal lép be (jelszó nincs,
-  regisztráció és belépés ugyanaz a lépés), alatta tetszőleges számú gyerek becenévvel.
-  Gyerekenként külön pont, műveletenkénti statisztika, birtokolt és kiválasztott karakter.
-  A gyerekváltó a főképernyőn a gyerek nevére koppintva nyílik.
+- Fiók és játékosprofilok: a szülő (vagy a felnőtt játékos) e-mail címére kapott kóddal lép be (jelszó nincs,
+  regisztráció és belépés ugyanaz a lépés), alatta tetszőleges számú játékos becenévvel.
+  Játékosonként külön pont, műveletenkénti statisztika, birtokolt és kiválasztott karakter.
+  A játékosváltó a főképernyőn a játékos nevére koppintva nyílik. A cica a két szél közt sétál,
+  a szélén megáll; gyakorlás közben is sétál, beküldésre megáll és szívvel vagy könnycseppel reagál.
 - Offline-first: a válaszok helyben mentődnek és rövid késleltetéssel a szerverre kerülnek;
   net nélkül a függő események megmaradnak a következő alkalomig. Az Infó képernyő mutatja
   a szinkron állapotát.
-- Infó képernyő: verzió, az aktív gyerek statisztikája, kijelentkezés és fióktörlés. Rejtett
-  fejlesztői mód (7 koppintás a verziósorra): gyerekenként a statisztika, pont és karakterek
-  nullázása.
-- Karakterek képernyő; a katalógus egy elem hozzáadásával bővíthető.
+- Infó képernyő: verzió, az aktív játékos statisztikája, kijelentkezés és fióktörlés. Rejtett
+  fejlesztői mód (7 koppintás a verziósorra): játékosonként a pont tetszőleges értékre állítása
+  (a válaszok maradnak, egy pontkorrekció kerül a játékosra) és a statisztika, pont nullázása.
+- Karakterek képernyő: a karakterek pontküszöbre oldódnak fel, a pont nem fogy (Matecska alapból,
+  Fekete cica 500, Fehér cica 1000 ponttól). Új karakter: egy elem a `characters.ts` katalógusába
+  küszöbbel, plusz a sprite-csíkja a `public/sprites` mappába.
 - Infó képernyő a főképernyő MATECSKA feliratára koppintva: verzió (a `web/package.json`-ból), a build ideje és a
   fejlesztő neve; a verziót és az időbélyeget a Vite fordításkor injektálja. Ugyanitt a
   műveletenkénti statisztika (megoldott, helyes, arány) és a nullázása, ami a pontokat nem érinti.
@@ -58,7 +61,7 @@ Actions-változóiból jönnek (`SUPABASE_URL`, `SUPABASE_KEY`).
 
 ### Backend (Supabase)
 
-A szülői fiók, a gyerekek és az eseménynapló egy Supabase-projektben él; a kliens közvetlenül
+A fiók, a játékosok és az eseménynapló egy Supabase-projektben él; a kliens közvetlenül
 hívja, saját szerver nincs. Beállítás egyszer:
 
 1. Projekt a [supabase.com](https://supabase.com) oldalon (ingyenes szint, EU régió).
@@ -73,18 +76,24 @@ hívja, saját szerver nincs. Beállítás egyszer:
    néhány levelet enged.
 
 Adatmodell: `players` (szülő, becenév, kiválasztott karakter, a fiók előtti helyi profil egyszeri
-átvétele), `attempts` (egy beküldött válasz: művelet, alkategória, helyes-e, könyvelt pont),
-`purchases` (karaktervásárlás). A pont és a stat ezekből számolódik; az esemény-azonosítót a kliens
-adja, így az újraküldés idempotens.
+átvétele), `attempts` (egy beküldött válasz: művelet, alkategória, helyes-e, könyvelt pont). A pont
+és a stat ebből számolódik, a karakterek a pontból; az esemény-azonosítót a kliens adja, így az
+újraküldés idempotens.
 
 Szerver nélküli fejlesztéshez `VITE_FAKE_BACKEND=1` a `.env.local`-ban: memóriabeli utánzat,
 bármilyen hatjegyű kód belép, az adatok a böngésző localStorage-ában maradnak.
 
 Szerkezet: `src/core` (tiszta TypeScript modell: műveletek és alkategóriák, feladatok,
-pontozás, gyakorlás-állapot, karakterek, profil, események és a gyerek állapotának levezetése),
-`src/store` (bejelentkezés, gyerekek és szinkron; helyi gyorstár böngészőben localStorage-ban,
+pontozás, gyakorlás-állapot, karakterek, profil, események és a játékos állapotának levezetése),
+`src/store` (bejelentkezés, játékosok és szinkron; helyi gyorstár böngészőben localStorage-ban,
 natívan Capacitor Preferences-ben; Supabase-kliens), `src/platform` (platformválasztás, Supabase
 vagy fejlesztői utánzat), `src/sprites` (animált sprite), `src/ui` (képernyők), `tests/` (Vitest).
+
+Sprite-ok: 32×32-es kockák egy vízszintes csíkban, tetszőleges palettával. A karakter `frameSize`
+mezője adja a rácsot, az animációs eltolások és a szív/csepp helye (`fx`) ebben a rácsban értendők.
+A macska csíkját a `tools/recolor_sprites.py` színezi át a GameBoy-projekt 16×16-os forrásából és
+nagyítja kétszeresre. A hatás-kocka (szív, könnycsepp) minden karakter csíkjában szerepel, a `fxFrame`
+mutat rá.
 
 Ikonok: `../matecska/.venv/bin/python tools/make_icons.py` a `web/public/icons` mappába
 (és az iOS-projekt AppIcon + Splash képeibe, ha a `web/ios` létezik).

@@ -16,7 +16,9 @@
     type SessionState,
   } from '../core/session';
   import { resultFeedback, tapFeedback } from '../platform/haptics';
-  import CharacterSprite, { type Mood } from '../sprites/CharacterSprite.svelte';
+  import { PRACTICE_WALK } from '../core/walk';
+  import CharacterStage from '../sprites/CharacterStage.svelte';
+  import { type Mood } from '../sprites/CharacterSprite.svelte';
   import type { PlayerStore } from '../store/playerStore.svelte';
   import BonusBar from './BonusBar.svelte';
   import Keypad from './Keypad.svelte';
@@ -37,7 +39,8 @@
 
   // svelte-ignore state_referenced_locally
   let session = $state.raw<SessionState>(initial ?? createSession(mode, nowSeconds()));
-  let mood = $state<Mood>('idle');
+  /** Sétál, amíg nincs beküldve; beküldésre megáll és az eredmény szerint reagál. */
+  let mood = $state<Mood>('walk');
   let now = $state(nowSeconds());
 
   const info = $derived(MODE_INFO[mode]);
@@ -66,7 +69,7 @@
   }
 
   function handleNext() {
-    mood = 'idle';
+    mood = 'walk';
     session = nextExercise(session, nowSeconds());
     now = nowSeconds();
   }
@@ -102,13 +105,11 @@
   <header class="top">
     <button type="button" class="back" onclick={onBack} aria-label="Vissza a főképernyőre">‹</button>
     <div class="spacer"></div>
-    <div class="right">
-      <CharacterSprite character={selectedCharacter(store.profile)} {mood} size={36} />
-      <PointsBadge points={store.profile.totalPoints} compact />
-    </div>
+    <PointsBadge points={store.profile.totalPoints} compact />
   </header>
 
-  <div class="spacer"></div>
+  <!-- A cica a fejléc és a feladat közti üres helyen jár; szűk elrendezésnél a sáv a kockaméretre húzódik. -->
+  <CharacterStage character={selectedCharacter(store.profile)} size={64} {mood} walk={PRACTICE_WALK} grow />
 
   <div class="problem">
     <Problem
@@ -159,11 +160,6 @@
     display: flex;
     align-items: center;
     justify-content: center;
-  }
-  .right {
-    display: flex;
-    align-items: center;
-    gap: 10px;
   }
   .spacer {
     flex: 1;
