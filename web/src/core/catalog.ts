@@ -57,5 +57,7 @@ export function parseCatalog(raw: unknown): Catalog | null {
     characters.push(c);
   }
   if (!characters.some((c) => c.id === 'cat' && c.unlockAt === 0)) return null;
+  // Megjelenítési sorrend: feloldási küszöb szerint, egyenlőnél a fájlbeli sorrend marad.
+  characters.sort((a, b) => a.unlockAt - b.unlockAt);
   return { version: r.version, characters };
 }

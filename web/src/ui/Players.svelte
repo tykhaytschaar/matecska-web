@@ -25,8 +25,9 @@
 
   const entries = $derived(
     store.players.map((listing) => {
-      const profile = buildProfile(freshState(listing.player, listing.summary));
-      return { id: listing.player.id, name: listing.player.name, profile, character: selectedCharacter(profile) };
+      const catalog = store.catalog.characters;
+      const profile = buildProfile(freshState(listing.player, listing.summary), catalog);
+      return { id: listing.player.id, name: listing.player.name, profile, character: selectedCharacter(profile, catalog) };
     }),
   );
 

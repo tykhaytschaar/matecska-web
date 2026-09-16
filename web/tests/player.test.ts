@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { CAT, findCharacter } from '../src/core/characters';
+import { CAT, CATALOG } from '../src/core/characters';
 
-const BLACK_CAT = findCharacter('blackcat')!;
+/** A katalógus küszöb szerint első zárt karaktere; a teszt nem függ a konkrét nevektől. */
+const FIRST_LOCKED = [...CATALOG].sort((a, b) => a.unlockAt - b.unlockAt).find((c) => c.unlockAt > 0)!;
 import { attemptEvent } from '../src/core/events';
 import { buildProfile, freshState, importFrom, parseImported, type PlayerRecord } from '../src/core/player';
 import { dummyProfile } from '../src/core/profile';
@@ -38,13 +39,13 @@ describe('gyerek állapota és a profil levezetése', () => {
   });
 
   it('a küszöb elérésével a karakter feloldódik és kiválasztva maradhat', () => {
-    const below = buildProfile(freshState({ ...player, selectedCharacterID: BLACK_CAT.id }, { pointsDelta: BLACK_CAT.unlockAt - 1, stats: {} }));
-    expect(below.ownedCharacterIDs).toEqual([CAT.id]);
+    const below = buildProfile(freshState({ ...player, selectedCharacterID: FIRST_LOCKED.id }, { pointsDelta: FIRST_LOCKED.unlockAt - 1, stats: {} }));
+    expect(below.ownedCharacterIDs).not.toContain(FIRST_LOCKED.id);
     expect(below.selectedCharacterID).toBe(CAT.id);
-    const at = buildProfile(freshState({ ...player, selectedCharacterID: BLACK_CAT.id }, { pointsDelta: BLACK_CAT.unlockAt, stats: {} }));
-    expect(at.ownedCharacterIDs).toEqual([CAT.id, BLACK_CAT.id]);
-    expect(at.selectedCharacterID).toBe(BLACK_CAT.id);
-    expect(at.totalPoints).toBe(BLACK_CAT.unlockAt);
+    const at = buildProfile(freshState({ ...player, selectedCharacterID: FIRST_LOCKED.id }, { pointsDelta: FIRST_LOCKED.unlockAt, stats: {} }));
+    expect(at.ownedCharacterIDs).toContain(FIRST_LOCKED.id);
+    expect(at.selectedCharacterID).toBe(FIRST_LOCKED.id);
+    expect(at.totalPoints).toBe(FIRST_LOCKED.unlockAt);
   });
 
   it('ismeretlen kiválasztott karakternél a macska a fallback', () => {
@@ -63,9 +64,9 @@ describe('gyerek állapota és a profil levezetése', () => {
   });
 
   it('a fejlesztői pontkorrekció hozzáadódik, de a pont nem megy nulla alá', () => {
-    const plus = buildProfile(freshState({ ...player, pointAdjustment: BLACK_CAT.unlockAt }, { pointsDelta: 20, stats: {} }));
-    expect(plus.totalPoints).toBe(BLACK_CAT.unlockAt + 20);
-    expect(plus.ownedCharacterIDs).toContain(BLACK_CAT.id);
+    const plus = buildProfile(freshState({ ...player, pointAdjustment: FIRST_LOCKED.unlockAt }, { pointsDelta: 20, stats: {} }));
+    expect(plus.totalPoints).toBe(FIRST_LOCKED.unlockAt + 20);
+    expect(plus.ownedCharacterIDs).toContain(FIRST_LOCKED.id);
     const minus = buildProfile(freshState({ ...player, pointAdjustment: -100 }, { pointsDelta: 20, stats: {} }));
     expect(minus.totalPoints).toBe(0);
   });

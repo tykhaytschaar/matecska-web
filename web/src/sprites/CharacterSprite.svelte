@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { GameCharacter } from '../core/characters';
+  import { spriteSource, type GameCharacter } from '../core/characters';
 
   /** `stand`: mozdulatlan (a séta közti megállás); `idle`: helyben pislog. */
   export type Mood = 'idle' | 'stand' | 'walk' | 'happy' | 'yuck';
@@ -56,7 +56,7 @@
 
   /** Egy rács-pixel CSS pixelben. */
   const pixel = $derived(size / character.frameSize);
-  const url = $derived(`${import.meta.env.BASE_URL}sprites/${character.spriteSheet}`);
+  const url = $derived(spriteSource(character, import.meta.env.BASE_URL));
   const sheet = $derived(`${character.frameCount * size}px ${size}px`);
 
   /** Szív a fej fölött, az ugrással együtt emelkedik; csepp a fej mellett, lépésenként lejjebb (8 lépés ciklus). */

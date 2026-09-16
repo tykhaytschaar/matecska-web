@@ -30,7 +30,7 @@
   function pointsOf(listing: (typeof store.players)[number]): number {
     return store.active?.player.id === listing.player.id
       ? store.profile.totalPoints
-      : buildProfile(freshState(listing.player, listing.summary)).totalPoints;
+      : buildProfile(freshState(listing.player, listing.summary), store.catalog.characters).totalPoints;
   }
 
   async function applyPoints(playerId: string) {
@@ -47,11 +47,15 @@
     }),
   );
 
-  const rows = [
+  const catalogLabel = $derived(
+    `v${store.catalog.version} · ${store.catalog.source === 'bundled' ? 'beépített' : store.catalog.source === 'cached' ? 'mentett' : 'szerver'}`,
+  );
+  const rows = $derived([
     { label: 'Verzió', value: APP_INFO.version },
+    { label: 'Karakterek', value: catalogLabel },
     { label: 'Build ideje', value: formatBuildTime(APP_INFO.builtAt) },
     { label: 'Fejlesztő', value: APP_INFO.developer },
-  ];
+  ]);
 
   const syncLabel = $derived(
     store.syncStatus === 'synced' ? 'Szinkronizálva' : store.syncStatus === 'pending' ? 'Feltöltés folyamatban' : 'Nincs kapcsolat',

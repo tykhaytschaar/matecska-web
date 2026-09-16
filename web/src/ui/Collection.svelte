@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { CATALOG } from '../core/characters';
   import { ownsCharacter } from '../core/profile';
   import CharacterSprite from '../sprites/CharacterSprite.svelte';
   import type { PlayerStore } from '../store/playerStore.svelte';
@@ -21,7 +20,7 @@
   </header>
 
   <div class="grid">
-    {#each CATALOG as character}
+    {#each store.catalog.characters as character (character.id)}
       {@const owned = ownsCharacter(store.profile, character.id)}
       {@const selected = store.profile.selectedCharacterID === character.id}
       <button

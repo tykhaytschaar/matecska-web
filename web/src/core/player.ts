@@ -1,4 +1,4 @@
-import { CAT, findCharacter, unlockedCharacterIDs } from './characters';
+import { CAT, CATALOG, findCharacter, unlockedCharacterIDs, type GameCharacter } from './characters';
 import type { PlayerEvent } from './events';
 import { isMathOperation, type MathOperation } from './operation';
 import type { OperationStats, PlayerProfile } from './profile';
@@ -58,7 +58,7 @@ function addStats(
 }
 
 /** Az összesítésből, az átvett adatból és a függő eseményekből a megjelenített profil. */
-export function buildProfile(state: PlayerState): PlayerProfile {
+export function buildProfile(state: PlayerState, catalog: readonly GameCharacter[] = CATALOG): PlayerProfile {
   const { player, summary, pending } = state;
   const stats: PlayerProfile['stats'] = {};
   let points = 0;
@@ -78,8 +78,8 @@ export function buildProfile(state: PlayerState): PlayerProfile {
 
   // A karakterek pontküszöbre oldódnak fel, a pont nem fogy: a birtoklás az összpontból következik.
   const total = Math.max(0, points);
-  const owned = unlockedCharacterIDs(total);
-  const selected = owned.includes(player.selectedCharacterID) && findCharacter(player.selectedCharacterID)
+  const owned = unlockedCharacterIDs(total, catalog);
+  const selected = owned.includes(player.selectedCharacterID) && findCharacter(player.selectedCharacterID, catalog)
     ? player.selectedCharacterID
     : CAT.id;
   return {

@@ -2,6 +2,8 @@
   import { modesOf, type MathOperation, type PracticeMode } from './core/operation';
   import { createServices } from './platform/services';
   import { platformStorage } from './platform/storage';
+  import { catalogBaseUrl } from './platform/supabase';
+  import { CatalogStore } from './store/catalogStore.svelte';
   import { AccountStore } from './store/account.svelte';
   import { DevMode } from './store/devMode.svelte';
   import { PlayerStore } from './store/playerStore.svelte';
@@ -23,6 +25,7 @@
 
   const storage = platformStorage();
   const devMode = new DevMode(storage);
+  const catalog = new CatalogStore(storage, catalogBaseUrl());
   const services = createServices(storage);
   const account = services ? new AccountStore(services.auth) : null;
   const backend = services?.backend ?? null;
@@ -38,7 +41,7 @@
       store = null;
       return;
     }
-    const next = new PlayerStore(storage, backend, userId);
+    const next = new PlayerStore(storage, backend, catalog, userId);
     store = next;
     screen = { kind: 'home' };
     return () => next.dispose();

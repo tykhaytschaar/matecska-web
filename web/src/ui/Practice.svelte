@@ -1,6 +1,5 @@
 <script lang="ts">
   import { MODE_INFO, type PracticeMode } from '../core/operation';
-  import { selectedCharacter } from '../core/profile';
   import { bonus, bonusFraction } from '../core/scoring';
   import {
     canSubmit,
@@ -109,7 +108,7 @@
   </header>
 
   <!-- A cica a fejléc és a feladat közti üres helyen jár; szűk elrendezésnél a sáv a kockaméretre húzódik. -->
-  <CharacterStage character={selectedCharacter(store.profile)} size={64} {mood} walk={PRACTICE_WALK} grow />
+  <CharacterStage character={store.character} size={64} {mood} walk={PRACTICE_WALK} grow />
 
   <div class="problem">
     <Problem

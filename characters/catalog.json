@@ -1,5 +1,5 @@
 {
-  "version": 2,
+  "version": 3,
   "characters": [
     {
       "id": "cat",
@@ -47,7 +47,7 @@
       "id": "browncat",
       "name": "Petike",
       "unlockAt": 2000,
-      "spriteSheet": "whitecat.png",
+      "spriteSheet": "browncat.png",
       "frameSize": 32,
       "frameCount": 15,
       "frames": {

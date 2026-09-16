@@ -1,6 +1,5 @@
 <script lang="ts">
   import { OPERATION_INFO, OPERATIONS, type MathOperation } from '../core/operation';
-  import { selectedCharacter } from '../core/profile';
   import { HOME_WALK } from '../core/walk';
   import CharacterStage from '../sprites/CharacterStage.svelte';
   import type { PlayerStore } from '../store/playerStore.svelte';
@@ -25,7 +24,7 @@
   <div class="spacer"></div>
 
   <div class="hero">
-    <CharacterStage character={selectedCharacter(store.profile)} size={112} mood="walk" walk={HOME_WALK} />
+    <CharacterStage character={store.character} size={112} mood="walk" walk={HOME_WALK} />
     <button type="button" class="who" onclick={onPlayers} aria-label="Játékos váltása">{store.profile.name}</button>
   </div>
 

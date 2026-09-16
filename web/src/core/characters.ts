@@ -18,6 +18,8 @@ export interface GameCharacter {
   unlockAt: number;
   /** A sprite-csík fájlneve (characters/ mappa; a build a public/sprites alá másolja). */
   spriteSheet: string;
+  /** Szerverről töltött karakternél a csík helyben tárolt data: URL-je; a beépítetteknél nincs. */
+  spriteUrl?: string;
   /** Egy kocka oldala a csíkban, pixelben (a rács, amiben az eltolások és a hatások helye értendő). */
   frameSize: number;
   frameCount: number;
@@ -50,11 +52,16 @@ export const CATALOG_VERSION: number = bundled.version;
 /** Az alap karakter: mindig megvan, erre esik vissza az app, ha a kiválasztott nem érvényes. */
 export const CAT: GameCharacter = CATALOG.find((c) => c.id === 'cat')!;
 
-export function findCharacter(id: string): GameCharacter | undefined {
-  return CATALOG.find((character) => character.id === id);
+export function findCharacter(id: string, catalog: readonly GameCharacter[] = CATALOG): GameCharacter | undefined {
+  return catalog.find((character) => character.id === id);
 }
 
 /** Az adott összpontnál feloldott karakterek azonosítói. */
-export function unlockedCharacterIDs(totalPoints: number): string[] {
-  return CATALOG.filter((c) => c.unlockAt <= totalPoints).map((c) => c.id);
+export function unlockedCharacterIDs(totalPoints: number, catalog: readonly GameCharacter[] = CATALOG): string[] {
+  return catalog.filter((c) => c.unlockAt <= totalPoints).map((c) => c.id);
+}
+
+/** A sprite-csík forrása: szerverről töltöttnél a tárolt data: URL, egyébként a beépített fájl. */
+export function spriteSource(character: GameCharacter, baseUrl: string): string {
+  return character.spriteUrl ?? `${baseUrl}sprites/${character.spriteSheet}`;
 }

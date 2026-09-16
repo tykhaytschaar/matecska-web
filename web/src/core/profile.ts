@@ -1,4 +1,4 @@
-import { CAT, findCharacter, unlockedCharacterIDs, type GameCharacter } from './characters';
+import { CAT, CATALOG, findCharacter, unlockedCharacterIDs, type GameCharacter } from './characters';
 import { isMathOperation, type MathOperation } from './operation';
 import { totalPoints, type ScoreBreakdown } from './scoring';
 
@@ -43,8 +43,8 @@ export function ownsCharacter(profile: PlayerProfile, characterID: string): bool
   return profile.ownedCharacterIDs.includes(characterID);
 }
 
-export function selectedCharacter(profile: PlayerProfile): GameCharacter {
-  return findCharacter(profile.selectedCharacterID) ?? CAT;
+export function selectedCharacter(profile: PlayerProfile, catalog: readonly GameCharacter[] = CATALOG): GameCharacter {
+  return findCharacter(profile.selectedCharacterID, catalog) ?? CAT;
 }
 
 /** Egy beküldött válasz pontjának és statisztikájának könyvelése. Az összpont nem megy nulla alá. */

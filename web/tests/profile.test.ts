@@ -1,9 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { CAT, CATALOG, findCharacter, unlockedCharacterIDs } from '../src/core/characters';
+import { CAT, CATALOG, unlockedCharacterIDs } from '../src/core/characters';
 import { parseCatalog, parseCharacter } from '../src/core/catalog';
 
-const BLACK_CAT = findCharacter('blackcat')!;
-const WHITE_CAT = findCharacter('whitecat')!;
+/** A tesztek nem függnek a katalógus konkrét tartalmától: a küszöb szerint rendezett lista első zárt tagját használják. */
+const BY_THRESHOLD = [...CATALOG].sort((a, b) => a.unlockAt - b.unlockAt);
+const FIRST_LOCKED = BY_THRESHOLD.find((c) => c.unlockAt > 0)!;
+const ABOVE = BY_THRESHOLD.filter((c) => c.unlockAt > FIRST_LOCKED.unlockAt);
 import {
   dummyProfile, ownsCharacter, parseProfile, recordScore, resetStats, selectCharacter, selectedCharacter, serializeProfile,
 } from '../src/core/profile';
@@ -25,22 +27,29 @@ describe('karakter-katalógus', () => {
   });
 
   it('a katalógus-olvasó: érvényes elem átmegy, ismeretlen mező nem zavar, hibás elem null', () => {
-    const raw = JSON.parse(JSON.stringify(BLACK_CAT));
-    expect(parseCharacter({ ...raw, extra: 'later' })).toEqual(BLACK_CAT);
+    const raw = JSON.parse(JSON.stringify(FIRST_LOCKED));
+    expect(parseCharacter({ ...raw, extra: 'later' })).toEqual(FIRST_LOCKED);
     expect(parseCharacter({ ...raw, frames: { ...raw.frames, walk: [99] } })).toBeNull();
     expect(parseCharacter({ ...raw, id: 'Nagy Betű' })).toBeNull();
     expect(parseCharacter({ ...raw, fx: { heart: raw.fx.heart } })).toBeNull();
     expect(parseCatalog({ version: 1, characters: [raw] })).toBeNull(); // nincs cat
     expect(parseCatalog({ version: 0, characters: [CAT] })).toBeNull();
     expect(parseCatalog({ version: 2, characters: [CAT, raw, raw] })).toBeNull(); // ismétlődő id
-    expect(parseCatalog({ version: 2, characters: [CAT, raw] })?.characters.map((c) => c.id)).toEqual(['cat', 'blackcat']);
+    expect(parseCatalog({ version: 2, characters: [CAT, raw] })?.characters.map((c) => c.id)).toEqual(['cat', FIRST_LOCKED.id]);
+    // küszöb szerinti sorrend, a bemenet sorrendjétől függetlenül
+    const shuffled = [...CATALOG].reverse().map((c) => JSON.parse(JSON.stringify(c)));
+    const sorted = parseCatalog({ version: 2, characters: shuffled })!.characters.map((c) => c.unlockAt);
+    expect(sorted).toEqual([...sorted].sort((x, y) => x - y));
   });
 
   it('a karakterek pontküszöbre oldódnak fel', () => {
-    expect(unlockedCharacterIDs(0)).toEqual([CAT.id]);
-    expect(unlockedCharacterIDs(BLACK_CAT.unlockAt - 1)).toEqual([CAT.id]);
-    expect(unlockedCharacterIDs(BLACK_CAT.unlockAt)).toEqual([CAT.id, BLACK_CAT.id]);
-    expect(unlockedCharacterIDs(WHITE_CAT.unlockAt)).toEqual([CAT.id, BLACK_CAT.id, WHITE_CAT.id]);
+    expect(unlockedCharacterIDs(0)).toEqual(CATALOG.filter((c) => c.unlockAt === 0).map((c) => c.id));
+    expect(unlockedCharacterIDs(FIRST_LOCKED.unlockAt - 1)).not.toContain(FIRST_LOCKED.id);
+    expect(unlockedCharacterIDs(FIRST_LOCKED.unlockAt)).toContain(FIRST_LOCKED.id);
+    for (const c of CATALOG) {
+      const ids = unlockedCharacterIDs(c.unlockAt);
+      expect(ids).toEqual(CATALOG.filter((x) => x.unlockAt <= c.unlockAt).map((x) => x.id));
+    }
   });
 });
 
@@ -104,14 +113,14 @@ describe('profil', () => {
 
   it('a pont elérésével a karakter feloldódik, kiválasztható, és a pont nem fogy', () => {
     let p = dummyProfile();
-    expect(selectCharacter(p, BLACK_CAT).selectedCharacterID).toBe('cat');
-    for (let i = 0; i < BLACK_CAT.unlockAt / 20; i++) p = recordScore(p, { base: 10, bonus: 10, penalty: 0 }, true, 'addition');
-    expect(p.totalPoints).toBe(BLACK_CAT.unlockAt);
-    expect(ownsCharacter(p, BLACK_CAT.id)).toBe(true);
-    expect(ownsCharacter(p, WHITE_CAT.id)).toBe(false);
-    const selected = selectCharacter(p, BLACK_CAT);
-    expect(selected.selectedCharacterID).toBe(BLACK_CAT.id);
-    expect(selected.totalPoints).toBe(BLACK_CAT.unlockAt);
+    expect(selectCharacter(p, FIRST_LOCKED).selectedCharacterID).toBe('cat');
+    for (let i = 0; i < Math.ceil(FIRST_LOCKED.unlockAt / 20); i++) p = recordScore(p, { base: 10, bonus: 10, penalty: 0 }, true, 'addition');
+    expect(p.totalPoints).toBeGreaterThanOrEqual(FIRST_LOCKED.unlockAt);
+    expect(ownsCharacter(p, FIRST_LOCKED.id)).toBe(true);
+    for (const c of ABOVE) expect(ownsCharacter(p, c.id)).toBe(false);
+    const selected = selectCharacter(p, FIRST_LOCKED);
+    expect(selected.selectedCharacterID).toBe(FIRST_LOCKED.id);
+    expect(selected.totalPoints).toBe(p.totalPoints);
   });
 
 });

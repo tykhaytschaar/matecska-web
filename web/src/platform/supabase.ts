@@ -5,6 +5,13 @@ import type { KeyValueStorage } from '../store/storage';
 export const SUPABASE_URL: string = import.meta.env.VITE_SUPABASE_URL ?? '';
 export const SUPABASE_KEY: string = import.meta.env.VITE_SUPABASE_KEY ?? '';
 
+/** A karakter-katalógus nyilvános bucketje; felülírható a VITE_CATALOG_URL változóval. */
+export function catalogBaseUrl(): string | null {
+  const custom: string = import.meta.env.VITE_CATALOG_URL ?? '';
+  const url = custom || (SUPABASE_URL ? `${SUPABASE_URL}/storage/v1/object/public/characters/` : '');
+  return url ? (url.endsWith('/') ? url : `${url}/`) : null;
+}
+
 export function supabaseConfigured(): boolean {
   return SUPABASE_URL.length > 0 && SUPABASE_KEY.length > 0;
 }

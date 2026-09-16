@@ -34,8 +34,8 @@ Az eredeti SwiftUI iOS változat a `2842602` commitig a git-történetben megtal
 - Infó képernyő: verzió, az aktív játékos statisztikája, kijelentkezés és fióktörlés. Rejtett
   fejlesztői mód (7 koppintás a verziósorra): játékosonként a pont tetszőleges értékre állítása
   (a válaszok maradnak, egy pontkorrekció kerül a játékosra) és a statisztika, pont nullázása.
-- Karakterek képernyő: a karakterek pontküszöbre oldódnak fel, a pont nem fogy (Matecska alapból,
-  Ferike 1000, Marika 1500 ponttól). A katalógus és a sprite-csíkok a `characters/` mappában
+- Karakterek képernyő: a karakterek pontküszöbre oldódnak fel, a pont nem fogy, a lista küszöb szerint
+  rendezett. A katalógus és a sprite-csíkok a `characters/` mappában
   (`catalog.json` + PNG-k), lásd lent.
 - Infó képernyő a főképernyő MATECSKA feliratára koppintva: verzió (a `web/package.json`-ból), a build ideje és a
   fejlesztő neve; a verziót és az időbélyeget a Vite fordításkor injektálja. Ugyanitt a
@@ -100,8 +100,14 @@ Egyetlen forrás: `characters/catalog.json` (verzió, karakterek: azonosító, n
 rácsméret, kockaindexek, eltolások, szív/csepp helye) és mellette a PNG-csíkok. A web build innen
 importálja a beépített katalógust és másolja a csíkokat a `public/sprites` alá (nincs a gitben).
 A `tools/upload_characters.mjs` ugyanezt ellenőrzi és tölti a Storage bucketbe (kézzel:
-`SUPABASE_SERVICE_ROLE_KEY=… node tools/upload_characters.mjs`, próba: `--dry-run`). Az app
-egyelőre a beépített katalógust használja; a szerverről töltés későbbi lépés.
+`SUPABASE_SERVICE_ROLE_KEY=… node tools/upload_characters.mjs`, próba: `--dry-run`).
+
+Az app a beépített katalógussal indul, majd lekéri a bucket `catalog.json`-jét (URL a Supabase
+projektből, felülírható a `VITE_CATALOG_URL` változóval). Ha a szerveré nagyobb verziójú, letölti a
+hiányzó csíkokat, `data:` URL-ként a helyi tárolóba menti (natívan Preferences, weben localStorage), és
+csak akkor vált át, ha minden csík megvan; így net nélkül is a legutóbb letöltött katalógus él. Az Infó
+képernyő „Karakterek" sora mutatja a verziót és a forrást (beépített, mentett, szerver). Régi kiadás
+soha nem ír felül újabbat, hibás JSON-nál marad a mostani.
 
 A karakter azonosítója (`id`) állandó, ez van a játékos `selected_character_id` mezőjében; a név és a
 fájlnév szabadon változhat. Kép cseréjénél új fájlnevet adj (pl. `blackcat-2.png`), mert a CDN egy

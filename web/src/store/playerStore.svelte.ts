@@ -1,10 +1,11 @@
-import type { GameCharacter } from '../core/characters';
+import { CAT, findCharacter, type GameCharacter } from '../core/characters';
 import { attemptEvent } from '../core/events';
 import type { PracticeMode } from '../core/operation';
 import { buildProfile, EMPTY_SUMMARY, freshState, importFrom, type ImportedProfile, type PlayerState } from '../core/player';
 import { dummyProfile, ownsCharacter, type PlayerProfile } from '../core/profile';
 import type { ScoreBreakdown } from '../core/scoring';
 import type { Backend, PlayerListing } from './backend';
+import type { CatalogStore } from './catalogStore.svelte';
 import { LocalCache, loadLegacyProfile, removeLegacyProfile } from './localCache';
 import type { KeyValueStorage } from './storage';
 import { mergePending, syncPlayer, type SyncStatus } from './sync';
@@ -18,6 +19,8 @@ const SYNC_DELAY_MS = 1500;
  * megmaradnak a következő alkalomig.
  */
 export class PlayerStore {
+  /** A karakter-katalógus (beépített, mentett vagy szerverről töltött); a profil ebből számol. */
+  readonly catalog: CatalogStore;
   players = $state<PlayerListing[]>([]);
   active = $state<PlayerState | null>(null);
   /** Igaz, ha a helyi gyorstár (és ha volt net, a szerver) már betöltődött. */
@@ -27,7 +30,9 @@ export class PlayerStore {
   /** A fiók nélküli, korábbi helyi profil, amit az első játékos átvehet. */
   legacy = $state<PlayerProfile | null>(null);
 
-  profile = $derived<PlayerProfile>(this.active ? buildProfile(this.active) : dummyProfile());
+  profile = $derived.by<PlayerProfile>(() => (this.active ? buildProfile(this.active, this.catalog.characters) : dummyProfile()));
+  /** Az aktív játékos kiválasztott karaktere a mostani katalógusból. */
+  character = $derived.by<GameCharacter>(() => findCharacter(this.profile.selectedCharacterID, this.catalog.characters) ?? CAT);
   syncStatus = $derived<SyncStatus | 'pending'>(
     this.offline ? 'offline' : this.active && (this.active.pending.length > 0 || this.active.dirty) ? 'pending' : 'synced',
   );
@@ -40,8 +45,10 @@ export class PlayerStore {
   constructor(
     private readonly storage: KeyValueStorage,
     private readonly backend: Backend,
+    catalog: CatalogStore,
     userId: string,
   ) {
+    this.catalog = catalog;
     this.cache = new LocalCache(storage, userId);
     globalThis.addEventListener?.('online', this.onOnline);
     void this.load();
@@ -135,7 +142,7 @@ export class PlayerStore {
     }
     const listing = this.players.find((l) => l.player.id === playerId);
     if (!listing) return;
-    const current = buildProfile(freshState(listing.player, listing.summary)).totalPoints;
+    const current = buildProfile(freshState(listing.player, listing.summary), this.catalog.characters).totalPoints;
     const player = { ...listing.player, pointAdjustment: listing.player.pointAdjustment + (goal - current) };
     await this.backend.updatePlayer(player);
     await this.refreshPlayers();
