@@ -37,7 +37,7 @@
 {:else if screen.kind === 'collection'}
   <Collection {store} onBack={goHome} />
 {:else if screen.kind === 'about'}
-  <About onBack={goHome} />
+  <About {store} onBack={goHome} />
 {:else}
   <Home
     {store}

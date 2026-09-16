@@ -1,12 +1,31 @@
 <script lang="ts">
   import { APP_INFO, formatBuildTime } from '../core/appInfo';
   import { CAT } from '../core/characters';
+  import { OPERATION_INFO, OPERATIONS } from '../core/operation';
   import CharacterSprite from '../sprites/CharacterSprite.svelte';
+  import type { ProfileStore } from '../store/profileStore.svelte';
 
   interface Props {
+    store: ProfileStore;
     onBack: () => void;
   }
-  let { onBack }: Props = $props();
+  let { store, onBack }: Props = $props();
+
+  /** A nullázás két koppintás: az első csak a megerősítő gombokat mutatja. */
+  let confirmingReset = $state(false);
+
+  const stats = $derived(
+    OPERATIONS.map((operation) => {
+      const s = store.profile.stats[operation] ?? { solved: 0, correct: 0 };
+      return { operation, ...s, ratio: s.solved > 0 ? Math.round((s.correct / s.solved) * 100) : null };
+    }),
+  );
+  const totalSolved = $derived(stats.reduce((sum, s) => sum + s.solved, 0));
+
+  function handleReset() {
+    store.resetStats();
+    confirmingReset = false;
+  }
 
   const rows = [
     { label: 'Verzió', value: APP_INFO.version },
@@ -17,7 +36,8 @@
   function handleKey(event: KeyboardEvent) {
     if (event.key === 'Escape') {
       event.preventDefault();
-      onBack();
+      if (confirmingReset) confirmingReset = false;
+      else onBack();
     }
   }
 </script>
@@ -47,6 +67,37 @@
       </div>
     {/each}
   </dl>
+
+  <section class="card stats" aria-labelledby="stats-title">
+    <h2 id="stats-title">Statisztika</h2>
+    <table>
+      <thead>
+        <tr><th scope="col">Művelet</th><th scope="col" class="num">Megoldott</th><th scope="col" class="num">Helyes</th></tr>
+      </thead>
+      <tbody>
+        {#each stats as s}
+          <tr>
+            <th scope="row"><span class="sym">{OPERATION_INFO[s.operation].symbol}</span>{OPERATION_INFO[s.operation].title}</th>
+            <td class="num">{s.solved}</td>
+            <td class="num">{s.correct}{#if s.ratio !== null}<span class="ratio">{s.ratio}%</span>{/if}</td>
+          </tr>
+        {/each}
+      </tbody>
+    </table>
+    {#if confirmingReset}
+      <div class="confirm">
+        <span>Biztosan nullázod? A pontok megmaradnak.</span>
+        <div class="actions">
+          <button type="button" class="pill" onclick={() => (confirmingReset = false)}>Mégse</button>
+          <button type="button" class="pill danger" onclick={handleReset}>Nullázás</button>
+        </div>
+      </div>
+    {:else}
+      <button type="button" class="pill reset" disabled={totalSolved === 0} onclick={() => (confirmingReset = true)}>
+        Statisztika nullázása
+      </button>
+    {/if}
+  </section>
 
   <div class="spacer"></div>
 </div>
@@ -121,5 +172,75 @@
     margin: 0;
     font-weight: 600;
     text-align: right;
+  }
+  .stats {
+    padding: 14px 16px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  h2 {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 700;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  th,
+  td {
+    padding: 8px 0;
+    text-align: left;
+    font-weight: 600;
+  }
+  thead th {
+    font-size: 0.8rem;
+    color: var(--ink-soft);
+    border-bottom: 1px solid var(--ink-faint);
+  }
+  tbody th {
+    color: var(--ink);
+  }
+  .sym {
+    display: inline-block;
+    width: 1.4em;
+    color: var(--flame);
+  }
+  .num {
+    text-align: right;
+  }
+  .ratio {
+    margin-left: 6px;
+    font-size: 0.8rem;
+    color: var(--ink-soft);
+  }
+  .pill {
+    align-self: flex-end;
+    padding: 8px 14px;
+    border-radius: 999px;
+    border: 2px solid var(--line);
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: var(--ink);
+  }
+  .pill:disabled {
+    color: var(--ink-soft);
+  }
+  .pill.danger {
+    background: var(--red);
+    border-color: transparent;
+    color: #fff;
+  }
+  .confirm {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    font-size: 0.9rem;
+  }
+  .actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
   }
 </style>

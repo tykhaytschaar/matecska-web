@@ -65,6 +65,11 @@ export function recordScore(
   };
 }
 
+/** A műveletenkénti statisztika törlése; a pontok és a karakterek maradnak. */
+export function resetStats(profile: PlayerProfile): PlayerProfile {
+  return { ...profile, stats: {} };
+}
+
 export function selectCharacter(profile: PlayerProfile, character: GameCharacter): PlayerProfile {
   if (!ownsCharacter(profile, character.id)) return profile;
   return { ...profile, selectedCharacterID: character.id };

@@ -9,7 +9,7 @@
     "preview": "vite preview",
     "test": "vitest run",
     "check": "svelte-check --tsconfig ./tsconfig.json",
-    "ios:sync": "npm run build && cap sync ios",
+    "ios:sync": "npm run build && node scripts/sync-version.mjs && cap sync ios",
     "ios:open": "cap open ios"
   },
   "devDependencies": {

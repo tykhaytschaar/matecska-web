@@ -1,6 +1,6 @@
 import type { GameCharacter } from '../core/characters';
 import type { MathOperation } from '../core/operation';
-import { dummyProfile, recordScore, selectCharacter, unlockCharacter, type PlayerProfile } from '../core/profile';
+import { dummyProfile, recordScore, resetStats, selectCharacter, unlockCharacter, type PlayerProfile } from '../core/profile';
 import type { ScoreBreakdown } from '../core/scoring';
 import { loadProfile, saveProfile } from './persistence';
 import type { ProfileStorage } from './storage';
@@ -22,6 +22,10 @@ export class ProfileStore {
 
   record(score: ScoreBreakdown, correct: boolean, operation: MathOperation): void {
     this.commit(recordScore(this.profile, score, correct, operation));
+  }
+
+  resetStats(): void {
+    this.commit(resetStats(this.profile));
   }
 
   select(character: GameCharacter): void {

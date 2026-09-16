@@ -27,7 +27,9 @@ Az eredeti SwiftUI iOS változat a `2842602` commitig a git-történetben megtal
   birtokolt és kiválasztott karakter. Karakterek képernyő; a katalógus egy elem
   hozzáadásával bővíthető.
 - Infó képernyő a főképernyő MATECSKA feliratára koppintva: verzió (a `web/package.json`-ból), a build ideje és a
-  fejlesztő neve; a verziót és az időbélyeget a Vite fordításkor injektálja.
+  fejlesztő neve; a verziót és az időbélyeget a Vite fordításkor injektálja. Ugyanitt a
+  műveletenkénti statisztika (megoldott, helyes, arány) és a nullázása, ami a pontokat nem érinti.
+  A verzió forrása a `web/package.json`; az `ios:sync` átírja az Xcode-projekt MARKETING_VERSION-jét.
 - A macska sprite és az animációk a GameBoy-os [matecska](../matecska) projektből.
 
 ## Webes változat (`web/`)

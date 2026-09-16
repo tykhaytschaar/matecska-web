@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { CAT, type GameCharacter } from '../src/core/characters';
 import {
-  dummyProfile, ownsCharacter, parseProfile, recordScore, selectCharacter, selectedCharacter, serializeProfile, unlockCharacter,
+  dummyProfile, ownsCharacter, parseProfile, recordScore, resetStats, selectCharacter, selectedCharacter, serializeProfile, unlockCharacter,
 } from '../src/core/profile';
 import { loadProfile, saveProfile } from '../src/store/persistence';
 import { memoryStorage } from '../src/store/storage';
@@ -24,6 +24,14 @@ describe('profil', () => {
     p = recordScore(p, { base: 0, bonus: 0, penalty: 5 }, false, 'addition');
     expect(p.totalPoints).toBe(12);
     expect(p.stats.addition).toEqual({ solved: 3, correct: 1 });
+  });
+
+  it('statisztika nullázása: a pontok és a karakterek maradnak', () => {
+    let p = recordScore(dummyProfile(), { base: 10, bonus: 7, penalty: 0 }, true, 'division');
+    p = resetStats(p);
+    expect(p.stats).toEqual({});
+    expect(p.totalPoints).toBe(17);
+    expect(ownsCharacter(p, CAT.id)).toBe(true);
   });
 
   it('mentés és visszatöltés körút', async () => {
