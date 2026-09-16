@@ -7,7 +7,7 @@ import { attemptEvent } from '../src/core/events';
 import { buildProfile, freshState, importFrom, parseImported, type PlayerRecord } from '../src/core/player';
 import { dummyProfile } from '../src/core/profile';
 
-const player: PlayerRecord = { id: 'p1', name: 'Anna', selectedCharacterID: 'cat', imported: null, pointAdjustment: 0, createdAt: '' };
+const player: PlayerRecord = { id: 'p1', name: 'Anna', selectedCharacterID: 'cat', imported: null, pointAdjustment: 0, askOperands: false, createdAt: '' };
 
 describe('gyerek állapota és a profil levezetése', () => {
   it('üres állapot: 0 pont, macska, üres stat', () => {

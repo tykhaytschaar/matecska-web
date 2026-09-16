@@ -11,9 +11,12 @@ create table if not exists public.players (
   imported jsonb,
   -- Fejlesztői módban beállított pontkorrekció (a pont = válaszok összege + korrekció).
   point_adjustment integer not null default 0,
+  -- A játékos beállítása: kérdezhet-e a feladat operandusra is (vegyes), vagy csak az eredményt.
+  ask_operands boolean not null default false,
   created_at timestamptz not null default now()
 );
 alter table public.players add column if not exists point_adjustment integer not null default 0;
+alter table public.players add column if not exists ask_operands boolean not null default false;
 create index if not exists players_owner_idx on public.players (owner_id);
 
 -- Egy beküldött válasz. A `points` a ténylegesen könyvelt pontváltozás (a nulla alatti

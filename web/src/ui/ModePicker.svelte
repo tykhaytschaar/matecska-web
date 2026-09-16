@@ -13,13 +13,17 @@
 
   const info = $derived(OPERATION_INFO[operation]);
   const modes = $derived(modesOf(operation));
+  /** A kapcsoló csak akkor jelenik meg, ha a műveletnek van operandust is kérdezhető típusa. */
+  const canAskOperands = $derived(modes.some((mode) => MODE_INFO[mode].randomBlank));
 
   /** Példafeladat az alkategória kártyáján, hogy egy pillantásra látszódjon a különbség. */
   function sample(mode: PracticeMode): string {
     switch (mode) {
       case 'addition-single': return '7 + 5 = ▢';
+      case 'addition-double': return '47 + 38';
       case 'addition-written': return '352 + 636';
       case 'subtraction-single': return '12 − 5 = ▢';
+      case 'subtraction-double': return '82 − 35';
       case 'subtraction-written': return '805 − 347';
       case 'multiplication-table': return '6 · 7 = ▢';
       case 'multiplication-written': return '352 · 6';
@@ -65,10 +69,58 @@
     {/each}
   </div>
 
+  {#if canAskOperands}
+    <div class="card blank" role="group" aria-labelledby="blank-title">
+      <span id="blank-title" class="blank-title">Hiányzó szám</span>
+      <div class="segments">
+        <button type="button" class="segment" class:on={!store.askOperands} onclick={() => store.setAskOperands(false)}>
+          Csak az eredmény
+        </button>
+        <button type="button" class="segment" class:on={store.askOperands} onclick={() => store.setAskOperands(true)}>
+          Bármelyik szám
+        </button>
+      </div>
+      <span class="blank-meta">{store.askOperands ? 'Vegyes feladatoknál a bónusz lassabban fogy.' : 'Mindig az eredményt kell beírni.'}</span>
+    </div>
+  {/if}
+
   <div class="spacer"></div>
 </div>
 
 <style>
+  .blank {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 12px 16px 14px;
+  }
+  .blank-title {
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: var(--ink-soft);
+  }
+  .segments {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  .segment {
+    padding: 8px 10px;
+    border-radius: 999px;
+    border: 2px solid var(--line);
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: var(--ink);
+  }
+  .segment.on {
+    background: var(--flame);
+    border-color: transparent;
+    color: #fff;
+  }
+  .blank-meta {
+    font-size: 0.8rem;
+    color: var(--ink-soft);
+  }
   .top {
     display: flex;
     align-items: center;

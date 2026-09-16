@@ -7,22 +7,25 @@ Az eredeti SwiftUI iOS változat a `2842602` commitig a git-történetben megtal
 ## Funkciók
 
 - Négy fő kategória, alattuk alkategóriák:
-  - Összeadás: egyjegyűek (2…9 + 2…9, fejben) és írásbeli (két háromjegyű).
-  - Kivonás: egyjegyűek (a kivonandó és a különbség 2…9, a kisebbítendő 4…18) és írásbeli
-    (két háromjegyű, nemnegatív különbség).
-  - Szorzás: szorzótábla (2…9 · 2…9, az 1-es sor kimarad) és írásbeli (háromjegyű · egyjegyű).
-  - Osztás: szorzótábla visszafelé (2…9 közti számok szorzatából az egyik tényező) és írásbeli
-    (háromjegyű : egyjegyű, maradék nélkül, nem kötelező maradék-ráccsal).
-- Az írásbeli feladatok füzetszerű elrendezésben, rubrikákba beírt számjegyekkel, jobbról
-  balra haladva (az osztás balról jobbra); az egyjegyű feladatok egy sorban, `7 + 5 = ▢`
-  alakban, balról jobbra kitöltve. Az egyjegyű feladatokban egyik operandus és az eredmény sem 1.
-- Az üres hely az egyjegyű feladatoknál és az írásbeli összeadásnál/kivonásnál véletlen:
-  50% az eredmény, 25-25% az első vagy a második operandus; írásbeli szorzásnál és osztásnál
-  mindig az eredmény.
-- Pontozás: helyes válasz 10 alap + max 10 gyorsasági bónusz. A bónusz az egyjegyű
-  feladatoknál azonnal, az írásbeli összeadásnál/kivonásnál 3 s, szorzásnál/osztásnál 5 s
-  után kezd fogyni, periódusonként (alapból másodpercenként) eggyel. Helytelen válasz −1;
-  az összpont nem megy nulla alá.
+  - Összeadás: egyjegyűek (2…9 + 2…9, fejben), kétjegyűek (10…99 + 10…99) és háromjegyűek,
+    a két utóbbi füzetszerűen.
+  - Kivonás: egyjegyűek (a kivonandó és a különbség 2…9, a kisebbítendő 4…18), kétjegyűek és
+    háromjegyűek (nemnegatív különbség), füzetszerűen.
+  - Szorzás: szorzótábla (2…9 · 2…9, az 1-es sor kimarad) és háromjegyű · egyjegyű.
+  - Osztás: szorzótábla visszafelé (2…9 közti számok szorzatából az egyik tényező) és
+    háromjegyű : egyjegyű, maradék nélkül, nem kötelező maradék-ráccsal.
+- A füzetszerű feladatok egymás alatt, rubrikákba beírt számjegyekkel, jobbról balra haladva
+  (az osztás balról jobbra); az egyjegyű feladatok egy sorban, `7 + 5 = ▢` alakban, balról jobbra
+  kitöltve. Az egyjegyű feladatokban egyik operandus és az eredmény sem 1.
+- Hiányzó szám: játékosonkénti kapcsoló az alkategória-választón. „Csak az eredmény" (alap) vagy
+  „Bármelyik szám": ekkor az összeadás, kivonás és a szorzótáblás típusoknál 50% az eredmény,
+  25-25% valamelyik operandus hiányzik, és a bónusz 50%-kal lassabban fogy. Háromjegyű szorzásnál
+  és osztásnál mindig az eredmény.
+- Pontozás: helyes válasz alappont + ugyanannyi maximumú gyorsasági bónusz. Az alappont
+  egyjegyűeknél 3, kétjegyűeknél és a szorzótáblás típusoknál 6, háromjegyűeknél 10. A bónusz az
+  egyjegyű és szorzótáblás feladatoknál azonnal, a kétjegyű és háromjegyű összeadásnál/kivonásnál
+  3 s, háromjegyű szorzásnál/osztásnál 5 s után kezd fogyni, periódusonként (alapból
+  másodpercenként) eggyel. Helytelen válasz −1; az összpont nem megy nulla alá.
 - Fiók és játékosprofilok: a szülő (vagy a felnőtt játékos) e-mail címére kapott kóddal lép be (jelszó nincs,
   regisztráció és belépés ugyanaz a lépés), alatta tetszőleges számú játékos becenévvel.
   Játékosonként külön pont, műveletenkénti statisztika, birtokolt és kiválasztott karakter.

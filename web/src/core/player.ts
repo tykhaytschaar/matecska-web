@@ -12,6 +12,8 @@ export interface PlayerRecord {
   imported: ImportedProfile | null;
   /** Fejlesztői módban beállított pontkorrekció; a pont ennyivel tér el a válaszok összegétől. */
   pointAdjustment: number;
+  /** Kérdezhet-e a feladat operandusra is (vegyes), vagy mindig az eredményt kérdezi. */
+  askOperands: boolean;
   createdAt: string;
 }
 

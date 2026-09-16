@@ -31,6 +31,8 @@ export class PlayerStore {
   legacy = $state<PlayerProfile | null>(null);
 
   profile = $derived.by<PlayerProfile>(() => (this.active ? buildProfile(this.active, this.catalog.characters) : dummyProfile()));
+  /** Az aktív játékos beállítása: operandusra is kérdezünk-e. Alapból csak az eredményt. */
+  askOperands = $derived.by<boolean>(() => this.active?.player.askOperands ?? false);
   /** Az aktív játékos kiválasztott karaktere a mostani katalógusból. */
   character = $derived.by<GameCharacter>(() => findCharacter(this.profile.selectedCharacterID, this.catalog.characters) ?? CAT);
   syncStatus = $derived<SyncStatus | 'pending'>(
@@ -131,6 +133,11 @@ export class PlayerStore {
     if (!this.active) return;
     const event = attemptEvent(this.profile, score, correct, mode);
     this.commit({ ...this.active, pending: [...this.active.pending, event] });
+  }
+
+  setAskOperands(value: boolean): void {
+    if (!this.active || this.active.player.askOperands === value) return;
+    this.commit({ ...this.active, player: { ...this.active.player, askOperands: value }, dirty: true });
   }
 
   select(character: GameCharacter): void {

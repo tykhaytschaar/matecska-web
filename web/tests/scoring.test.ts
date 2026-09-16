@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { MODE_INFO } from '../src/core/operation';
-import { bonus, bonusFraction, INSTANT_TIMING, PATIENT_TIMING, points, QUICK_TIMING, totalPoints, type BonusTiming } from '../src/core/scoring';
+import { bonus, bonusFraction, INSTANT_TIMING, MIXED_SLOWDOWN, PATIENT_TIMING, points, QUICK_TIMING, scaledTiming, totalPoints, type BonusTiming } from '../src/core/scoring';
 
 describe('pontozás', () => {
   it.each([
@@ -34,11 +34,39 @@ describe('pontozás', () => {
     expect(totalPoints(points(true, elapsed, INSTANT_TIMING))).toBe(expected);
   });
 
+  it('az alappont a típus számjegyszáma szerint 3, 6, 10, és a bónusz ugyanonnan indul', () => {
+    expect(MODE_INFO['addition-single'].basePoints).toBe(3);
+    expect(MODE_INFO['subtraction-single'].basePoints).toBe(3);
+    expect(MODE_INFO['addition-double'].basePoints).toBe(6);
+    expect(MODE_INFO['subtraction-double'].basePoints).toBe(6);
+    expect(MODE_INFO['multiplication-table'].basePoints).toBe(6);
+    expect(MODE_INFO['division-table'].basePoints).toBe(6);
+    expect(MODE_INFO['addition-written'].basePoints).toBe(10);
+    expect(MODE_INFO['division-written'].basePoints).toBe(10);
+    expect(points(true, 0, INSTANT_TIMING, 3)).toEqual({ base: 3, bonus: 3, penalty: 0 });
+    expect(totalPoints(points(true, 2, INSTANT_TIMING, 3))).toBe(4);
+    expect(totalPoints(points(true, 3, INSTANT_TIMING, 3))).toBe(3);
+    expect(bonusFraction(1.5, INSTANT_TIMING, 6)).toBeCloseTo(5 / 6);
+  });
+
+  it('a lassított időzítésnél a periódus 1,5-szeres, a türelmi idő nem változik', () => {
+    const slow = scaledTiming(QUICK_TIMING, MIXED_SLOWDOWN);
+    expect(slow.fullBonusUntil).toBe(3);
+    expect(slow.decayIntervalMs).toBe(1500);
+    expect(bonus(4.4, slow, 6)).toBe(6);
+    expect(bonus(4.5, slow, 6)).toBe(5);
+    expect(bonus(4.5, QUICK_TIMING, 6)).toBe(5);
+    expect(bonus(6, QUICK_TIMING, 6)).toBe(3);
+    expect(bonus(6, slow, 6)).toBe(4);
+  });
+
   it('a gyakorlástípusok a megfelelő időzítést kapják, 1000 ms-os alapperiódussal', () => {
     expect(MODE_INFO['addition-single'].bonusTiming).toBe(INSTANT_TIMING);
     expect(MODE_INFO['subtraction-single'].bonusTiming).toBe(INSTANT_TIMING);
     expect(MODE_INFO['multiplication-table'].bonusTiming).toBe(INSTANT_TIMING);
     expect(MODE_INFO['division-table'].bonusTiming).toBe(INSTANT_TIMING);
+    expect(MODE_INFO['addition-double'].bonusTiming).toBe(QUICK_TIMING);
+    expect(MODE_INFO['subtraction-double'].bonusTiming).toBe(QUICK_TIMING);
     expect(MODE_INFO['addition-written'].bonusTiming).toBe(QUICK_TIMING);
     expect(MODE_INFO['subtraction-written'].bonusTiming).toBe(QUICK_TIMING);
     expect(MODE_INFO['multiplication-written'].bonusTiming).toBe(PATIENT_TIMING);

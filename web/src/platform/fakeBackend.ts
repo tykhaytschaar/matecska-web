@@ -85,6 +85,7 @@ export function fakeServices(storage: KeyValueStorage): { auth: AuthClient; back
         selectedCharacterID: 'cat',
         imported,
         pointAdjustment: 0,
+        askOperands: false,
         createdAt: new Date().toISOString(),
       };
       players.push(player);

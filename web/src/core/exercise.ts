@@ -49,8 +49,8 @@ export function seededRng(seed: number): Rng {
   };
 }
 
-function randomBlank(mode: PracticeMode, rng: Rng): BlankSlot {
-  if (!MODE_INFO[mode].randomBlank) return 'result';
+function randomBlank(mode: PracticeMode, rng: Rng, askOperands: boolean): BlankSlot {
+  if (!MODE_INFO[mode].randomBlank || !askOperands) return 'result';
   return WEIGHTED_BLANK_SLOTS[randomInt(0, WEIGHTED_BLANK_SLOTS.length - 1, rng)];
 }
 
@@ -76,20 +76,27 @@ export function makeExercise(mode: PracticeMode, a: number, b: number, blank: Bl
  * (és nem 0): összeadás 2…9 + 2…9; kivonásnál a kivonandó és a különbség 2…9, a kisebbítendő így
  * 4…18; a szorzótábla és a visszafelé változata (a szorzatot osztjuk egyik tényezőjével) 2…9 közti
  * tényezőkkel.
- * Az üres hely a típus `randomBlank` beállítása szerint véletlen (50% eredmény, 25-25% operandus)
- * vagy mindig az eredmény.
+ * A kétjegyű típusok 10…99 közti számokkal dolgoznak, a kivonás különbsége nemnegatív.
+ * Az üres hely akkor véletlen (50% eredmény, 25-25% operandus), ha a típus engedi (`randomBlank`)
+ * és a játékos is kéri (`askOperands`); egyébként mindig az eredmény.
  */
-export function randomExercise(mode: PracticeMode, rng: Rng = Math.random): Exercise {
-  const blank = randomBlank(mode, rng);
+export function randomExercise(mode: PracticeMode, rng: Rng = Math.random, askOperands = true): Exercise {
+  const blank = randomBlank(mode, rng, askOperands);
   switch (mode) {
     case 'addition-single':
       return makeExercise(mode, randomInt(2, 9, rng), randomInt(2, 9, rng), blank);
+    case 'addition-double':
+      return makeExercise(mode, randomInt(10, 99, rng), randomInt(10, 99, rng), blank);
     case 'addition-written':
       return makeExercise(mode, randomInt(100, 999, rng), randomInt(100, 999, rng), blank);
     case 'subtraction-single': {
       const subtrahend = randomInt(2, 9, rng);
       const difference = randomInt(2, 9, rng);
       return makeExercise(mode, subtrahend + difference, subtrahend, blank);
+    }
+    case 'subtraction-double': {
+      const a = randomInt(10, 99, rng);
+      return makeExercise(mode, a, randomInt(10, a, rng), blank);
     }
     case 'subtraction-written': {
       const a = randomInt(100, 999, rng);

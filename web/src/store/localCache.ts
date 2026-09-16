@@ -92,6 +92,7 @@ function parseRecord(raw: unknown): PlayerRecord | null {
     selectedCharacterID: typeof r.selectedCharacterID === 'string' ? r.selectedCharacterID : 'cat',
     imported: parseImported(r.imported),
     pointAdjustment: typeof r.pointAdjustment === 'number' ? r.pointAdjustment : 0,
+    askOperands: r.askOperands === true,
     createdAt: typeof r.createdAt === 'string' ? r.createdAt : '',
   };
 }

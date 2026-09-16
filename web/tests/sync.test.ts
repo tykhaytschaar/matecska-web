@@ -24,7 +24,7 @@ class FakeBackend implements Backend {
   }
   async createPlayer(name: string, imported: ImportedProfile | null): Promise<PlayerRecord> {
     this.guard('create');
-    const player = { id: `p${this.players.length + 1}`, name, selectedCharacterID: 'cat', imported, pointAdjustment: 0, createdAt: '' };
+    const player = { id: `p${this.players.length + 1}`, name, selectedCharacterID: 'cat', imported, pointAdjustment: 0, askOperands: false, createdAt: '' };
     this.players.push(player);
     return player;
   }
@@ -53,7 +53,7 @@ class FakeBackend implements Backend {
   }
 }
 
-const player: PlayerRecord = { id: 'p1', name: 'Anna', selectedCharacterID: 'cat', imported: null, pointAdjustment: 0, createdAt: '' };
+const player: PlayerRecord = { id: 'p1', name: 'Anna', selectedCharacterID: 'cat', imported: null, pointAdjustment: 0, askOperands: false, createdAt: '' };
 const good = { base: 10, bonus: 5, penalty: 0 };
 
 describe('szinkron a szerverrel', () => {

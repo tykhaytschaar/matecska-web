@@ -9,6 +9,7 @@ interface PlayerRow {
   selected_character_id: string;
   imported: unknown;
   point_adjustment: number | null;
+  ask_operands: boolean | null;
   created_at: string;
 }
 
@@ -25,6 +26,7 @@ function toRecord(row: PlayerRow): PlayerRecord {
     selectedCharacterID: row.selected_character_id,
     imported: parseImported(row.imported),
     pointAdjustment: Number(row.point_adjustment) || 0,
+    askOperands: row.ask_operands === true,
     createdAt: row.created_at,
   };
 }
@@ -74,6 +76,7 @@ export function supabaseBackend(client: SupabaseClient): Backend {
           selected_character_id: player.selectedCharacterID,
           imported: player.imported,
           point_adjustment: player.pointAdjustment,
+          ask_operands: player.askOperands,
         })
         .eq('id', player.id);
       if (error) fail(error);

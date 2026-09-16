@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { makeExercise, type BlankSlot } from '../src/core/exercise';
 import { MODE_INFO, PRACTICE_MODES, type PracticeMode } from '../src/core/operation';
 import {
-  canSubmit, createSession, deleteDigit, elapsedSeconds, enteredValue, enterDigit, isValidEntry, nextExercise, selectCell, selectScratch, submit,
+  canSubmit, createSession, deleteDigit, elapsedSeconds, enteredValue, enterDigit, isValidEntry, nextExercise, selectCell, selectScratch, sessionTiming, submit,
 } from '../src/core/session';
 
 function session(mode: PracticeMode, a: number, b: number, blank: BlankSlot = 'result', now = 0) {
@@ -213,13 +213,28 @@ describe('gyakorlás-állapot', () => {
     expect(q.outcome).toEqual({ kind: 'wrong', correctAnswer: 7, score: { base: 0, bonus: 0, penalty: 1 } });
   });
 
-  it('egyjegyű feladatoknál a bónusz azonnal fogy: 0 mp-nél teljes, 1 mp-nél 9, 10 mp-nél 0', () => {
-    const full = (t: number) => submit(enterAll(session('multiplication-table', 6, 7), [4, 2]), t); // 42
+  it('szorzótáblánál a bónusz azonnal fogy a 6 pontos alapról; csak-eredmény módban másodpercenként eggyel', () => {
+    const start = createSession('multiplication-table', 0, makeExercise('multiplication-table', 6, 7), false);
+    const full = (t: number) => submit(enterAll(start, [4, 2]), t); // 42
     expect(full(0).outcome?.kind).toBe('correct');
-    expect(full(0).outcome?.score.bonus).toBe(10);
-    expect(full(0.99).outcome?.score.bonus).toBe(10);
-    expect(full(1).outcome?.score.bonus).toBe(9);
-    expect(full(4.2).outcome?.score.bonus).toBe(6);
-    expect(full(10).outcome?.score.bonus).toBe(0);
+    expect(full(0).outcome?.score.base).toBe(6);
+    expect(full(0).outcome?.score.bonus).toBe(6);
+    expect(full(0.99).outcome?.score.bonus).toBe(6);
+    expect(full(1).outcome?.score.bonus).toBe(5);
+    expect(full(4.2).outcome?.score.bonus).toBe(2);
+    expect(full(6).outcome?.score.bonus).toBe(0);
+  });
+
+  it('vegyes módban (operandust is kérdezünk) a bónusz 50%-kal lassabban fogy, a következő feladat is vegyes', () => {
+    const mixed = createSession('addition-single', 0, makeExercise('addition-single', 7, 5), true);
+    expect(mixed.askOperands).toBe(true);
+    expect(mixed.timing.decayIntervalMs).toBe(1500);
+    const done = (t: number) => submit(enterAll(mixed, [1, 2]), t);
+    expect(done(1.4).outcome?.score.bonus).toBe(3);
+    expect(done(1.5).outcome?.score.bonus).toBe(2);
+    expect(nextExercise(done(2), 2).askOperands).toBe(true);
+    // háromjegyű szorzásnál nincs operandus-kérdés, ott a vegyes beállítás sem lassít
+    expect(createSession('multiplication-written', 0, undefined, true).timing.decayIntervalMs).toBe(1000);
+    expect(sessionTiming('subtraction-double', false).decayIntervalMs).toBe(1000);
   });
 });

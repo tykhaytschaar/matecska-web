@@ -37,7 +37,7 @@
   const nowSeconds = () => performance.now() / 1000;
 
   // svelte-ignore state_referenced_locally
-  let session = $state.raw<SessionState>(initial ?? createSession(mode, nowSeconds()));
+  let session = $state.raw<SessionState>(initial ?? createSession(mode, nowSeconds(), undefined, store.askOperands));
   /** Sétál, amíg nincs beküldve; beküldésre megáll és az eredmény szerint reagál. */
   let mood = $state<Mood>('walk');
   let now = $state(nowSeconds());
@@ -45,8 +45,8 @@
   const info = $derived(MODE_INFO[mode]);
   const submitted = $derived(isSubmitted(session));
   const elapsed = $derived(elapsedSeconds(session, now));
-  const fraction = $derived(bonusFraction(elapsed, info.bonusTiming));
-  const bonusNow = $derived(bonus(elapsed, info.bonusTiming));
+  const fraction = $derived(bonusFraction(elapsed, session.timing, info.basePoints));
+  const bonusNow = $derived(bonus(elapsed, session.timing, info.basePoints));
 
   // A bónuszcsík ketyeg, amíg nincs beküldve.
   $effect(() => {

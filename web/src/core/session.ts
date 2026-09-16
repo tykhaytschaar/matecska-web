@@ -1,6 +1,6 @@
 import { answerCellCount, randomExercise, type Exercise } from './exercise';
 import { MODE_INFO, type MathOperation, type PracticeMode } from './operation';
-import { points, type ScoreBreakdown } from './scoring';
+import { MIXED_SLOWDOWN, points, scaledTiming, type BonusTiming, type ScoreBreakdown } from './scoring';
 
 export type Outcome =
   | { kind: 'correct'; score: ScoreBreakdown }
@@ -33,6 +33,10 @@ export interface SessionState {
   scratch: readonly (readonly (number | null)[])[];
   /** Ha nem `null`, a billentyűzet a segédrácsba ír, nem a válasz rubrikáiba. */
   scratchSelection: ScratchSelection | null;
+  /** A játékos beállítása: kérdezhetünk-e operandusra is. A következő feladat is ezzel készül. */
+  askOperands: boolean;
+  /** A bónusz időzítése ehhez a gyakorláshoz: vegyes (operandust is kérdező) módban lassabb. */
+  timing: BonusTiming;
   outcome: Outcome | null;
   startedAt: number;
   submittedAt: number | null;
@@ -53,8 +57,14 @@ function emptyScratch(exercise: Exercise): (number | null)[][] {
   return Array.from({ length: rows }, () => Array<number | null>(cols).fill(null));
 }
 
-export function createSession(mode: PracticeMode, now: number, exercise?: Exercise): SessionState {
-  const current = exercise ?? randomExercise(mode);
+/** A típus időzítése, vegyes módban (ha a típus engedi az operandus-kérdést és a játékos kéri) lassítva. */
+export function sessionTiming(mode: PracticeMode, askOperands: boolean): BonusTiming {
+  const info = MODE_INFO[mode];
+  return info.randomBlank && askOperands ? scaledTiming(info.bonusTiming, MIXED_SLOWDOWN) : info.bonusTiming;
+}
+
+export function createSession(mode: PracticeMode, now: number, exercise?: Exercise, askOperands = true): SessionState {
+  const current = exercise ?? randomExercise(mode, Math.random, askOperands);
   const count = answerCellCount(current);
   return {
     mode,
@@ -64,6 +74,8 @@ export function createSession(mode: PracticeMode, now: number, exercise?: Exerci
     selectedIndex: startIndex(mode, count),
     scratch: emptyScratch(current),
     scratchSelection: null,
+    askOperands,
+    timing: sessionTiming(mode, askOperands),
     outcome: null,
     startedAt: now,
     submittedAt: null,
@@ -153,7 +165,7 @@ export function deleteDigit(state: SessionState): SessionState {
 export function submit(state: SessionState, now: number): SessionState {
   if (!canSubmit(state)) return state;
   const correct = enteredValue(state) === state.exercise.answer;
-  const score = points(correct, now - state.startedAt, MODE_INFO[state.mode].bonusTiming);
+  const score = points(correct, now - state.startedAt, state.timing, MODE_INFO[state.mode].basePoints);
   const outcome: Outcome = correct
     ? { kind: 'correct', score }
     : { kind: 'wrong', correctAnswer: state.exercise.answer, score };
@@ -161,5 +173,5 @@ export function submit(state: SessionState, now: number): SessionState {
 }
 
 export function nextExercise(state: SessionState, now: number, exercise?: Exercise): SessionState {
-  return createSession(state.mode, now, exercise);
+  return createSession(state.mode, now, exercise, state.askOperands);
 }
