@@ -108,7 +108,7 @@ export const MODE_INFO: Record<PracticeMode, ModeInfo> = {
   },
   'addition-written': {
     operation: 'addition',
-    title: 'Háromjegyű',
+    title: 'Háromjegyűek',
     description: 'Két háromjegyű szám összege, füzetszerűen.',
     layout: 'stacked',
     answerCellCount: 4,
@@ -141,7 +141,7 @@ export const MODE_INFO: Record<PracticeMode, ModeInfo> = {
   },
   'subtraction-written': {
     operation: 'subtraction',
-    title: 'Háromjegyű',
+    title: 'Háromjegyűek',
     description: 'Két háromjegyű szám különbsége, füzetszerűen.',
     layout: 'stacked',
     answerCellCount: 3,
@@ -163,7 +163,7 @@ export const MODE_INFO: Record<PracticeMode, ModeInfo> = {
   },
   'multiplication-written': {
     operation: 'multiplication',
-    title: 'Háromjegyű',
+    title: 'Háromjegyűek',
     description: 'Háromjegyű szám szorzása egyjegyűvel.',
     layout: 'productRow',
     answerCellCount: 4,
@@ -185,7 +185,7 @@ export const MODE_INFO: Record<PracticeMode, ModeInfo> = {
   },
   'division-written': {
     operation: 'division',
-    title: 'Háromjegyű',
+    title: 'Háromjegyűek',
     description: 'Háromjegyű szám osztása egyjegyűvel, maradék nélkül.',
     layout: 'equationRow',
     answerCellCount: 3,

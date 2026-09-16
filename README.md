@@ -23,7 +23,7 @@ Az eredeti SwiftUI iOS változat a `2842602` commitig a git-történetben megtal
   és osztásnál mindig az eredmény.
 - Pontozás: helyes válasz alappont + ugyanannyi maximumú gyorsasági bónusz. Az alappont
   egyjegyűeknél 3, kétjegyűeknél és a szorzótáblás típusoknál 6, háromjegyűeknél 10. A bónusz az
-  egyjegyű és szorzótáblás feladatoknál azonnal, a kétjegyű és háromjegyű összeadásnál/kivonásnál
+  egyjegyű és szorzótáblás feladatoknál 1 s, a kétjegyű és háromjegyű összeadásnál/kivonásnál
   3 s, háromjegyű szorzásnál/osztásnál 5 s után kezd fogyni, periódusonként (alapból
   másodpercenként) eggyel. Helytelen válasz −1; az összpont nem megy nulla alá.
 - Fiók és játékosprofilok: a szülő (vagy a felnőtt játékos) e-mail címére kapott kóddal lép be (jelszó nincs,

@@ -213,16 +213,16 @@ describe('gyakorlás-állapot', () => {
     expect(q.outcome).toEqual({ kind: 'wrong', correctAnswer: 7, score: { base: 0, bonus: 0, penalty: 1 } });
   });
 
-  it('szorzótáblánál a bónusz azonnal fogy a 6 pontos alapról; csak-eredmény módban másodpercenként eggyel', () => {
+  it('szorzótáblánál 1 mp türelmi idő, aztán a 6 pontos bónusz másodpercenként eggyel fogy', () => {
     const start = createSession('multiplication-table', 0, makeExercise('multiplication-table', 6, 7), false);
     const full = (t: number) => submit(enterAll(start, [4, 2]), t); // 42
     expect(full(0).outcome?.kind).toBe('correct');
     expect(full(0).outcome?.score.base).toBe(6);
     expect(full(0).outcome?.score.bonus).toBe(6);
-    expect(full(0.99).outcome?.score.bonus).toBe(6);
-    expect(full(1).outcome?.score.bonus).toBe(5);
-    expect(full(4.2).outcome?.score.bonus).toBe(2);
-    expect(full(6).outcome?.score.bonus).toBe(0);
+    expect(full(1.99).outcome?.score.bonus).toBe(6);
+    expect(full(2).outcome?.score.bonus).toBe(5);
+    expect(full(5.2).outcome?.score.bonus).toBe(2);
+    expect(full(7).outcome?.score.bonus).toBe(0);
   });
 
   it('vegyes módban (operandust is kérdezünk) a bónusz 50%-kal lassabban fogy, a következő feladat is vegyes', () => {
@@ -230,8 +230,8 @@ describe('gyakorlás-állapot', () => {
     expect(mixed.askOperands).toBe(true);
     expect(mixed.timing.decayIntervalMs).toBe(1500);
     const done = (t: number) => submit(enterAll(mixed, [1, 2]), t);
-    expect(done(1.4).outcome?.score.bonus).toBe(3);
-    expect(done(1.5).outcome?.score.bonus).toBe(2);
+    expect(done(2.4).outcome?.score.bonus).toBe(3);
+    expect(done(2.5).outcome?.score.bonus).toBe(2);
     expect(nextExercise(done(2), 2).askOperands).toBe(true);
     // háromjegyű szorzásnál nincs operandus-kérdés, ott a vegyes beállítás sem lassít
     expect(createSession('multiplication-written', 0, undefined, true).timing.decayIntervalMs).toBe(1000);
