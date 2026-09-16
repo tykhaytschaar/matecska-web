@@ -15,6 +15,8 @@ export class CatalogStore {
   characters = $state<readonly Catalog['characters'][number][]>(CATALOG);
   /** Honnan jött a mostani katalógus. */
   source = $state<'bundled' | 'cached' | 'remote'>('bundled');
+  /** A szerver ellenőrzése: még tart, a szerveré nem újabb (naprakész), vagy nem volt elérhető. */
+  check = $state<'pending' | 'current' | 'unreachable'>('pending');
 
   constructor(
     private readonly storage: KeyValueStorage,
@@ -51,12 +53,26 @@ export class CatalogStore {
 
   /** Lekéri a szerver katalógusát; újabb verziónál letölti a hiányzó csíkokat, ment és átvált. */
   async refresh(known: Record<string, string> = {}): Promise<void> {
-    if (!this.baseUrl) return;
+    if (!this.baseUrl) {
+      this.check = 'unreachable';
+      return;
+    }
     try {
-      const response = await fetch(`${this.baseUrl}catalog.json`, { cache: 'no-cache' });
-      if (!response.ok) return;
+      // Időbélyeg a kérésben: a CDN egyperces gyorsítótárát kerüli, hogy egy kiadás azonnal látszódjon.
+      const response = await fetch(`${this.baseUrl}catalog.json?t=${Date.now()}`, { cache: 'no-store' });
+      if (!response.ok) {
+        this.check = 'unreachable';
+        return;
+      }
       const fetched = parseCatalog(await response.json());
-      if (!fetched || !isNewer(fetched, this.version)) return;
+      if (!fetched) {
+        this.check = 'unreachable';
+        return;
+      }
+      if (!isNewer(fetched, this.version)) {
+        this.check = 'current';
+        return;
+      }
       const sprites = { ...known };
       for (const name of missingSprites(fetched, sprites)) {
         const image = await fetch(`${this.baseUrl}${name}`, { cache: 'no-cache' });
@@ -68,9 +84,11 @@ export class CatalogStore {
       if (!catalog) return;
       await this.storage.set(KEY, JSON.stringify(stored));
       this.apply(catalog, 'remote');
+      this.check = 'current';
       console.info(`[matecska] karakter-katalógus frissítve: v${catalog.version}`);
     } catch {
       // nincs net vagy hibás katalógus: marad a mostani
+      this.check = 'unreachable';
     }
   }
 

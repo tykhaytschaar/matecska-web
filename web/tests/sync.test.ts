@@ -4,7 +4,7 @@ import { buildProfile, EMPTY_SUMMARY, freshState, type ImportedProfile, type Pla
 import type { Backend, PlayerListing } from '../src/store/backend';
 import { LocalCache } from '../src/store/localCache';
 import { memoryStorage } from '../src/store/storage';
-import { mergePending, syncPlayer } from '../src/store/sync';
+import { adoptListing, mergePending, syncPlayer } from '../src/store/sync';
 
 /** Szerver-utánzat: eseménynaplóból számol, mint a player_summaries nézet. */
 class FakeBackend implements Backend {
@@ -116,6 +116,30 @@ describe('szinkron a szerverrel', () => {
     expect(merged.pending).toHaveLength(1);
     expect(merged.dirty).toBe(true);
     expect(merged.player.selectedCharacterID).toBe('fox');
+  });
+});
+
+describe('a szerver listájának átvétele az aktív állapotba', () => {
+  const serverPlayer: PlayerRecord = { ...player, name: 'Anna B', selectedCharacterID: 'whitecat', pointAdjustment: 780 };
+  const listing: PlayerListing[] = [{ player: serverPlayer, summary: { pointsDelta: 331, stats: {} } }];
+
+  it('tiszta állapotnál a szerver sora és összesítése győz (más eszközön állított pontkorrekció)', () => {
+    const adopted = adoptListing(freshState(player), listing)!;
+    expect(adopted.player).toEqual(serverPlayer);
+    expect(adopted.summary.pointsDelta).toBe(331);
+    expect(buildProfile(adopted).totalPoints).toBe(1111);
+  });
+
+  it('helyben módosult sor marad, függő eseményeknél az összesítés marad', () => {
+    const local = { ...freshState({ ...player, selectedCharacterID: 'blackcat' }), dirty: true, pending: [attemptEvent(buildProfile(freshState(player)), good, true, 'addition-single')] };
+    const adopted = adoptListing(local, listing)!;
+    expect(adopted.player.selectedCharacterID).toBe('blackcat');
+    expect(adopted.summary.pointsDelta).toBe(0);
+    expect(adopted.pending).toHaveLength(1);
+  });
+
+  it('ha a játékos nincs a listában, null', () => {
+    expect(adoptListing(freshState(player), [])).toBeNull();
   });
 });
 

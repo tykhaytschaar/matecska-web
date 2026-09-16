@@ -8,7 +8,7 @@ import type { Backend, PlayerListing } from './backend';
 import type { CatalogStore } from './catalogStore.svelte';
 import { LocalCache, loadLegacyProfile, removeLegacyProfile } from './localCache';
 import type { KeyValueStorage } from './storage';
-import { mergePending, syncPlayer, type SyncStatus } from './sync';
+import { adoptListing, mergePending, syncPlayer, type SyncStatus } from './sync';
 
 /** Mennyi ideig gyűjtjük az eseményeket egy feltöltésbe. */
 const SYNC_DELAY_MS = 1500;
@@ -40,6 +40,7 @@ export class PlayerStore {
   private readonly cache: LocalCache;
   private timer: ReturnType<typeof setTimeout> | null = null;
   private syncing: Promise<void> | null = null;
+  private rerun = false;
   private readonly onOnline = () => void this.sync();
 
   constructor(
@@ -78,8 +79,14 @@ export class PlayerStore {
       this.offline = false;
       this.players = listing;
       await this.cache.savePlayers(listing);
-      if (this.active && !listing.some((l) => l.player.id === this.active!.player.id)) {
-        await this.deactivate();
+      if (this.active) {
+        const adopted = adoptListing(this.active, listing);
+        if (!adopted) {
+          await this.deactivate();
+        } else {
+          this.active = adopted;
+          await this.cache.saveState(adopted);
+        }
       }
     } catch {
       this.offline = true;
@@ -192,9 +199,21 @@ export class PlayerStore {
     await this.sync();
   }
 
+  /**
+   * Egyeztetés a szerverrel. Ha épp fut egy menet, a kérés nem veszik el: a futó menet végén
+   * még egy indul, hogy a közben módosult sor és a közben keletkezett események is felmenjenek.
+   */
   async sync(): Promise<void> {
-    if (this.syncing) return this.syncing;
-    this.syncing = this.run().finally(() => (this.syncing = null));
+    if (this.syncing) {
+      this.rerun = true;
+      return this.syncing;
+    }
+    this.syncing = (async () => {
+      do {
+        this.rerun = false;
+        await this.run();
+      } while (this.rerun);
+    })().finally(() => (this.syncing = null));
     return this.syncing;
   }
 
@@ -207,10 +226,7 @@ export class PlayerStore {
     const merged = mergePending(result.state, this.active, snapshot);
     this.active = merged;
     await this.cache.saveState(merged);
-    if (result.status === 'synced') {
-      const summary = merged.summary;
-      this.players = this.players.map((l) => (l.player.id === merged.player.id ? { player: merged.player, summary } : l));
-      await this.cache.savePlayers(this.players);
-    }
+    // Sikeres feltöltés után a szerver listája a forrás (más eszközön állított név, karakter, pontkorrekció).
+    if (result.status === 'synced') await this.refreshPlayers();
   }
 }

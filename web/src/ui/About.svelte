@@ -47,9 +47,14 @@
     }),
   );
 
-  const catalogLabel = $derived(
-    `v${store.catalog.version} · ${store.catalog.source === 'bundled' ? 'beépített' : store.catalog.source === 'cached' ? 'mentett' : 'szerver'}`,
-  );
+  /** Pl. „v3 · naprakész” (a szerveré nem újabb), „v3 · szerver” (most töltve), „v3 · mentett”, „v3 · beépített · szerver nem elérhető”. */
+  const catalogLabel = $derived.by(() => {
+    const c = store.catalog;
+    const source = c.source === 'remote' ? 'szerver' : c.source === 'cached' ? 'mentett' : 'beépített';
+    if (c.check === 'current') return `v${c.version} · ${c.source === 'remote' ? source : 'naprakész'}`;
+    if (c.check === 'unreachable') return `v${c.version} · ${source} · szerver nem elérhető`;
+    return `v${c.version} · ${source} · ellenőrzés…`;
+  });
   const rows = $derived([
     { label: 'Verzió', value: APP_INFO.version },
     { label: 'Karakterek', value: catalogLabel },

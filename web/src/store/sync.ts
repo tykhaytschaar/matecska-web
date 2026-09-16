@@ -1,5 +1,5 @@
 import type { PlayerState } from '../core/player';
-import type { Backend } from './backend';
+import type { Backend, PlayerListing } from './backend';
 
 export type SyncStatus = 'synced' | 'offline';
 
@@ -50,5 +50,21 @@ export function mergePending(synced: PlayerState, current: PlayerState, snapshot
     summary: synced.summary,
     pending,
     dirty: playerChanged ? true : synced.dirty,
+  };
+}
+
+/**
+ * A szerverről frissen lekért lista sorának átvétele az aktív állapotba: a játékos sora
+ * (név, karakter, pontkorrekció) mindig a szerveré, kivéve ha helyben módosult és még nem
+ * ment fel; az összesítés csak akkor, ha nincs függő esemény, mert azok a régi összesítésre
+ * épülnek. Ha a lista nem tartalmazza a játékost, `null` (törölték máshol).
+ */
+export function adoptListing(state: PlayerState, listing: PlayerListing[]): PlayerState | null {
+  const mine = listing.find((l) => l.player.id === state.player.id);
+  if (!mine) return null;
+  return {
+    ...state,
+    player: state.dirty ? state.player : mine.player,
+    summary: state.pending.length > 0 ? state.summary : mine.summary,
   };
 }
