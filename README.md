@@ -34,7 +34,12 @@ Az eredeti SwiftUI iOS változat a `2842602` commitig a git-történetben megtal
 - Offline-first: a válaszok helyben mentődnek és rövid késleltetéssel a szerverre kerülnek;
   net nélkül a függő események megmaradnak a következő alkalomig. Az Infó képernyő mutatja
   a szinkron állapotát.
-- Infó képernyő: verzió, az aktív játékos statisztikája, kijelentkezés és fióktörlés. Rejtett
+- Menü (a főképernyő „Menü" gombja, alulról feljövő lap): játékosváltás, Karakterek, Az alkalmazásról,
+  Adatvédelem, Segítség (GYIK a katalógus küszöbeiből + kapcsolat), natív appban Támogasd a fejlesztőt
+  (a vásárlás StoreKit-plugin nélkül még csak tájékoztat), Kijelentkezés. Adatvédelem és Segítség a
+  belépés előtt is elérhető a belépő képernyő aljáról.
+- Az alkalmazásról képernyő: verzió, katalógus, szinkron állapota, az aktív játékos statisztikája,
+  kijelentkezés és fióktörlés. Rejtett
   fejlesztői mód (7 koppintás a verziósorra): játékosonként a pont tetszőleges értékre állítása
   (a válaszok maradnak, egy pontkorrekció kerül a játékosra) és a statisztika, pont nullázása.
 - Karakterek képernyő: a karakterek pontküszöbre oldódnak fel, a pont nem fogy, a lista küszöb szerint

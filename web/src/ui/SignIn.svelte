@@ -5,8 +5,10 @@
 
   interface Props {
     account: AccountStore;
+    onPrivacy: () => void;
+    onSupport: () => void;
   }
-  let { account }: Props = $props();
+  let { account, onPrivacy, onSupport }: Props = $props();
 
   let step = $state<'email' | 'code'>('email');
   let email = $state('');
@@ -67,7 +69,7 @@
   <div class="hero">
     <CharacterSprite character={CAT} size={96} />
     <span class="name">Matecska</span>
-    <span class="tagline">Belépés</span>
+    <span class="tagline">Szülői belépés</span>
   </div>
 
   {#if step === 'email'}
@@ -84,7 +86,7 @@
         placeholder="szulo@example.hu"
         disabled={busy}
       />
-      <p class="hint">Erre a címre küldünk egy belépőkódot. Jelszó nincs.</p>
+      <p class="hint">Erre a címre küldünk egy belépőkódot. Jelszó nincs, nem is kell megjegyezni.</p>
       {#if error}<p class="error" role="alert">{error}</p>{/if}
       <button type="submit" class="chunky" disabled={!emailValid || busy}>{busy ? 'Küldés…' : 'Kód kérése'}</button>
     </form>
@@ -99,7 +101,7 @@
         inputmode="numeric"
         pattern="[0-9 ]*"
         maxlength="8"
-        placeholder="123456"
+        placeholder="••••••"
         disabled={busy}
         class="code"
       />
@@ -113,9 +115,14 @@
     </form>
   {/if}
 
-  <p class="note">A játékosok egy közös fiók alatt játszanak; róluk csak becenevet és pontokat tárolunk.</p>
+  <p class="note">A gyerekek egy közös szülői fiók alatt játszanak; róluk csak becenevet és pontokat tárolunk.</p>
 
   <div class="spacer"></div>
+
+  <div class="footer">
+    <button type="button" class="footlink" onclick={onPrivacy}>Adatvédelem</button>
+    <button type="button" class="footlink" onclick={onSupport}>Segítség</button>
+  </div>
 </div>
 
 <style>
@@ -207,5 +214,19 @@
     text-align: center;
     font-size: 0.8rem;
     color: var(--ink-soft);
+  }
+  .footer {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+  }
+  .footlink {
+    padding: 8px 4px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--ink-soft);
+  }
+  .footlink:active {
+    opacity: 0.6;
   }
 </style>

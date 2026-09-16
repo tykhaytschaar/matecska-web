@@ -7,6 +7,11 @@ export interface AppInfo {
   developer: string;
 }
 
+/** Kapcsolat a Segítség képernyőn. TODO: valódi cím. */
+export const SUPPORT_EMAIL = 'hello@matecska.hu';
+/** Teljes adatkezelési tájékoztató. TODO: a hivatalos tájékoztató címe. */
+export const PRIVACY_POLICY_URL = 'https://github.com/tykhaytschaar/matecska-web#adatvedelem';
+
 export const APP_INFO: AppInfo = {
   name: 'Matecska',
   version: __APP_VERSION__,

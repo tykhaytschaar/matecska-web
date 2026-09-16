@@ -47,6 +47,9 @@
     }),
   );
 
+  const syncLabel = $derived(
+    store.syncStatus === 'synced' ? 'Szinkronizálva' : store.syncStatus === 'pending' ? 'Feltöltés folyamatban' : 'Nincs kapcsolat',
+  );
   /** Pl. „v3 · naprakész” (a szerveré nem újabb), „v3 · szerver” (most töltve), „v3 · mentett”, „v3 · beépített · szerver nem elérhető”. */
   const catalogLabel = $derived.by(() => {
     const c = store.catalog;
@@ -60,11 +63,9 @@
     { label: 'Karakterek', value: catalogLabel },
     { label: 'Build ideje', value: formatBuildTime(APP_INFO.builtAt) },
     { label: 'Fejlesztő', value: APP_INFO.developer },
+    ...(store.active ? [{ label: 'Szinkron', value: syncLabel, ok: store.syncStatus === 'synced' }] : []),
   ]);
 
-  const syncLabel = $derived(
-    store.syncStatus === 'synced' ? 'Szinkronizálva' : store.syncStatus === 'pending' ? 'Feltöltés folyamatban' : 'Nincs kapcsolat',
-  );
 
   /** Rejtett kapcsoló: néhány koppintás a verziósorra. */
   function tapVersion() {
@@ -103,7 +104,7 @@
 <div class="screen">
   <header class="top">
     <button type="button" class="back" onclick={onBack} aria-label="Vissza">‹</button>
-    <h1>Infó</h1>
+    <h1>Az alkalmazásról</h1>
     <span class="placeholder"></span>
   </header>
 
@@ -123,7 +124,7 @@
       {:else}
         <div class="row">
           <dt>{row.label}</dt>
-          <dd>{row.value}</dd>
+          <dd class:ok={'ok' in row && row.ok}>{row.value}</dd>
         </div>
       {/if}
     {/each}
@@ -132,21 +133,16 @@
   {#if store.active}
     <section class="card block" aria-labelledby="stats-title">
       <h2 id="stats-title">{store.profile.name} statisztikája</h2>
-      <table>
-        <thead>
-          <tr><th scope="col">Művelet</th><th scope="col" class="num">Megoldott</th><th scope="col" class="num">Helyes</th></tr>
-        </thead>
-        <tbody>
-          {#each stats as s}
-            <tr>
-              <th scope="row"><span class="sym">{OPERATION_INFO[s.operation].symbol}</span>{OPERATION_INFO[s.operation].title}</th>
-              <td class="num">{s.solved}</td>
-              <td class="num">{s.correct}{#if s.ratio !== null}<span class="ratio">{s.ratio}%</span>{/if}</td>
-            </tr>
-          {/each}
-        </tbody>
-      </table>
-      <span class="meta">{syncLabel}</span>
+      <ul class="stat-list">
+        {#each stats as s}
+          <li class="stat">
+            <span class="sym">{OPERATION_INFO[s.operation].symbol}</span>
+            <span class="stat-title">{OPERATION_INFO[s.operation].title}</span>
+            <span class="stat-solved" title="Megoldott feladatok">{s.solved}</span>
+            <span class="ratio" title="Helyes válaszok aránya">{s.ratio === null ? '–' : `${s.ratio}%`}</span>
+          </li>
+        {/each}
+      </ul>
     </section>
   {/if}
 
@@ -301,36 +297,40 @@
     font-size: 1rem;
     font-weight: 700;
   }
-  table {
-    width: 100%;
-    border-collapse: collapse;
+  .stat-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
   }
-  th,
-  td {
-    padding: 8px 0;
-    text-align: left;
+  .stat {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 0;
     font-weight: 600;
   }
-  thead th {
-    font-size: 0.8rem;
-    color: var(--ink-soft);
-    border-bottom: 1px solid var(--ink-faint);
-  }
-  tbody th {
-    color: var(--ink);
+  .stat + .stat {
+    border-top: 1px solid var(--ink-faint);
   }
   .sym {
     display: inline-block;
     width: 1.4em;
     color: var(--flame);
+    font-weight: 700;
   }
-  .num {
-    text-align: right;
+  .stat-title {
+    flex: 1;
   }
   .ratio {
-    margin-left: 6px;
-    font-size: 0.8rem;
+    width: 3.2em;
+    text-align: right;
+    font-size: 0.85rem;
     color: var(--ink-soft);
+  }
+  dd.ok {
+    color: var(--green);
   }
   .meta {
     font-size: 0.8rem;

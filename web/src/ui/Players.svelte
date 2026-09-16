@@ -1,8 +1,8 @@
 <script lang="ts">
   import { buildProfile, freshState } from '../core/player';
-  import { selectedCharacter } from '../core/profile';
-  import CharacterSprite from '../sprites/CharacterSprite.svelte';
   import type { PlayerStore } from '../store/playerStore.svelte';
+  import Avatar from './Avatar.svelte';
+  import MenuButton from './MenuButton.svelte';
   import PointsBadge from './PointsBadge.svelte';
 
   interface Props {
@@ -10,9 +10,10 @@
     /** Egy játékos kiválasztása után; `onBack` csak akkor, ha van aktív játékos, akihez visszatérhetünk. */
     onPick: () => void;
     onBack: (() => void) | null;
-    onAbout: () => void;
+    /** A menü; aktív játékos nélkül a fejlécből érhető el, hogy az Infó, Adatvédelem, Segítség ne vesszen el. */
+    onMenu: () => void;
   }
-  let { store, onPick, onBack, onAbout }: Props = $props();
+  let { store, onPick, onBack, onMenu }: Props = $props();
 
   let adding = $state(false);
   let name = $state('');
@@ -27,7 +28,7 @@
     store.players.map((listing) => {
       const catalog = store.catalog.characters;
       const profile = buildProfile(freshState(listing.player, listing.summary), catalog);
-      return { id: listing.player.id, name: listing.player.name, profile, character: selectedCharacter(profile, catalog) };
+      return { id: listing.player.id, name: listing.player.name, profile };
     }),
   );
 
@@ -76,8 +77,12 @@
     {:else}
       <span class="placeholder"></span>
     {/if}
-    <button type="button" class="logo" onclick={onAbout} aria-label="Infó és fiók">MATECSKA</button>
-    <span class="placeholder"></span>
+    <h2 class="title">Játékosok</h2>
+    {#if onBack}
+      <span class="placeholder"></span>
+    {:else}
+      <MenuButton onclick={onMenu} />
+    {/if}
   </header>
 
   <div class="spacer"></div>
@@ -93,8 +98,11 @@
         disabled={busy !== null}
         onclick={() => pick(entry.id)}
       >
-        <CharacterSprite character={entry.character} size={48} />
-        <span class="name">{entry.name}</span>
+        <Avatar name={entry.name} size={48} radius="14px" fontSize="1.25rem" />
+        <span class="text">
+          <span class="name">{entry.name}</span>
+          <span class="status">{store.active?.player.id === entry.id ? 'Most játszik' : 'Koppints a váltáshoz'}</span>
+        </span>
         <PointsBadge points={entry.profile.totalPoints} compact />
       </button>
     {/each}
@@ -156,17 +164,12 @@
   .placeholder {
     width: 40px;
   }
-  .logo {
+  .title {
     flex: 1;
-    font-weight: 900;
-    letter-spacing: 0.2em;
+    margin: 0;
     font-size: 1.05rem;
-    padding: 8px 0;
-    color: var(--ink);
-    transition: opacity 0.1s ease;
-  }
-  .logo:active {
-    opacity: 0.6;
+    font-weight: 600;
+    text-align: center;
   }
   .spacer {
     flex: 1;
@@ -199,11 +202,22 @@
     border-color: var(--flame);
     box-shadow: inset 0 0 0 1px var(--flame), var(--shadow);
   }
-  .name {
+  .text {
     flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+  }
+  .name {
     font-weight: 600;
     font-size: 1.125rem;
     overflow-wrap: anywhere;
+  }
+  .status {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--ink-soft);
   }
   .add {
     justify-content: center;

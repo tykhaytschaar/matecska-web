@@ -3,29 +3,39 @@
   import { HOME_WALK } from '../core/walk';
   import CharacterStage from '../sprites/CharacterStage.svelte';
   import type { PlayerStore } from '../store/playerStore.svelte';
+  import Avatar from './Avatar.svelte';
+  import Icon from './Icon.svelte';
+  import MenuButton from './MenuButton.svelte';
   import PointsBadge from './PointsBadge.svelte';
 
   interface Props {
     store: PlayerStore;
     onPractice: (operation: MathOperation) => void;
     onCollection: () => void;
-    onAbout: () => void;
+    onMenu: () => void;
     onPlayers: () => void;
   }
-  let { store, onPractice, onCollection, onAbout, onPlayers }: Props = $props();
+  let { store, onPractice, onCollection, onMenu, onPlayers }: Props = $props();
 </script>
 
 <div class="screen">
   <header class="hud">
-    <button type="button" class="logo" onclick={onAbout} aria-label="Infó az alkalmazásról">MATECSKA</button>
-    <PointsBadge points={store.profile.totalPoints} />
+    <span class="logo">MATECSKA</span>
+    <div class="right">
+      <PointsBadge points={store.profile.totalPoints} />
+      <MenuButton onclick={onMenu} />
+    </div>
   </header>
 
   <div class="spacer"></div>
 
   <div class="hero">
     <CharacterStage character={store.character} size={112} mood="walk" walk={HOME_WALK} />
-    <button type="button" class="who" onclick={onPlayers} aria-label="Játékos váltása">{store.profile.name}</button>
+    <button type="button" class="who" onclick={onPlayers} aria-label="Játékos váltása">
+      <Avatar name={store.profile.name} />
+      <span class="who-name">{store.profile.name}</span>
+      <span class="who-switch">Váltás <Icon name="chevron-down" size={14} /></span>
+    </button>
   </div>
 
   <h1>Mit gyakoroljunk?</h1>
@@ -51,17 +61,17 @@
     justify-content: space-between;
     min-height: 44px;
   }
-  /* A logó kattintható: az Infó képernyőt nyitja. */
   .logo {
     font-weight: 900;
     letter-spacing: 0.2em;
     font-size: 1.05rem;
     padding: 8px 0;
     color: var(--ink);
-    transition: opacity 0.1s ease;
   }
-  .logo:active {
-    opacity: 0.6;
+  .right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
   }
   .spacer {
     flex: 1;
@@ -70,24 +80,40 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 10px;
+    gap: 12px;
   }
-  /* A játékos neve kattintható: a játékosválasztót nyitja. */
+  /* Játékos-chip: avatár, név, „Váltás”; a játékosválasztót nyitja. */
   .who {
-    padding: 6px 16px;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 14px 6px 6px;
     border-radius: 999px;
     border: 2px solid var(--line);
     background: var(--card);
     box-shadow: var(--shadow);
-    font-weight: 600;
     color: var(--ink);
     max-width: 100%;
+    transition: opacity 0.1s ease;
+  }
+  .who:active {
+    opacity: 0.6;
+  }
+  .who-name {
+    font-weight: 700;
+    font-size: 1.05rem;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
   }
-  .who:active {
-    opacity: 0.6;
+  .who-switch {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    color: var(--ink-soft);
+    font-size: 0.85rem;
+    font-weight: 600;
+    flex: none;
   }
   h1 {
     margin: 0;
