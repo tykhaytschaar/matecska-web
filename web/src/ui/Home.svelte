@@ -9,13 +9,14 @@
     store: ProfileStore;
     onPractice: (operation: MathOperation) => void;
     onCollection: () => void;
+    onAbout: () => void;
   }
-  let { store, onPractice, onCollection }: Props = $props();
+  let { store, onPractice, onCollection, onAbout }: Props = $props();
 </script>
 
 <div class="screen">
   <header class="hud">
-    <span class="logo">MATECSKA</span>
+    <button type="button" class="logo" onclick={onAbout} aria-label="Infó az alkalmazásról">MATECSKA</button>
     <PointsBadge points={store.profile.totalPoints} />
   </header>
 
@@ -48,10 +49,17 @@
     justify-content: space-between;
     min-height: 44px;
   }
+  /* A logó kattintható: az Infó képernyőt nyitja. */
   .logo {
     font-weight: 900;
     letter-spacing: 0.2em;
     font-size: 1.05rem;
+    padding: 8px 0;
+    color: var(--ink);
+    transition: opacity 0.1s ease;
+  }
+  .logo:active {
+    opacity: 0.6;
   }
   .spacer {
     flex: 1;

@@ -41,7 +41,8 @@
     flex: 1;
     height: var(--key-height);
     border-radius: 16px;
-    border: 2px solid var(--ink-soft);
+    border: 2px solid var(--line);
+    box-shadow: var(--shadow);
     background: var(--card);
     color: var(--ink);
     font-size: 1.75rem;
@@ -56,7 +57,7 @@
   }
   .key:disabled {
     color: var(--ink-soft);
-    border-color: var(--ink-faint);
+    box-shadow: none;
   }
   .spacer {
     visibility: hidden;

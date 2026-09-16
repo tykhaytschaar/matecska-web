@@ -1,10 +1,16 @@
 import { answerCellCount, randomExercise, type Exercise } from './exercise';
-import { OPERATION_INFO, type MathOperation } from './operation';
+import { MODE_INFO, type MathOperation, type PracticeMode } from './operation';
 import { points, type ScoreBreakdown } from './scoring';
 
 export type Outcome =
   | { kind: 'correct'; score: ScoreBreakdown }
   | { kind: 'wrong'; correctAnswer: number; score: ScoreBreakdown };
+
+/** Egy kijelölt maradék-rubrika az osztás segédrácsában. */
+export interface ScratchSelection {
+  row: number;
+  col: number;
+}
 
 /**
  * Egy gyakorlás állapota: az aktuális feladat, a beírt számjegyek, a kijelölt rubrika,
@@ -12,21 +18,17 @@ export type Outcome =
  * így a Svelte reaktivitás egyszerű újra-hozzárendeléssel működik.
  * Az idők másodpercben, egy tetszőleges monoton órából.
  */
-/** Egy kijelölt maradék-rubrika az osztás segédrácsában. */
-export interface ScratchSelection {
-  row: number;
-  col: number;
-}
-
 export interface SessionState {
+  mode: PracticeMode;
+  /** A fő kategória; a statisztika ezen a kulcson gyűlik. */
   operation: MathOperation;
   exercise: Exercise;
   /** A 0. index a bal szélső, az utolsó a jobb szélső (egyes helyiérték). */
   cells: readonly (number | null)[];
   selectedIndex: number;
   /**
-   * Nem kötelező segédrács a maradékok nyomon követésére (csak osztásnál): annyi sor, ahány
-   * jegyű a hányados, annyi oszlop, ahány jegyű az osztandó. A beküldést és a pontozást nem érinti.
+   * Nem kötelező segédrács a maradékok nyomon követésére (csak írásbeli osztásnál): annyi sor,
+   * ahány jegyű a hányados, annyi oszlop, ahány jegyű az osztandó. A beküldést és a pontozást nem érinti.
    */
   scratch: readonly (readonly (number | null)[])[];
   /** Ha nem `null`, a billentyűzet a segédrácsba ír, nem a válasz rubrikáiba. */
@@ -40,25 +42,26 @@ export function cellCount(state: SessionState): number {
   return state.cells.length;
 }
 
-function startIndex(operation: MathOperation, count: number): number {
-  return OPERATION_INFO[operation].entryDirection === 'ltr' ? 0 : count - 1;
+function startIndex(mode: PracticeMode, count: number): number {
+  return MODE_INFO[mode].entryDirection === 'ltr' ? 0 : count - 1;
 }
 
 function emptyScratch(exercise: Exercise): (number | null)[][] {
-  if (exercise.operation !== 'division') return [];
+  if (exercise.mode !== 'division-written') return [];
   const rows = String(exercise.answer).length;
   const cols = String(exercise.operands[0]).length;
   return Array.from({ length: rows }, () => Array<number | null>(cols).fill(null));
 }
 
-export function createSession(operation: MathOperation, now: number, exercise?: Exercise): SessionState {
-  const current = exercise ?? randomExercise(operation);
+export function createSession(mode: PracticeMode, now: number, exercise?: Exercise): SessionState {
+  const current = exercise ?? randomExercise(mode);
   const count = answerCellCount(current);
   return {
-    operation,
+    mode,
+    operation: MODE_INFO[mode].operation,
     exercise: current,
     cells: Array<number | null>(count).fill(null),
-    selectedIndex: startIndex(operation, count),
+    selectedIndex: startIndex(mode, count),
     scratch: emptyScratch(current),
     scratchSelection: null,
     outcome: null,
@@ -115,7 +118,7 @@ function writeScratch(state: SessionState, sel: ScratchSelection, value: number 
 }
 
 /**
- * Beírja a számjegyet a kijelölt rubrikába, és a művelet irányában lép a következőre.
+ * Beírja a számjegyet a kijelölt rubrikába, és a gyakorlástípus irányában lép a következőre.
  * A segédrácsban balról jobbra halad, a sor végén megáll.
  */
 export function enterDigit(state: SessionState, digit: number): SessionState {
@@ -125,7 +128,7 @@ export function enterDigit(state: SessionState, digit: number): SessionState {
   }
   const cells = [...state.cells];
   cells[state.selectedIndex] = digit;
-  const step = OPERATION_INFO[state.operation].entryDirection === 'ltr' ? 1 : -1;
+  const step = MODE_INFO[state.mode].entryDirection === 'ltr' ? 1 : -1;
   const next = Math.min(cells.length - 1, Math.max(0, state.selectedIndex + step));
   return { ...state, cells, selectedIndex: next };
 }
@@ -138,7 +141,7 @@ export function deleteDigit(state: SessionState): SessionState {
     const target = state.scratch[sel.row][sel.col] === null && sel.col > 0 ? { row: sel.row, col: sel.col - 1 } : sel;
     return writeScratch(state, target, null, target.col);
   }
-  const back = OPERATION_INFO[state.operation].entryDirection === 'ltr' ? -1 : 1;
+  const back = MODE_INFO[state.mode].entryDirection === 'ltr' ? -1 : 1;
   let index = state.selectedIndex;
   const neighbour = index + back;
   if (state.cells[index] === null && neighbour >= 0 && neighbour < state.cells.length) index = neighbour;
@@ -150,7 +153,7 @@ export function deleteDigit(state: SessionState): SessionState {
 export function submit(state: SessionState, now: number): SessionState {
   if (!canSubmit(state)) return state;
   const correct = enteredValue(state) === state.exercise.answer;
-  const score = points(correct, now - state.startedAt, OPERATION_INFO[state.operation].bonusTiming);
+  const score = points(correct, now - state.startedAt, MODE_INFO[state.mode].bonusTiming);
   const outcome: Outcome = correct
     ? { kind: 'correct', score }
     : { kind: 'wrong', correctAnswer: state.exercise.answer, score };
@@ -158,5 +161,5 @@ export function submit(state: SessionState, now: number): SessionState {
 }
 
 export function nextExercise(state: SessionState, now: number, exercise?: Exercise): SessionState {
-  return createSession(state.operation, now, exercise);
+  return createSession(state.mode, now, exercise);
 }

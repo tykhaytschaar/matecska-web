@@ -50,6 +50,7 @@
     border-radius: var(--radius-cell);
     border: 2px solid var(--ink-soft);
     background: var(--card);
+    box-shadow: var(--shadow);
     color: var(--ink);
     display: flex;
     align-items: center;
@@ -57,13 +58,16 @@
     flex: none;
     transition: border-color 0.15s ease, background 0.15s ease;
   }
+  /* A kijelölést a keret színe és egy belső vonal adja, a méret nem változik. */
   .cell.selected {
-    border: 3px solid var(--flame);
+    border-color: var(--flame);
+    box-shadow: inset 0 0 0 1px var(--flame);
     background: var(--flame-soft);
   }
   .cell.muted {
     border-style: dashed;
     border-color: var(--ink-faint);
+    box-shadow: none;
     background: transparent;
     color: var(--ink);
     opacity: 0.85;
@@ -71,6 +75,7 @@
   .cell.muted.selected {
     border-style: solid;
     border-color: var(--flame);
+    box-shadow: inset 0 0 0 1px var(--flame);
     background: var(--flame-soft);
   }
   .cell.muted:disabled {

@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs';
 import { defineConfig } from 'vitest/config';
 import { svelte } from '@sveltejs/vite-plugin-svelte';
 import { VitePWA } from 'vite-plugin-pwa';
@@ -5,8 +6,15 @@ import { VitePWA } from 'vite-plugin-pwa';
 // GitHub Pages alatt a repó neve az alap útvonal; fejlesztéskor gyökér.
 const base = process.env.BASE_PATH ?? '/';
 
+// Az Infó képernyő adatai fordításkor kerülnek a kódba (lásd src/core/appInfo.ts).
+const { version } = JSON.parse(readFileSync(new URL('./package.json', import.meta.url), 'utf-8')) as { version: string };
+
 export default defineConfig({
   base,
+  define: {
+    __APP_VERSION__: JSON.stringify(version),
+    __BUILD_TIME__: JSON.stringify(new Date().toISOString()),
+  },
   plugins: [
     svelte(),
     VitePWA({

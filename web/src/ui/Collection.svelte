@@ -90,7 +90,7 @@
   }
   /* A kiválasztott karakter vastag, színes keretet kap; a többi a sima kártyakeretet. */
   .item.selected {
-    box-shadow: inset 0 0 0 2px var(--flame);
+    box-shadow: inset 0 0 0 1px var(--flame), var(--shadow);
     border-color: var(--flame);
   }
   /* Fejtér az örülő animáció ugrásának (max 4 px × 6 = 24 px), hogy ne lógjon ki a kártyából. */

@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { OPERATION_INFO } from '../core/operation';
+  import { MODE_INFO, OPERATION_INFO } from '../core/operation';
   import type { SessionState } from '../core/session';
   import AnswerCells from './AnswerCells.svelte';
 
@@ -10,10 +10,13 @@
   }
   let { session, onSelect, onSelectScratch = () => {} }: Props = $props();
 
-  const info = $derived(OPERATION_INFO[session.operation]);
+  const mode = $derived(MODE_INFO[session.mode]);
+  const info = $derived({ ...mode, symbol: OPERATION_INFO[mode.operation].symbol });
   const exercise = $derived(session.exercise);
   const [first, second] = $derived(exercise.operands);
   const count = $derived(session.cells.length);
+  /** Az írásbeli osztás sora hosszú (háromjegyű osztandó + három rubrika), ott kisebbek a rubrikák. */
+  const compactRow = $derived(session.mode === 'division-written');
 
   /**
    * Oszlopok az egymás alatti elrendezésben: a leghosszabb sor, ahol a második sor
@@ -73,6 +76,12 @@
   />
 {/snippet}
 
+{#snippet inlineDigits(value: number)}
+  {#each String(value).split('') as d}
+    <span class="glyph digit">{d}</span>
+  {/each}
+{/snippet}
+
 {#snippet digitRow(value: number, prefix: string | null)}
   <div class="row">
     {#each digitGlyphs(value, prefix) as glyph}
@@ -122,19 +131,27 @@
     </div>
   </div>
 {:else}
-  <!-- Osztás: `456 : 8 = [ ][ ][ ]` rubrikaszélességű oszlopokban, alatta a nem kötelező
-       maradék-rács az osztandó jegyei alatt, mint a füzetben. -->
-  <div class="division">
+  <!-- Egy sorban: `456 : 8 = [ ][ ][ ]` vagy `7 + [ ] = 12`, rubrikaszélességű oszlopokban; az üres hely
+       bárhol lehet. Írásbeli osztásnál alatta a nem kötelező maradék-rács az osztandó jegyei alatt. -->
+  <div class="division" class:compact-row={compactRow}>
     <div class="row compact">
-      {#each String(first).split('') as d}
-        <span class="glyph digit">{d}</span>
-      {/each}
+      {#if exercise.blank === 'first'}
+        {@render cells('var(--cell-compact)', 'var(--gap-compact)')}
+      {:else}
+        {@render inlineDigits(first)}
+      {/if}
       <span class="glyph narrow digit sign">{info.symbol}</span>
-      {#each String(second).split('') as d}
-        <span class="glyph digit">{d}</span>
-      {/each}
+      {#if exercise.blank === 'second'}
+        {@render cells('var(--cell-compact)', 'var(--gap-compact)')}
+      {:else}
+        {@render inlineDigits(second)}
+      {/if}
       <span class="glyph narrow digit sign">=</span>
-      {@render cells('var(--cell-compact)', 'var(--gap-compact)')}
+      {#if exercise.blank === 'result'}
+        {@render cells('var(--cell-compact)', 'var(--gap-compact)')}
+      {:else}
+        {@render inlineDigits(exercise.result)}
+      {/if}
     </div>
     {#each session.scratch as scratchRow, row}
       <div class="row compact scratch">
@@ -181,13 +198,19 @@
     background: var(--ink);
     width: calc(var(--columns) * var(--cell) + (var(--columns) - 1) * var(--cell-gap));
   }
+  /* Rövid sor (egyjegyű feladatok): majdnem teljes méretű rubrikák. */
   .division {
-    --cell-compact: clamp(32px, min(9.2vw, 5.6svh), 46px);
-    --gap-compact: 4px;
+    --cell-compact: clamp(36px, min(11vw, 6svh), 52px);
+    --gap-compact: 6px;
     display: flex;
     flex-direction: column;
     align-items: flex-start;
     gap: var(--gap-compact);
+  }
+  /* Hosszú sor (írásbeli osztás): kisebb rubrikák, hogy egy sorba férjen. */
+  .division.compact-row {
+    --cell-compact: clamp(32px, min(9.2vw, 5.6svh), 46px);
+    --gap-compact: 4px;
   }
   .compact {
     gap: var(--gap-compact);

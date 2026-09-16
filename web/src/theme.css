@@ -12,6 +12,9 @@
   --red: #ff3b30;
   --ink-soft: rgba(43, 45, 66, 0.35);
   --ink-faint: rgba(43, 45, 66, 0.12);
+  /* Keretek, elválasztók: halvány, hogy a felületek színe adja a formát, ne a vonal. */
+  --line: rgba(43, 45, 66, 0.16);
+  --shadow: 0 1px 2px rgba(43, 45, 66, 0.06);
   --radius: 20px;
   --radius-cell: 12px;
   /* Méretek, amik a nézetablak magasságához is igazodnak (svh: a böngészősávokkal együtt is elfér). */
@@ -33,6 +36,8 @@
     --flame-soft: rgba(242, 140, 40, 0.2);
     --ink-soft: rgba(253, 246, 227, 0.35);
     --ink-faint: rgba(253, 246, 227, 0.12);
+    --line: rgba(253, 246, 227, 0.14);
+    --shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
   }
 }
 
@@ -88,15 +93,17 @@ button:disabled {
 
 .card {
   background: var(--card);
-  border: 2px solid var(--ink);
+  border: 2px solid var(--line);
   border-radius: var(--radius);
+  box-shadow: var(--shadow);
 }
 
 .chunky {
   width: 100%;
   padding: clamp(10px, 1.6svh, 14px) 16px;
   border-radius: var(--radius);
-  border: 2px solid var(--ink);
+  border: 2px solid transparent;
+  box-shadow: var(--shadow);
   background: var(--flame);
   color: #fff;
   font-weight: 700;
@@ -115,11 +122,12 @@ button:disabled {
 
 .chunky:disabled {
   background: var(--ink-soft);
-  border-color: transparent;
+  box-shadow: none;
 }
 
 .chunky.bar {
   background: var(--bar);
+  border-color: var(--line);
 }
 
 .digit {

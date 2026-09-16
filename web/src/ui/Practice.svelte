@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { OPERATION_INFO, type MathOperation } from '../core/operation';
+  import { MODE_INFO, type PracticeMode } from '../core/operation';
   import { selectedCharacter } from '../core/profile';
   import { bonus, bonusFraction } from '../core/scoring';
   import {
@@ -26,21 +26,21 @@
 
   interface Props {
     store: ProfileStore;
-    operation: MathOperation;
+    mode: PracticeMode;
     onBack: () => void;
     /** Tesztelhetőség: előre beállított kezdőállapot. */
     initial?: SessionState;
   }
-  let { store, operation, onBack, initial }: Props = $props();
+  let { store, mode, onBack, initial }: Props = $props();
 
   const nowSeconds = () => performance.now() / 1000;
 
   // svelte-ignore state_referenced_locally
-  let session = $state.raw<SessionState>(initial ?? createSession(operation, nowSeconds()));
+  let session = $state.raw<SessionState>(initial ?? createSession(mode, nowSeconds()));
   let mood = $state<Mood>('idle');
   let now = $state(nowSeconds());
 
-  const info = $derived(OPERATION_INFO[operation]);
+  const info = $derived(MODE_INFO[mode]);
   const submitted = $derived(isSubmitted(session));
   const elapsed = $derived(elapsedSeconds(session, now));
   const fraction = $derived(bonusFraction(elapsed, info.bonusTiming));
@@ -62,7 +62,7 @@
     if (!outcome) return;
     mood = outcome.kind === 'correct' ? 'happy' : 'yuck';
     resultFeedback(outcome.kind === 'correct');
-    store.record(outcome.score, outcome.kind === 'correct', operation);
+    store.record(outcome.score, outcome.kind === 'correct', info.operation);
   }
 
   function handleNext() {
@@ -101,7 +101,7 @@
 <div class="screen">
   <header class="top">
     <button type="button" class="back" onclick={onBack} aria-label="Vissza a főképernyőre">‹</button>
-    <h1>{info.title}</h1>
+    <div class="spacer"></div>
     <div class="right">
       <CharacterSprite character={selectedCharacter(store.profile)} {mood} size={36} />
       <PointsBadge points={store.profile.totalPoints} compact />
@@ -159,13 +159,6 @@
     display: flex;
     align-items: center;
     justify-content: center;
-  }
-  h1 {
-    flex: 1;
-    margin: 0;
-    font-size: 1.05rem;
-    font-weight: 600;
-    text-align: center;
   }
   .right {
     display: flex;

@@ -22,9 +22,11 @@ export interface BonusTiming {
 
 export const DEFAULT_DECAY_INTERVAL_MS = 1000;
 
-/** Összeadás, kivonás: 3 másodpercig teljes, utána másodpercenként eggyel kevesebb. */
+/** Egyjegyű, fejben számolós feladatok: nincs türelmi idő, a bónusz azonnal fogyni kezd. */
+export const INSTANT_TIMING: BonusTiming = { fullBonusUntil: 0, decayIntervalMs: DEFAULT_DECAY_INTERVAL_MS };
+/** Írásbeli összeadás, kivonás: 3 másodpercig teljes, utána másodpercenként eggyel kevesebb. */
 export const QUICK_TIMING: BonusTiming = { fullBonusUntil: 3, decayIntervalMs: DEFAULT_DECAY_INTERVAL_MS };
-/** Szorzás, osztás: türelmesebb, 5 másodpercig teljes, utána másodpercenként eggyel kevesebb. */
+/** Írásbeli szorzás, osztás: türelmesebb, 5 másodpercig teljes, utána másodpercenként eggyel kevesebb. */
 export const PATIENT_TIMING: BonusTiming = { fullBonusUntil: 5, decayIntervalMs: DEFAULT_DECAY_INTERVAL_MS };
 
 export const BASE_POINTS = 10;

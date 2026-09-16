@@ -1,4 +1,4 @@
-import { OPERATION_INFO, type MathOperation } from './operation';
+import { MODE_INFO, type MathOperation, type PracticeMode } from './operation';
 
 /** Melyik helyet kell kitölteni: az első vagy a második operandust, vagy az eredményt. */
 export type BlankSlot = 'first' | 'second' | 'result';
@@ -12,10 +12,11 @@ export const BLANK_SLOTS: readonly BlankSlot[] = ['first', 'second', 'result'];
 export const WEIGHTED_BLANK_SLOTS: readonly BlankSlot[] = ['first', 'second', 'result', 'result'];
 
 /**
- * Egy konkrét feladat: művelet, operandusok, a művelet eredménye, az üres hely,
- * és a beírandó válasz (az üres hely értéke).
+ * Egy konkrét feladat: gyakorlástípus, művelet, operandusok, a művelet eredménye,
+ * az üres hely, és a beírandó válasz (az üres hely értéke).
  */
 export interface Exercise {
+  mode: PracticeMode;
   operation: MathOperation;
   operands: readonly [number, number];
   result: number;
@@ -23,9 +24,9 @@ export interface Exercise {
   answer: number;
 }
 
-/** Hány rubrikába kell beírni a választ: az eredménynél a művelet rubrikaszáma, operandusnál annak jegyei. */
+/** Hány rubrikába kell beírni a választ: az eredménynél a típus rubrikaszáma, operandusnál annak jegyei. */
 export function answerCellCount(exercise: Exercise): number {
-  if (exercise.blank === 'result') return OPERATION_INFO[exercise.operation].answerCellCount;
+  if (exercise.blank === 'result') return MODE_INFO[exercise.mode].answerCellCount;
   return String(exercise.answer).length;
 }
 
@@ -48,7 +49,8 @@ export function seededRng(seed: number): Rng {
   };
 }
 
-function randomBlank(rng: Rng): BlankSlot {
+function randomBlank(mode: PracticeMode, rng: Rng): BlankSlot {
+  if (!MODE_INFO[mode].randomBlank) return 'result';
   return WEIGHTED_BLANK_SLOTS[randomInt(0, WEIGHTED_BLANK_SLOTS.length - 1, rng)];
 }
 
@@ -61,34 +63,53 @@ function evaluate(operation: MathOperation, a: number, b: number): number {
   }
 }
 
-export function makeExercise(operation: MathOperation, a: number, b: number, blank: BlankSlot = 'result'): Exercise {
+export function makeExercise(mode: PracticeMode, a: number, b: number, blank: BlankSlot = 'result'): Exercise {
+  const operation = MODE_INFO[mode].operation;
   const result = evaluate(operation, a, b);
   const answer = blank === 'first' ? a : blank === 'second' ? b : result;
-  return { operation, operands: [a, b], result, blank, answer };
+  return { mode, operation, operands: [a, b], result, blank, answer };
 }
 
 /**
- * Véletlen feladat. Minden művelet háromjegyű „fő” számmal dolgozik,
- * a szorzó és az osztó egyjegyű, az osztás maradék nélküli.
- * Összeadásnál és kivonásnál véletlen az üres hely: 50% eredmény, 25-25% valamelyik operandus;
- * szorzásnál és osztásnál mindig az eredmény.
+ * Véletlen feladat. Az írásbeli típusok háromjegyű „fő” számmal dolgoznak, a szorzó és az osztó
+ * egyjegyű, az osztás maradék nélküli. Az egyjegyű típusokban egyik operandus és az eredmény sem 1
+ * (és nem 0): összeadás 2…9 + 2…9; kivonásnál a kivonandó és a különbség 2…9, a kisebbítendő így
+ * 4…18; a szorzótábla és a visszafelé változata (a szorzatot osztjuk egyik tényezőjével) 2…9 közti
+ * tényezőkkel.
+ * Az üres hely a típus `randomBlank` beállítása szerint véletlen (50% eredmény, 25-25% operandus)
+ * vagy mindig az eredmény.
  */
-export function randomExercise(operation: MathOperation, rng: Rng = Math.random): Exercise {
-  switch (operation) {
-    case 'addition':
-      return makeExercise(operation, randomInt(100, 999, rng), randomInt(100, 999, rng), randomBlank(rng));
-    case 'subtraction': {
-      const a = randomInt(100, 999, rng);
-      return makeExercise(operation, a, randomInt(100, a, rng), randomBlank(rng));
+export function randomExercise(mode: PracticeMode, rng: Rng = Math.random): Exercise {
+  const blank = randomBlank(mode, rng);
+  switch (mode) {
+    case 'addition-single':
+      return makeExercise(mode, randomInt(2, 9, rng), randomInt(2, 9, rng), blank);
+    case 'addition-written':
+      return makeExercise(mode, randomInt(100, 999, rng), randomInt(100, 999, rng), blank);
+    case 'subtraction-single': {
+      const subtrahend = randomInt(2, 9, rng);
+      const difference = randomInt(2, 9, rng);
+      return makeExercise(mode, subtrahend + difference, subtrahend, blank);
     }
-    case 'multiplication':
-      return makeExercise(operation, randomInt(100, 999, rng), randomInt(2, 9, rng));
-    case 'division': {
+    case 'subtraction-written': {
+      const a = randomInt(100, 999, rng);
+      return makeExercise(mode, a, randomInt(100, a, rng), blank);
+    }
+    case 'multiplication-table':
+      return makeExercise(mode, randomInt(2, 9, rng), randomInt(2, 9, rng), blank);
+    case 'multiplication-written':
+      return makeExercise(mode, randomInt(100, 999, rng), randomInt(2, 9, rng), blank);
+    case 'division-table': {
+      const divisor = randomInt(2, 9, rng);
+      const quotient = randomInt(2, 9, rng);
+      return makeExercise(mode, quotient * divisor, divisor, blank);
+    }
+    case 'division-written': {
       const divisor = randomInt(2, 9, rng);
       const minQuotient = Math.ceil(100 / divisor);
       const maxQuotient = Math.floor(999 / divisor);
       const quotient = randomInt(minQuotient, maxQuotient, rng);
-      return makeExercise(operation, quotient * divisor, divisor);
+      return makeExercise(mode, quotient * divisor, divisor, blank);
     }
   }
 }

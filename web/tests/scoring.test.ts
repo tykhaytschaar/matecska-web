@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { OPERATION_INFO } from '../src/core/operation';
-import { bonus, bonusFraction, PATIENT_TIMING, points, QUICK_TIMING, totalPoints, type BonusTiming } from '../src/core/scoring';
+import { MODE_INFO } from '../src/core/operation';
+import { bonus, bonusFraction, INSTANT_TIMING, PATIENT_TIMING, points, QUICK_TIMING, totalPoints, type BonusTiming } from '../src/core/scoring';
 
 describe('pontozás', () => {
   it.each([
@@ -28,11 +28,23 @@ describe('pontozás', () => {
     expect(bonus(60, fast)).toBe(0);
   });
 
-  it('a műveletek a megfelelő időzítést kapják, 1000 ms-os alapperiódussal', () => {
-    expect(OPERATION_INFO.addition.bonusTiming).toBe(QUICK_TIMING);
-    expect(OPERATION_INFO.subtraction.bonusTiming).toBe(QUICK_TIMING);
-    expect(OPERATION_INFO.multiplication.bonusTiming).toBe(PATIENT_TIMING);
-    expect(OPERATION_INFO.division.bonusTiming).toBe(PATIENT_TIMING);
+  it.each([
+    [0, 20], [0.5, 20], [1, 19], [2.9, 18], [5, 15], [9.99, 11], [10, 10], [20, 10],
+  ])('egyjegyű feladatok: %s mp után %s pont, nincs türelmi idő', (elapsed, expected) => {
+    expect(totalPoints(points(true, elapsed, INSTANT_TIMING))).toBe(expected);
+  });
+
+  it('a gyakorlástípusok a megfelelő időzítést kapják, 1000 ms-os alapperiódussal', () => {
+    expect(MODE_INFO['addition-single'].bonusTiming).toBe(INSTANT_TIMING);
+    expect(MODE_INFO['subtraction-single'].bonusTiming).toBe(INSTANT_TIMING);
+    expect(MODE_INFO['multiplication-table'].bonusTiming).toBe(INSTANT_TIMING);
+    expect(MODE_INFO['division-table'].bonusTiming).toBe(INSTANT_TIMING);
+    expect(MODE_INFO['addition-written'].bonusTiming).toBe(QUICK_TIMING);
+    expect(MODE_INFO['subtraction-written'].bonusTiming).toBe(QUICK_TIMING);
+    expect(MODE_INFO['multiplication-written'].bonusTiming).toBe(PATIENT_TIMING);
+    expect(MODE_INFO['division-written'].bonusTiming).toBe(PATIENT_TIMING);
+    expect(INSTANT_TIMING.fullBonusUntil).toBe(0);
+    expect(INSTANT_TIMING.decayIntervalMs).toBe(1000);
     expect(QUICK_TIMING.decayIntervalMs).toBe(1000);
     expect(PATIENT_TIMING.decayIntervalMs).toBe(1000);
   });
