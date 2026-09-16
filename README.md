@@ -35,8 +35,8 @@ Az eredeti SwiftUI iOS változat a `2842602` commitig a git-történetben megtal
   fejlesztői mód (7 koppintás a verziósorra): játékosonként a pont tetszőleges értékre állítása
   (a válaszok maradnak, egy pontkorrekció kerül a játékosra) és a statisztika, pont nullázása.
 - Karakterek képernyő: a karakterek pontküszöbre oldódnak fel, a pont nem fogy (Matecska alapból,
-  Fekete cica 500, Fehér cica 1000 ponttól). Új karakter: egy elem a `characters.ts` katalógusába
-  küszöbbel, plusz a sprite-csíkja a `public/sprites` mappába.
+  Ferike 1000, Marika 1500 ponttól). A katalógus és a sprite-csíkok a `characters/` mappában
+  (`catalog.json` + PNG-k), lásd lent.
 - Infó képernyő a főképernyő MATECSKA feliratára koppintva: verzió (a `web/package.json`-ból), a build ideje és a
   fejlesztő neve; a verziót és az időbélyeget a Vite fordításkor injektálja. Ugyanitt a
   műveletenkénti statisztika (megoldott, helyes, arány) és a nullázása, ami a pontokat nem érinti.
@@ -55,9 +55,23 @@ npm run build     # dist/ (PWA, service worker, manifest)
 npm run preview   # a build kipróbálása
 ```
 
-Deploy: a `.github/workflows/web-pages.yml` minden `main`-re push után teszteli, buildeli
-és GitHub Pages-re teszi a `web/` mappát (`BASE_PATH` = a repó neve). A Supabase-adatok a repó
-Actions-változóiból jönnek (`SUPABASE_URL`, `SUPABASE_KEY`).
+### Kiadás
+
+Három workflow a `.github/workflows` mappában:
+
+- `ci.yml`: minden pushra és pull requestre teszt, típusellenőrzés, build és a karakter-katalógus
+  ellenőrzése. Nem deployol.
+- `release.yml`: az app kiadása GitHub Pages-re, **csak `v*` tagre** (pl. `v0.1.1`). A tag számának
+  egyeznie kell a `web/package.json` verziójával, különben a build leáll. A Supabase-adatok a repó
+  Actions-változóiból jönnek (`SUPABASE_URL`, `SUPABASE_KEY`). Az iOS build kézzel megy Xcode-ból,
+  a verziót a `package.json`-ból veszi.
+- `characters.yml`: a karakterek kiadása a Supabase Storage `characters` bucketbe, **csak
+  `characters-v*` tagre** (pl. `characters-v2`). A tag számának egyeznie kell a `catalog.json`
+  `version` mezőjével. Titok: `SUPABASE_SERVICE_ROLE_KEY`.
+
+Kiadás lépései: verzió emelése a `web/package.json`-ban, commit, majd
+`git tag v0.1.1 && git push origin v0.1.1`. Karaktereknél: `version` emelése a `catalog.json`-ban,
+commit, `git tag characters-v2 && git push origin characters-v2`.
 
 ### Backend (Supabase)
 
@@ -80,6 +94,19 @@ Adatmodell: `players` (szülő, becenév, kiválasztott karakter, a fiók előtt
 és a stat ebből számolódik, a karakterek a pontból; az esemény-azonosítót a kliens adja, így az
 újraküldés idempotens.
 
+### Karakterek (`characters/`)
+
+Egyetlen forrás: `characters/catalog.json` (verzió, karakterek: azonosító, név, küszöb, sprite-fájl,
+rácsméret, kockaindexek, eltolások, szív/csepp helye) és mellette a PNG-csíkok. A web build innen
+importálja a beépített katalógust és másolja a csíkokat a `public/sprites` alá (nincs a gitben).
+A `tools/upload_characters.mjs` ugyanezt ellenőrzi és tölti a Storage bucketbe (kézzel:
+`SUPABASE_SERVICE_ROLE_KEY=… node tools/upload_characters.mjs`, próba: `--dry-run`). Az app
+egyelőre a beépített katalógust használja; a szerverről töltés későbbi lépés.
+
+A karakter azonosítója (`id`) állandó, ez van a játékos `selected_character_id` mezőjében; a név és a
+fájlnév szabadon változhat. Kép cseréjénél új fájlnevet adj (pl. `blackcat-2.png`), mert a CDN egy
+napig tartja a régit. A formátum csak bővülhet, mert régi app-verziók is kapnak új katalógust.
+
 Szerver nélküli fejlesztéshez `VITE_FAKE_BACKEND=1` a `.env.local`-ban: memóriabeli utánzat,
 bármilyen hatjegyű kód belép, az adatok a böngésző localStorage-ában maradnak.
 
@@ -92,7 +119,7 @@ vagy fejlesztői utánzat), `src/sprites` (animált sprite), `src/ui` (képerny�
 Sprite-ok: 32×32-es kockák egy vízszintes csíkban, tetszőleges palettával. A karakter `frameSize`
 mezője adja a rácsot, az animációs eltolások és a szív/csepp helye (`fx`) ebben a rácsban értendők.
 A macska csíkját a `tools/recolor_sprites.py` színezi át a GameBoy-projekt 16×16-os forrásából és
-nagyítja kétszeresre. A hatás-kocka (szív, könnycsepp) minden karakter csíkjában szerepel, a `fxFrame`
+nagyítja kétszeresre a `characters/cat.png` fájlba. A hatás-kocka (szív, könnycsepp) minden karakter csíkjában szerepel, a `fxFrame`
 mutat rá.
 
 Ikonok: `../matecska/.venv/bin/python tools/make_icons.py` a `web/public/icons` mappába

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """PWA- és bolti ikonok a macska sprite 0. kockájából, papír háttéren, nearest-neighbor nagyítással.
 
-Bemenet: web/public/sprites/cat.png (a színezett sprite-csík).
+Bemenet: characters/cat.png (a színezett sprite-csík).
 Kimenet: web/public/icons/{icon-192,icon-512,icon-512-maskable,apple-touch-icon,favicon}.png,
 és ha létezik az iOS-projekt: AppIcon-512@2x.png (1024) és a Splash 2732×2732 képek.
 Futtatás: ../matecska/.venv/bin/python tools/make_icons.py
@@ -10,7 +10,7 @@ from pathlib import Path
 from PIL import Image
 
 ROOT = Path(__file__).resolve().parent.parent
-SRC = ROOT / "web" / "public" / "sprites" / "cat.png"
+SRC = ROOT / "characters" / "cat.png"
 OUT = ROOT / "web" / "public" / "icons"
 PAPER = (0xFD, 0xF6, 0xE3, 255)
 FRAME = 16

@@ -3,7 +3,7 @@
 
 Bemenet: ../matecska/assets/matecska_sprites_1x.png (240x16, 15 db 16x16 kocka,
 DMG zöld rámpa: világos #8BAC0F, közép #306230, sötét #0F380F, átlátszó háttér).
-Kimenet: web/public/sprites/cat.png, kétszeresre nagyítva (480x32, 32x32-es kockák), mert az
+Kimenet: characters/cat.png, kétszeresre nagyítva (480x32, 32x32-es kockák), mert az
 app karakterei 32-es rácsban készülnek; a macska frameSize értéke a characters.ts-ben 32.
 
 A paletták a GameBoy projekt src/render.c fájljából származnak.
@@ -14,7 +14,7 @@ from PIL import Image
 
 ROOT = Path(__file__).resolve().parent.parent
 SRC = ROOT.parent / "matecska" / "assets" / "matecska_sprites_1x.png"
-DST = ROOT / "web" / "public" / "sprites" / "cat.png"
+DST = ROOT / "characters" / "cat.png"
 
 FRAME = 16
 SCALE = 2

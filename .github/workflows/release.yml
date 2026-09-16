@@ -1,11 +1,10 @@
-name: Web (GitHub Pages)
+name: Release (GitHub Pages)
 
+# Az app kiadása: csak v* tagre (pl. v0.1.1). A tag száma egyezzen a web/package.json verziójával.
+# A Pages a tagre épült buildet kapja; a main-re push önmagában nem deployol.
 on:
   push:
-    branches: [main]
-    paths:
-      - "web/**"
-      - ".github/workflows/web-pages.yml"
+    tags: ["v*"]
   workflow_dispatch:
 
 permissions:
@@ -25,6 +24,15 @@ jobs:
         working-directory: web
     steps:
       - uses: actions/checkout@v7
+      - name: Tag és package.json verzió egyezése
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          tag="${GITHUB_REF_NAME#v}"
+          pkg="$(node -p "require('./package.json').version")"
+          if [ "$tag" != "$pkg" ]; then
+            echo "A tag (v$tag) nem egyezik a package.json verziójával ($pkg)." >&2
+            exit 1
+          fi
       - uses: actions/setup-node@v7
         with:
           node-version: 24

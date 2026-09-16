@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { BLACK_CAT, CAT, CATALOG, unlockedCharacterIDs, WHITE_CAT } from '../src/core/characters';
+import { CAT, CATALOG, findCharacter, unlockedCharacterIDs } from '../src/core/characters';
+import { parseCatalog, parseCharacter } from '../src/core/catalog';
+
+const BLACK_CAT = findCharacter('blackcat')!;
+const WHITE_CAT = findCharacter('whitecat')!;
 import {
   dummyProfile, ownsCharacter, parseProfile, recordScore, resetStats, selectCharacter, selectedCharacter, serializeProfile,
 } from '../src/core/profile';
@@ -18,6 +22,18 @@ describe('karakter-katalógus', () => {
     expect(new Set(CATALOG.map((c) => c.id)).size).toBe(CATALOG.length);
     expect(CATALOG[0]).toBe(CAT);
     expect(CAT.unlockAt).toBe(0);
+  });
+
+  it('a katalógus-olvasó: érvényes elem átmegy, ismeretlen mező nem zavar, hibás elem null', () => {
+    const raw = JSON.parse(JSON.stringify(BLACK_CAT));
+    expect(parseCharacter({ ...raw, extra: 'later' })).toEqual(BLACK_CAT);
+    expect(parseCharacter({ ...raw, frames: { ...raw.frames, walk: [99] } })).toBeNull();
+    expect(parseCharacter({ ...raw, id: 'Nagy Betű' })).toBeNull();
+    expect(parseCharacter({ ...raw, fx: { heart: raw.fx.heart } })).toBeNull();
+    expect(parseCatalog({ version: 1, characters: [raw] })).toBeNull(); // nincs cat
+    expect(parseCatalog({ version: 0, characters: [CAT] })).toBeNull();
+    expect(parseCatalog({ version: 2, characters: [CAT, raw, raw] })).toBeNull(); // ismétlődő id
+    expect(parseCatalog({ version: 2, characters: [CAT, raw] })?.characters.map((c) => c.id)).toEqual(['cat', 'blackcat']);
   });
 
   it('a karakterek pontküszöbre oldódnak fel', () => {

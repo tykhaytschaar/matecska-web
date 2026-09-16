@@ -1,0 +1,29 @@
+name: Characters (Supabase Storage)
+
+# A karakter-katalógus és a sprite-csíkok kiadása: csak characters-v* tagre (pl. characters-v2).
+# A tag száma egyezzen a characters/catalog.json version mezőjével.
+# Titok: SUPABASE_SERVICE_ROLE_KEY (Settings → Secrets and variables → Actions → Secrets).
+on:
+  push:
+    tags: ["characters-v*"]
+
+permissions:
+  contents: read
+
+jobs:
+  upload:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - run: npm ci
+        working-directory: web
+      - name: Feltöltés a characters bucketbe
+        run: node tools/upload_characters.mjs --expect-version "${GITHUB_REF_NAME#characters-v}"
+        env:
+          SUPABASE_URL: ${{ vars.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}

@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { BLACK_CAT, CAT } from '../src/core/characters';
+import { CAT, findCharacter } from '../src/core/characters';
+
+const BLACK_CAT = findCharacter('blackcat')!;
 import { attemptEvent } from '../src/core/events';
 import { buildProfile, freshState, importFrom, parseImported, type PlayerRecord } from '../src/core/player';
 import { dummyProfile } from '../src/core/profile';
@@ -61,8 +63,8 @@ describe('gyerek állapota és a profil levezetése', () => {
   });
 
   it('a fejlesztői pontkorrekció hozzáadódik, de a pont nem megy nulla alá', () => {
-    const plus = buildProfile(freshState({ ...player, pointAdjustment: 500 }, { pointsDelta: 20, stats: {} }));
-    expect(plus.totalPoints).toBe(520);
+    const plus = buildProfile(freshState({ ...player, pointAdjustment: BLACK_CAT.unlockAt }, { pointsDelta: 20, stats: {} }));
+    expect(plus.totalPoints).toBe(BLACK_CAT.unlockAt + 20);
     expect(plus.ownedCharacterIDs).toContain(BLACK_CAT.id);
     const minus = buildProfile(freshState({ ...player, pointAdjustment: -100 }, { pointsDelta: 20, stats: {} }));
     expect(minus.totalPoints).toBe(0);

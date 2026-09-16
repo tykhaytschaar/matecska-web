@@ -1,6 +1,10 @@
 node_modules/
 dist/
+# A characters/ mappából a build másolja (vite.config.ts)
+public/sprites/
 dev-dist/
+# A characters/ mappából a build másolja (vite.config.ts)
+public/sprites/
 .vite/
 *.log
 .env.local

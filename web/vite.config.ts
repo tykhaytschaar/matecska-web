@@ -1,4 +1,5 @@
-import { readFileSync } from 'node:fs';
+import { copyFileSync, mkdirSync, readdirSync, readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
 import { defineConfig } from 'vitest/config';
 import { svelte } from '@sveltejs/vite-plugin-svelte';
 import { VitePWA } from 'vite-plugin-pwa';
@@ -9,6 +10,22 @@ const base = process.env.BASE_PATH ?? '/';
 // Az Infó képernyő adatai fordításkor kerülnek a kódba (lásd src/core/appInfo.ts).
 const { version } = JSON.parse(readFileSync(new URL('./package.json', import.meta.url), 'utf-8')) as { version: string };
 
+/**
+ * A karakter-csíkok egy helyen élnek (../characters, a katalógussal együtt); ez a plugin
+ * dev szervernél és buildnél is a public/sprites alá másolja őket, hogy ne kelljen duplikálni.
+ */
+function characterSprites() {
+  const src = fileURLToPath(new URL('../characters/', import.meta.url));
+  const dst = fileURLToPath(new URL('./public/sprites/', import.meta.url));
+  return {
+    name: 'matecska-character-sprites',
+    buildStart() {
+      mkdirSync(dst, { recursive: true });
+      for (const file of readdirSync(src).filter((f) => f.endsWith('.png'))) copyFileSync(src + file, dst + file);
+    },
+  };
+}
+
 export default defineConfig({
   base,
   define: {
@@ -16,6 +33,7 @@ export default defineConfig({
     __BUILD_TIME__: JSON.stringify(new Date().toISOString()),
   },
   plugins: [
+    characterSprites(),
     svelte(),
     VitePWA({
       registerType: 'autoUpdate',
