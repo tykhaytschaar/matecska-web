@@ -41,14 +41,14 @@
 <div class="screen">
   <header class="top">
     <button type="button" class="back" onclick={onBack} aria-label="Vissza a főképernyőre">‹</button>
-    <h1>{info.title}</h1>
+    <div class="spacer"></div>
     <PointsBadge points={store.profile.totalPoints} compact />
   </header>
 
   <div class="spacer"></div>
 
   <div class="hero">
-    <span class="symbol">{info.symbol}</span>
+    <span class="symbol" role="img" aria-label={info.title}>{info.symbol}</span>
   </div>
 
   <h2>Melyiket gyakoroljuk?</h2>
@@ -85,13 +85,6 @@
     display: flex;
     align-items: center;
     justify-content: center;
-  }
-  h1 {
-    flex: 1;
-    margin: 0;
-    font-size: 1.05rem;
-    font-weight: 600;
-    text-align: center;
   }
   .spacer {
     flex: 1;
