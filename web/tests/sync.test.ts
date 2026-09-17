@@ -47,6 +47,11 @@ class FakeBackend implements Backend {
     }
     return summary;
   }
+  async deletePlayer(playerId: string): Promise<void> {
+    this.guard('delete');
+    this.players = this.players.filter((p) => p.id !== playerId);
+    for (const [id, e] of this.events) if (e.playerId === playerId) this.events.delete(id);
+  }
   async resetPlayer(playerId: string): Promise<void> {
     this.guard('reset');
     for (const [id, e] of this.events) if (e.playerId === playerId) this.events.delete(id);

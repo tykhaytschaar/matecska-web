@@ -9,11 +9,16 @@
   import { PlayerStore } from './store/playerStore.svelte';
   import About from './ui/About.svelte';
   import Collection from './ui/Collection.svelte';
+  import Donate from './ui/Donate.svelte';
+  import EditPlayer from './ui/EditPlayer.svelte';
   import Home from './ui/Home.svelte';
+  import Menu from './ui/Menu.svelte';
   import ModePicker from './ui/ModePicker.svelte';
   import Players from './ui/Players.svelte';
   import Practice from './ui/Practice.svelte';
+  import Privacy from './ui/Privacy.svelte';
   import SignIn from './ui/SignIn.svelte';
+  import Support from './ui/Support.svelte';
 
   type Screen =
     | { kind: 'home' }
@@ -21,7 +26,13 @@
     | { kind: 'practice'; mode: PracticeMode }
     | { kind: 'collection' }
     | { kind: 'players' }
-    | { kind: 'about' };
+    | { kind: 'about' }
+    | { kind: 'privacy'; from: 'home' | 'signin' }
+    | { kind: 'support'; from: 'home' | 'signin' }
+    | { kind: 'donate' }
+    | { kind: 'editPlayer'; id: string }
+    /** Csak kijelentkezve: vissza a belépő képernyőre. */
+    | { kind: 'signin' };
 
   const storage = platformStorage();
   const devMode = new DevMode(storage);
@@ -32,6 +43,12 @@
 
   let screen = $state<Screen>({ kind: 'home' });
   const goHome = () => (screen = { kind: 'home' });
+  /** A menülap a Home vagy a Players fölött. */
+  let menuOpen = $state(false);
+  const openMenu = () => (menuOpen = true);
+  const closeMenu = () => (menuOpen = false);
+  /** Adatvédelem és Segítség a belépés előtt is elérhető; a vissza gomb oda visz, ahonnan jött. */
+  const backFrom = (from: 'home' | 'signin') => () => (screen = from === 'home' ? { kind: 'home' } : { kind: 'signin' });
 
   /** A bejelentkezett fiókhoz tartozó játékosok; fiókváltásnál újraépül. */
   let store = $state<PlayerStore | null>(null);
@@ -44,6 +61,7 @@
     const next = new PlayerStore(storage, backend, catalog, userId);
     store = next;
     screen = { kind: 'home' };
+    menuOpen = false;
     return () => next.dispose();
   });
 
@@ -54,9 +72,10 @@
   }
 
   async function signOut() {
+    menuOpen = false;
     await store?.clearLocal();
     await account?.signOut();
-    goHome();
+    screen = { kind: 'signin' };
   }
 
   async function deleteAccount() {
@@ -75,12 +94,28 @@
   </div>
 {:else if account.status === 'loading' || (account.status === 'signedIn' && (!store || !store.ready))}
   <div class="screen"></div>
+{:else if screen.kind === 'privacy' && (account.status === 'signedOut' || !store)}
+  <Privacy onBack={backFrom('signin')} />
+{:else if screen.kind === 'support' && (account.status === 'signedOut' || !store)}
+  <Support characters={catalog.characters} onBack={backFrom('signin')} />
 {:else if account.status === 'signedOut' || !store}
-  <SignIn {account} />
+  <SignIn {account} onPrivacy={() => (screen = { kind: 'privacy', from: 'signin' })} onSupport={() => (screen = { kind: 'support', from: 'signin' })} />
+{:else if screen.kind === 'privacy'}
+  <Privacy onBack={backFrom(screen.from)} />
+{:else if screen.kind === 'support'}
+  <Support characters={store.catalog.characters} onBack={backFrom(screen.from)} />
+{:else if screen.kind === 'donate'}
+  <Donate onBack={goHome} />
+{:else if screen.kind === 'editPlayer'}
+  {#key screen.id}
+    <EditPlayer {store} playerId={screen.id} onDone={() => (screen = { kind: 'players' })} />
+  {/key}
+{:else if screen.kind === 'signin'}
+  <Home {store} onPractice={openOperation} onCollection={() => (screen = { kind: 'collection' })} onMenu={openMenu} onPlayers={() => (screen = { kind: 'players' })} />
 {:else if screen.kind === 'about'}
   <About {store} {account} {devMode} onBack={() => (screen = store?.active ? { kind: 'home' } : { kind: 'players' })} onSignOut={signOut} onDeleteAccount={deleteAccount} />
 {:else if !store.active || screen.kind === 'players'}
-  <Players {store} onPick={goHome} onBack={store.active ? goHome : null} onAbout={() => (screen = { kind: 'about' })} />
+  <Players {store} onPick={goHome} onBack={store.active ? goHome : null} onMenu={openMenu} onEdit={(id) => (screen = { kind: 'editPlayer', id })} />
 {:else if screen.kind === 'practice'}
   {#key screen.mode}
     <Practice {store} mode={screen.mode} onBack={goHome} />
@@ -94,8 +129,22 @@
     {store}
     onPractice={openOperation}
     onCollection={() => (screen = { kind: 'collection' })}
-    onAbout={() => (screen = { kind: 'about' })}
+    onMenu={openMenu}
     onPlayers={() => (screen = { kind: 'players' })}
+  />
+{/if}
+
+{#if menuOpen && store && account?.status === 'signedIn'}
+  <Menu
+    {store}
+    onClose={closeMenu}
+    onPlayers={() => (screen = { kind: 'players' })}
+    onCollection={() => (screen = { kind: 'collection' })}
+    onAbout={() => (screen = { kind: 'about' })}
+    onPrivacy={() => (screen = { kind: 'privacy', from: 'home' })}
+    onSupport={() => (screen = { kind: 'support', from: 'home' })}
+    onDonate={() => (screen = { kind: 'donate' })}
+    onSignOut={() => void signOut()}
   />
 {/if}
 

@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="hu">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Matecska · Adatkezelési tájékoztató</title>
+  <meta name="description" content="A Matecska alkalmazás adatkezelési tájékoztatója: mit, miért, hol és meddig tárolunk, és milyen jogaid vannak.">
+  <style>
+    :root {
+      color-scheme: light dark;
+      --paper: #fdf6e3; --ink: #2b2d42; --card: #ffffff; --flame: #e07a1f;
+      --ink-soft: rgba(43, 45, 66, 0.55); --ink-faint: rgba(43, 45, 66, 0.12); --line: rgba(43, 45, 66, 0.16);
+      --shadow: 0 1px 2px rgba(43, 45, 66, 0.06);
+      --font: system-ui, -apple-system, 'SF Pro Rounded', 'Segoe UI', Roboto, sans-serif;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root { --paper: #1f2a44; --ink: #fdf6e3; --card: #2b3a5c; --flame: #f28c28; --ink-soft: rgba(253, 246, 227, 0.6); --ink-faint: rgba(253, 246, 227, 0.12); --line: rgba(253, 246, 227, 0.14); --shadow: 0 1px 2px rgba(0, 0, 0, 0.2); }
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--paper); color: var(--ink); font-family: var(--font); line-height: 1.55; font-size: 0.98rem; }
+    main { max-width: 680px; margin: 0 auto; padding: 24px 16px 48px; }
+    header { display: flex; flex-direction: column; gap: 4px; margin-bottom: 20px; }
+    .brand { font-weight: 900; letter-spacing: 0.2em; font-size: 1.05rem; }
+    h1 { margin: 0; font-size: 1.6rem; font-weight: 700; }
+    .meta { color: var(--ink-soft); font-weight: 600; font-size: 0.9rem; }
+    section { background: var(--card); border: 2px solid var(--line); border-radius: 20px; box-shadow: var(--shadow); padding: 16px 18px; margin-top: 14px; }
+    h2 { margin: 0 0 8px; font-size: 1.05rem; font-weight: 700; }
+    p, li { margin: 0 0 8px; }
+    ul { margin: 0 0 8px; padding-left: 20px; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.92rem; }
+    th, td { text-align: left; vertical-align: top; padding: 8px 6px; border-top: 1px solid var(--ink-faint); }
+    th { color: var(--ink-soft); font-weight: 600; }
+    a { color: var(--flame); font-weight: 600; }
+    .note { color: var(--ink-soft); font-size: 0.9rem; }
+    footer { margin-top: 24px; text-align: center; color: var(--ink-soft); font-size: 0.85rem; }
+  </style>
+</head>
+<body>
+<main>
+  <header>
+    <span class="brand">MATECSKA</span>
+    <h1>Adatkezelési tájékoztató</h1>
+    <span class="meta">Hatályos: 2026. szeptember 17. · Verzió 1</span>
+  </header>
+
+  <section>
+    <h2>1. Az adatkezelő</h2>
+    <p>A Matecska alkalmazás (iOS app és webes változat, a továbbiakban: alkalmazás) adatkezelője:</p>
+    <p><strong>Iványi Álmos</strong> egyéni fejlesztő<br>
+      E-mail: <a href="mailto:hello@matecska.hu">hello@matecska.hu</a><!-- TODO: székhely/levelezési cím --></p>
+    <p class="note">Az alkalmazás gyerekeknek készült matematikai gyakorló. A fiókot a szülő (vagy más felnőtt) hozza létre, a gyerekek a szülő fiókja alatt, „játékosként” használják.</p>
+  </section>
+
+  <section>
+    <h2>2. Milyen adatokat kezelünk, miért és milyen jogalapon</h2>
+    <table>
+      <thead><tr><th>Adat</th><th>Cél</th><th>Jogalap</th></tr></thead>
+      <tbody>
+        <tr><td>A szülő e-mail-címe</td><td>Bejelentkezés egyszer használatos kóddal, a fiók azonosítása</td><td>Szerződés teljesítése (GDPR 6. cikk (1) b)</td></tr>
+        <tr><td>Játékosok beceneve</td><td>A játékosok megkülönböztetése egy fiókon belül</td><td>Szerződés teljesítése</td></tr>
+        <tr><td>Megoldott feladatok: típus, helyes-e, időbélyeg, kapott pont</td><td>Pontszámítás, statisztika, karakterek feloldása</td><td>Szerződés teljesítése</td></tr>
+        <tr><td>Kiválasztott karakter, beállítások (pl. hiányzó szám módja)</td><td>Az alkalmazás működése</td><td>Szerződés teljesítése</td></tr>
+        <tr><td>Technikai naplók a szerveren (időpont, kérés típusa, IP-cím)</td><td>Biztonság, hibakeresés</td><td>Jogos érdek (GDPR 6. cikk (1) f): a szolgáltatás biztonságos működtetése</td></tr>
+      </tbody>
+    </table>
+    <p>Jelszót nem kérünk és nem tárolunk. A gyerekekről születési dátumot, fotót, iskolát, tartózkodási helyet nem kérünk és nem tárolunk. Hirdetést nem jelenítünk meg, külső elemző (analitikai) szolgáltatást nem használunk, profilalkotás és automatizált döntéshozatal nincs.</p>
+  </section>
+
+  <section>
+    <h2>3. Gyerekek adatai</h2>
+    <p>A fiók a szülőé; a gyerek nem regisztrál, e-mail-címet nem ad meg. A gyerekről a szülő által megadott becenév és a játék adatai (pontok, statisztika) tárolódnak. A becenév lehet keresztnév, ezért személyes adatnak tekintjük és ugyanúgy védjük. Kérjük, hogy becenévként ne adjon meg teljes nevet.</p>
+    <p>16 év alatti gyerek adatait csak a szülő vagy gondviselő által létrehozott fiókon belül kezeljük (GDPR 8. cikk).</p>
+  </section>
+
+  <section>
+    <h2>4. Adatfeldolgozók és adattovábbítás</h2>
+    <ul>
+      <li><strong>Supabase Inc.</strong> – adatbázis, bejelentkezés és a karakter-katalógus tárolása. Az adatok az Európai Unión belüli adatközpontban tárolódnak. Adatfeldolgozói megállapodás: <a href="https://supabase.com/legal/dpa" target="_blank" rel="noopener">supabase.com/legal/dpa</a>.</li>
+      <li><strong>Resend Inc.</strong> (USA) – a belépőkódot tartalmazó e-mail kiküldése. Ehhez az e-mail-cím és a kód továbbítódik. A továbbítás az Európai Bizottság általános szerződési feltételei (SCC) és az EU–USA adatvédelmi keret alapján történik. Adatvédelmi tájékoztató: <a href="https://resend.com/legal/privacy-policy" target="_blank" rel="noopener">resend.com/legal/privacy-policy</a>.</li>
+      <li><strong>GitHub Inc.</strong> – a webes változat és ez a tájékoztató tárhelye (GitHub Pages). A megnyitáskor a GitHub szerverei technikai naplót vezethetnek.</li>
+      <li><strong>Apple Inc.</strong> – az iOS app terjesztése az App Store-on keresztül, az Apple saját feltételei szerint.</li>
+    </ul>
+    <p>Az adatokat más harmadik félnek nem adjuk át, nem adjuk el, marketingcélra nem használjuk.</p>
+  </section>
+
+  <section>
+    <h2>5. Tárolás a készüléken</h2>
+    <p>Az alkalmazás a működéséhez szükséges adatokat (bejelentkezési token, az aktív játékos adatai, még fel nem töltött válaszok, karakter-katalógus) a készülék helyi tárolójában is megőrzi, hogy internet nélkül is működjön. Ezek nem sütik, hozzájárulást nem igényelnek, és az alkalmazás törlésével vagy a kijelentkezéssel eltűnnek.</p>
+  </section>
+
+  <section>
+    <h2>6. Megőrzési idő</h2>
+    <p>Az adatokat a fiók fennállásáig őrizzük. A fiók bármikor törölhető az alkalmazásban (Menü → Az alkalmazásról → Fiók törlése); ezzel a szülő e-mail-címe, minden játékos és a hozzájuk tartozó adat azonnal és véglegesen törlődik a szerverről. Egy játékos külön is törölhető (Játékosok → szerkesztés → Játékos törlése). A technikai naplók legfeljebb 30 napig maradnak meg.</p>
+  </section>
+
+  <section>
+    <h2>7. Az érintettek jogai</h2>
+    <p>A GDPR alapján kérheti a kezelt adatokhoz való hozzáférést, azok helyesbítését, törlését, kezelésük korlátozását, valamint az adatok hordozását; a jogos érdeken alapuló adatkezelés ellen tiltakozhat. A kéréseket a <a href="mailto:hello@matecska.hu">hello@matecska.hu</a> címen fogadjuk, és legfeljebb 30 napon belül válaszolunk.</p>
+    <p>Panasszal a Nemzeti Adatvédelmi és Információszabadság Hatósághoz (NAIH) fordulhat: 1055 Budapest, Falk Miksa utca 9–11.; <a href="https://naih.hu" target="_blank" rel="noopener">naih.hu</a>; ugyfelszolgalat@naih.hu. Bírósághoz is fordulhat.</p>
+  </section>
+
+  <section>
+    <h2>8. Adatbiztonság</h2>
+    <p>Az adatok titkosított kapcsolaton (HTTPS) közlekednek. A szerveren soronkénti hozzáférés-szabályozás gondoskodik arról, hogy minden fiók csak a saját játékosait lássa és módosíthassa. A belépőkód egyszer használatos és rövid ideig érvényes.</p>
+  </section>
+
+  <section>
+    <h2>9. A tájékoztató módosítása</h2>
+    <p>Ha az adatkezelés változik, ezt a tájékoztatót frissítjük, és a hatálybalépés dátumát a lap tetején jelezzük. Lényeges változásról az alkalmazásban is tájékoztatunk.</p>
+  </section>
+
+  <footer>Matecska · <a href="../">Vissza az alkalmazáshoz</a></footer>
+</main>
+</body>
+</html>

@@ -107,6 +107,12 @@ export function fakeServices(storage: KeyValueStorage): { auth: AuthClient; back
       await latency();
       return players.some((p) => p.id === playerId) ? summaryOf(playerId) : EMPTY_SUMMARY;
     },
+    async deletePlayer(playerId) {
+      await latency();
+      players = players.filter((p) => p.id !== playerId);
+      for (const [id, e] of events) if (e.playerId === playerId) events.delete(id);
+      await persist();
+    },
     async resetPlayer(playerId) {
       await latency();
       for (const [id, e] of events) if (e.playerId === playerId) events.delete(id);
