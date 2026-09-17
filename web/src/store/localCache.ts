@@ -118,6 +118,7 @@ function isEvent(raw: unknown): raw is PlayerEvent {
   const r = raw as Record<string, unknown>;
   if (typeof r.id !== 'string' || typeof r.playerId !== 'string' || typeof r.createdAt !== 'string') return false;
   if (r.kind !== 'attempt') return false;
+  if (r.bonus !== undefined && typeof r.bonus !== 'number') return false;
   return typeof r.operation === 'string' && typeof r.mode === 'string' && typeof r.correct === 'boolean' && typeof r.points === 'number';
 }
 

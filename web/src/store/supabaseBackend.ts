@@ -1,6 +1,8 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { PlayerEvent } from '../core/events';
 import { EMPTY_SUMMARY, parseImported, parseStats, type ImportedProfile, type PlayerRecord, type PlayerSummary } from '../core/player';
+import { isPracticeMode } from '../core/operation';
+import type { ModeStats } from '../core/stats';
 import type { AuthClient, AuthUser, Backend, PlayerListing } from './backend';
 
 interface PlayerRow {
@@ -90,6 +92,7 @@ export function supabaseBackend(client: SupabaseClient): Backend {
           mode: e.mode,
           correct: e.correct,
           points: e.points,
+          bonus: e.bonus ?? null,
           created_at: e.createdAt,
         }));
       if (attempts.length) {
@@ -102,6 +105,21 @@ export function supabaseBackend(client: SupabaseClient): Backend {
       const { data, error } = await client.from('player_summaries').select('*').eq('player_id', playerId).maybeSingle();
       if (error) fail(error);
       return data ? toSummary(data as SummaryRow) : EMPTY_SUMMARY;
+    },
+
+    async fetchModeStats(playerId: string, since: Date | null): Promise<ModeStats[]> {
+      const { data, error } = await client.rpc('mode_stats', { pid: playerId, since: since ? since.toISOString() : null });
+      if (error) fail(error);
+      const rows = (data ?? []) as { mode: string; solved: number | string; correct: number | string; bonus_sum: number | string | null; bonus_count: number | string }[];
+      return rows
+        .filter((r) => isPracticeMode(r.mode))
+        .map((r) => ({
+          mode: r.mode as ModeStats['mode'],
+          solved: Number(r.solved) || 0,
+          correct: Number(r.correct) || 0,
+          bonusSum: Number(r.bonus_sum) || 0,
+          bonusCount: Number(r.bonus_count) || 0,
+        }));
     },
 
     async resetPlayer(playerId: string): Promise<void> {

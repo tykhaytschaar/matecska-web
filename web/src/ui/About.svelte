@@ -1,7 +1,6 @@
 <script lang="ts">
   import { APP_INFO, formatBuildTime } from '../core/appInfo';
   import { CAT } from '../core/characters';
-  import { OPERATION_INFO, OPERATIONS } from '../core/operation';
   import { buildProfile, freshState } from '../core/player';
   import CharacterSprite from '../sprites/CharacterSprite.svelte';
   import type { AccountStore } from '../store/account.svelte';
@@ -40,12 +39,6 @@
     pointInputs = { ...pointInputs, [playerId]: '' };
   }
 
-  const stats = $derived(
-    OPERATIONS.map((operation) => {
-      const s = store.profile.stats[operation] ?? { solved: 0, correct: 0 };
-      return { operation, ...s, ratio: s.solved > 0 ? Math.round((s.correct / s.solved) * 100) : null };
-    }),
-  );
 
   const syncLabel = $derived(
     store.syncStatus === 'synced' ? 'Szinkronizálva' : store.syncStatus === 'pending' ? 'Feltöltés folyamatban' : 'Nincs kapcsolat',
@@ -130,21 +123,6 @@
     {/each}
   </dl>
 
-  {#if store.active}
-    <section class="card block" aria-labelledby="stats-title">
-      <h2 id="stats-title">{store.profile.name} statisztikája</h2>
-      <ul class="stat-list">
-        {#each stats as s}
-          <li class="stat">
-            <span class="sym">{OPERATION_INFO[s.operation].symbol}</span>
-            <span class="stat-title">{OPERATION_INFO[s.operation].title}</span>
-            <span class="stat-solved" title="Megoldott feladatok">{s.solved}</span>
-            <span class="ratio" title="Helyes válaszok aránya">{s.ratio === null ? '–' : `${s.ratio}%`}</span>
-          </li>
-        {/each}
-      </ul>
-    </section>
-  {/if}
 
   <section class="card block" aria-labelledby="account-title">
     <h2 id="account-title">Fiók</h2>
@@ -296,38 +274,6 @@
     margin: 0;
     font-size: 1rem;
     font-weight: 700;
-  }
-  .stat-list {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-    display: flex;
-    flex-direction: column;
-  }
-  .stat {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 10px 0;
-    font-weight: 600;
-  }
-  .stat + .stat {
-    border-top: 1px solid var(--ink-faint);
-  }
-  .sym {
-    display: inline-block;
-    width: 1.4em;
-    color: var(--flame);
-    font-weight: 700;
-  }
-  .stat-title {
-    flex: 1;
-  }
-  .ratio {
-    width: 3.2em;
-    text-align: right;
-    font-size: 0.85rem;
-    color: var(--ink-soft);
   }
   dd.ok {
     color: var(--green);

@@ -35,13 +35,17 @@ Az eredeti SwiftUI iOS változat a `2842602` commitig a git-történetben megtal
 - Offline-first: a válaszok helyben mentődnek és rövid késleltetéssel a szerverre kerülnek;
   net nélkül a függő események megmaradnak a következő alkalomig. Az Infó képernyő mutatja
   a szinkron állapotát.
-- Menü (a főképernyő „Menü" gombja, alulról feljövő lap): játékosváltás, Karakterek, Az alkalmazásról,
+- Menü (a főképernyő „Menü" gombja, alulról feljövő lap): játékosváltás, Karakterek, Statisztika, Az alkalmazásról,
   Adatvédelem (rövid összefoglaló + link a teljes tájékoztatóra: `web/public/adatvedelem/index.html`,
   a Pages-en `/adatvedelem/`), Segítség (GYIK a katalógus küszöbeiből + kapcsolat), natív appban Támogasd a fejlesztőt
   (a vásárlás StoreKit-plugin nélkül még csak tájékoztat), Kijelentkezés. Adatvédelem és Segítség a
   belépés előtt is elérhető a belépő képernyő aljáról.
-- Az alkalmazásról képernyő: verzió, katalógus, szinkron állapota, az aktív játékos statisztikája,
-  kijelentkezés és fióktörlés. Rejtett
+- Statisztika képernyő: napi, havi és összes bontás, műveletenként és azon belül alkategóriánként a
+  megoldott feladatok, a helyes válaszok aránya és az átlagos gyorsasági bónusz a mód maximumához
+  képest. A szerver a válaszokat módonként összesíti egy időponttól (`mode_stats` függvény), az app
+  hozzáadja a még fel nem töltött helyi válaszokat. A bónusz 0.2.3-tól külön oszlopban (`attempts.bonus`)
+  rögzül; a korábbi válaszok az átlagba nem számítanak.
+- Az alkalmazásról képernyő: verzió, katalógus, szinkron állapota, kijelentkezés és fióktörlés. Rejtett
   fejlesztői mód (7 koppintás a verziósorra): játékosonként a pont tetszőleges értékre állítása
   (a válaszok maradnak, egy pontkorrekció kerül a játékosra) és a statisztika, pont nullázása.
 - Karakterek képernyő: a karakterek pontküszöbre oldódnak fel, a pont nem fogy, a lista küszöb szerint
@@ -100,7 +104,7 @@ hívja, saját szerver nincs. Beállítás egyszer:
    néhány levelet enged.
 
 Adatmodell: `players` (szülő, becenév, kiválasztott karakter, a fiók előtti helyi profil egyszeri
-átvétele), `attempts` (egy beküldött válasz: művelet, alkategória, helyes-e, könyvelt pont). A pont
+átvétele), `attempts` (egy beküldött válasz: művelet, alkategória, helyes-e, könyvelt pont, bónusz). A pont
 és a stat ebből számolódik, a karakterek a pontból; az esemény-azonosítót a kliens adja, így az
 újraküldés idempotens.
 

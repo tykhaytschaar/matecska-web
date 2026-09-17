@@ -9,19 +9,21 @@
     onClose: () => void;
     onPlayers: () => void;
     onCollection: () => void;
+    onStats: () => void;
     onAbout: () => void;
     onPrivacy: () => void;
     onSupport: () => void;
     onDonate: () => void;
     onSignOut: () => void;
   }
-  let { store, onClose, onPlayers, onCollection, onAbout, onPrivacy, onSupport, onDonate, onSignOut }: Props = $props();
+  let { store, onClose, onPlayers, onCollection, onStats, onAbout, onPrivacy, onSupport, onDonate, onSignOut }: Props = $props();
 
   /** Az adomány App Store-vásárlás, weben nem érhető el. */
   const native = Capacitor.isNativePlatform();
 
   const items = $derived<{ label: string; icon: IconName; go: () => void }[]>([
     { label: 'Karakterek', icon: 'chars', go: onCollection },
+    { label: 'Statisztika', icon: 'chart', go: onStats },
     { label: 'Az alkalmazásról', icon: 'info', go: onAbout },
     { label: 'Adatvédelem', icon: 'shield', go: onPrivacy },
     { label: 'Segítség', icon: 'help', go: onSupport },

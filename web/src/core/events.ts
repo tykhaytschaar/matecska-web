@@ -15,6 +15,8 @@ export interface AttemptEvent {
   correct: boolean;
   /** A ténylegesen könyvelt pontváltozás: nulla pontnál a levonás 0. */
   points: number;
+  /** A megszerzett gyorsasági bónusz (helyes válasznál); a statisztika átlagolja. Régi soroknál hiányzik. */
+  bonus?: number;
   createdAt: string;
 }
 
@@ -44,6 +46,7 @@ export function attemptEvent(
     mode,
     correct,
     points: applied,
+    bonus: correct ? score.bonus : 0,
     createdAt: now.toISOString(),
   };
 }

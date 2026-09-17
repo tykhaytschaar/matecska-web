@@ -28,9 +28,13 @@ create table if not exists public.attempts (
   mode text not null,
   correct boolean not null,
   points integer not null,
+  -- A megszerzett gyorsasági bónusz; a statisztika átlagolja. Régi soroknál null.
+  bonus integer,
   created_at timestamptz not null default now()
 );
+alter table public.attempts add column if not exists bonus integer;
 create index if not exists attempts_player_idx on public.attempts (player_id);
+create index if not exists attempts_player_time_idx on public.attempts (player_id, created_at);
 
 -- A karakterek pontküszöbre oldódnak fel (a kliens katalógusa szerint), a pont nem fogy;
 -- ezért nincs vásárlás-tábla. A korábbi `purchases` tábla elhagyva.
@@ -66,6 +70,27 @@ select
                from public.attempts a where a.player_id = p.id group by a.operation) s),
     '{}'::jsonb) as stats
 from public.players p;
+
+-- Módonkénti statisztika egy időponttól (since null = minden). A hívó jogosultságával fut,
+-- így a players/attempts RLS-e érvényes: csak a saját játékos sorai jönnek.
+create or replace function public.mode_stats(pid uuid, since timestamptz default null)
+returns table (mode text, solved bigint, correct bigint, bonus_sum bigint, bonus_count bigint)
+language sql
+stable
+security invoker
+set search_path = public
+as $$
+  select a.mode,
+         count(*) as solved,
+         count(*) filter (where a.correct) as correct,
+         coalesce(sum(a.bonus) filter (where a.correct and a.bonus is not null), 0) as bonus_sum,
+         count(*) filter (where a.correct and a.bonus is not null) as bonus_count
+  from public.attempts a
+  where a.player_id = pid and (since is null or a.created_at >= since)
+  group by a.mode;
+$$;
+revoke execute on function public.mode_stats(uuid, timestamptz) from public, anon;
+grant execute on function public.mode_stats(uuid, timestamptz) to authenticated;
 
 -- Fejlesztői mód: egy játékos statisztikájának és pontjának törlése (a karakterek a ponttal együtt záródnak vissza).
 create or replace function public.reset_player(pid uuid)

@@ -1,6 +1,6 @@
 <script lang="ts">
   /** Vonalas ikonok a menühöz és a fejlécekhez; 24-es rácson, currentColor. */
-  export type IconName = 'menu' | 'chevron-down' | 'chevron-right' | 'chars' | 'info' | 'shield' | 'help' | 'heart' | 'pencil';
+  export type IconName = 'menu' | 'chevron-down' | 'chevron-right' | 'chars' | 'info' | 'shield' | 'help' | 'heart' | 'pencil' | 'chart';
 
   interface Props {
     name: IconName;
@@ -19,6 +19,7 @@
     help: 'M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20zM9.5 9a2.5 2.5 0 0 1 5 .5c0 1.5-2.5 2-2.5 3.5M12 17h.01',
     heart: 'M12 21s-7-4.6-9-9a5 5 0 0 1 9-4 5 5 0 0 1 9 4c-2 4.4-9 9-9 9z',
     pencil: 'M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z',
+    chart: 'M4 20V10M10 20V4M16 20v-7M22 20H2',
   };
 </script>
 

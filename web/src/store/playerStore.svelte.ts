@@ -4,6 +4,7 @@ import type { PracticeMode } from '../core/operation';
 import { buildProfile, EMPTY_SUMMARY, freshState, importFrom, type ImportedProfile, type PlayerState } from '../core/player';
 import { dummyProfile, ownsCharacter, type PlayerProfile } from '../core/profile';
 import type { ScoreBreakdown } from '../core/scoring';
+import { aggregateEvents, mergeModeStats, periodStart, type ModeStats, type StatsPeriod } from '../core/stats';
 import type { Backend, PlayerListing } from './backend';
 import type { CatalogStore } from './catalogStore.svelte';
 import { LocalCache, loadLegacyProfile, removeLegacyProfile } from './localCache';
@@ -143,6 +144,24 @@ export class PlayerStore {
   select(character: GameCharacter): void {
     if (!this.active || !ownsCharacter(this.profile, character.id)) return;
     this.commit({ ...this.active, player: { ...this.active.player, selectedCharacterID: character.id }, dirty: true });
+  }
+
+  /**
+   * Az aktív játékos módonkénti statisztikája egy időszakra: a szerver összesítése plusz a még fel nem
+   * töltött helyi válaszok. Net nélkül csak a helyi rész jön vissza, `offline: true` jelzéssel.
+   */
+  async statsFor(period: StatsPeriod, now: Date = new Date()): Promise<{ stats: ModeStats[]; offline: boolean }> {
+    if (!this.active) return { stats: [], offline: false };
+    const since = periodStart(period, now);
+    const local = aggregateEvents(this.active.pending, since);
+    try {
+      const remote = await this.backend.fetchModeStats(this.active.player.id, since);
+      this.offline = false;
+      return { stats: mergeModeStats(remote, local), offline: false };
+    } catch {
+      this.offline = true;
+      return { stats: local, offline: true };
+    }
   }
 
   /** Játékos átnevezése; az aktívnál helyben és szinkronnal, másnál közvetlenül a szerveren. */

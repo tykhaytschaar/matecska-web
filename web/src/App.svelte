@@ -18,6 +18,7 @@
   import Practice from './ui/Practice.svelte';
   import Privacy from './ui/Privacy.svelte';
   import SignIn from './ui/SignIn.svelte';
+  import Stats from './ui/Stats.svelte';
   import Support from './ui/Support.svelte';
 
   type Screen =
@@ -31,6 +32,7 @@
     | { kind: 'support'; from: 'home' | 'signin' }
     | { kind: 'donate' }
     | { kind: 'editPlayer'; id: string }
+    | { kind: 'stats' }
     /** Csak kijelentkezve: vissza a belépő képernyőre. */
     | { kind: 'signin' };
 
@@ -106,6 +108,8 @@
   <Support characters={store.catalog.characters} onBack={backFrom(screen.from)} />
 {:else if screen.kind === 'donate'}
   <Donate onBack={goHome} />
+{:else if screen.kind === 'stats'}
+  <Stats {store} onBack={goHome} />
 {:else if screen.kind === 'editPlayer'}
   {#key screen.id}
     <EditPlayer {store} playerId={screen.id} onDone={() => (screen = { kind: 'players' })} />
@@ -140,6 +144,7 @@
     onClose={closeMenu}
     onPlayers={() => (screen = { kind: 'players' })}
     onCollection={() => (screen = { kind: 'collection' })}
+    onStats={() => (screen = { kind: 'stats' })}
     onAbout={() => (screen = { kind: 'about' })}
     onPrivacy={() => (screen = { kind: 'privacy', from: 'home' })}
     onSupport={() => (screen = { kind: 'support', from: 'home' })}

@@ -1,5 +1,6 @@
 import type { PlayerEvent } from '../core/events';
 import type { ImportedProfile, PlayerRecord, PlayerSummary } from '../core/player';
+import type { ModeStats } from '../core/stats';
 
 export interface PlayerListing {
   player: PlayerRecord;
@@ -17,6 +18,8 @@ export interface Backend {
   /** Idempotens: már ismert azonosítójú eseményt csendben átugor. */
   pushEvents(events: PlayerEvent[]): Promise<void>;
   fetchSummary(playerId: string): Promise<PlayerSummary>;
+  /** Módonkénti statisztika a szerverről egy időponttól (`null` = mindentől). */
+  fetchModeStats(playerId: string, since: Date | null): Promise<ModeStats[]>;
   /** Fejlesztői mód: a játékos minden eseményének és átvett adatának törlése. */
   resetPlayer(playerId: string): Promise<void>;
   /** A játékos és minden adata (válaszok) végleges törlése. */
