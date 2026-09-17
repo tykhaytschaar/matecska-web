@@ -15,9 +15,9 @@ export const KOFI_URL = `https://ko-fi.com/${KOFI_USER}`;
 /** A Ko-fi beágyazott panelje a Támogatás képernyőn. */
 export const KOFI_EMBED_URL = `https://ko-fi.com/${KOFI_USER}/?hidefeed=true&widget=true&embed=true&preview=true`;
 /** Az app weboldala; a natív appban semlegesen, támogatásra utalás nélkül szerepel. */
-export const WEBSITE_URL = 'https://tykhaytschaar.github.io/matecska-web/';
+export const WEBSITE_URL = 'https://matecska.apasupa.com/';
 /** Teljes adatkezelési tájékoztató: statikus oldal a webes kiadásban (web/public/adatvedelem). */
-export const PRIVACY_POLICY_URL = 'https://tykhaytschaar.github.io/matecska-web/adatvedelem/';
+export const PRIVACY_POLICY_URL = 'https://matecska.apasupa.com/adatvedelem/';
 
 export const APP_INFO: AppInfo = {
   name: 'Matecska',

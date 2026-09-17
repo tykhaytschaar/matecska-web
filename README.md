@@ -37,7 +37,7 @@ Az eredeti SwiftUI iOS változat a `2842602` commitig a git-történetben megtal
   a szinkron állapotát.
 - Menü (a főképernyő „Menü" gombja, alulról feljövő lap): játékosváltás, Karakterek, Statisztika, Az alkalmazásról,
   Adatvédelem (rövid összefoglaló + link a teljes tájékoztatóra: `web/public/adatvedelem/index.html`,
-  a Pages-en `/adatvedelem/`), Segítség (GYIK + kapcsolat), csak weben Támogasd a
+  a webcímen `/adatvedelem/`), Segítség (GYIK + kapcsolat), csak weben Támogasd a
   fejlesztőt (beágyazott Ko-fi panel; natív appban az App Store szabályai miatt nincs támogatásra hívás, az
   Alkalmazásról képernyőn csak a weboldal címe), Kijelentkezés. Adatvédelem és Segítség a
   belépés előtt is elérhető a belépő képernyő aljáról.
@@ -84,10 +84,14 @@ Három workflow a `.github/workflows` mappában:
 
 - `ci.yml`: minden pushra és pull requestre teszt, típusellenőrzés, build és a karakter-katalógus
   ellenőrzése. Nem deployol.
-- `release.yml`: az app kiadása GitHub Pages-re, **csak `v*` tagre** (pl. `v0.1.1`). A tag számának
-  egyeznie kell a `web/package.json` verziójával, különben a build leáll. A Supabase-adatok a repó
-  Actions-változóiból jönnek (`SUPABASE_URL`, `SUPABASE_KEY`). Az iOS build kézzel megy Xcode-ból,
-  a verziót a `package.json`-ból veszi.
+- `release.yml`: az app kiadása a Netlify-ra (`matecska.apasupa.com`), **csak `v*` tagre** (pl.
+  `v0.2.4`), és csak a `main` commitjára mutató taggel. A tag számának egyeznie kell a
+  `web/package.json` verziójával, különben a build leáll. Kézi indítás (workflow_dispatch) vázlat-deployt
+  készít egy előnézeti URL-re. Titkok: `NETLIFY_AUTH_TOKEN`, `NETLIFY_SITE_ID`; a Supabase-adatok a repó
+  Actions-változóiból (`SUPABASE_URL`, `SUPABASE_KEY`). Az iOS build kézzel megy Xcode-ból, a verziót a
+  `package.json`-ból veszi.
+- `pages-redirect.yml`: egyszeri, kézzel indítható; a régi GitHub Pages címre átirányító oldalt tesz
+  (`web/redirect`), a régi PWA-k service workere leiratkozik.
 - `characters.yml`: a karakterek kiadása a Supabase Storage `characters` bucketbe, **csak
   `characters-v*` tagre** (pl. `characters-v2`). A tag számának egyeznie kell a `catalog.json`
   `version` mezőjével. Titok: `SUPABASE_SERVICE_ROLE_KEY`.

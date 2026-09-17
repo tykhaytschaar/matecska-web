@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="hu">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="refresh" content="0; url=https://matecska.apasupa.com/adatvedelem/">
+  <title>Matecska költözött</title>
+  <style>body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;background:#fdf6e3;color:#2b2d42;font-family:system-ui,-apple-system,sans-serif;text-align:center;padding:24px}a{color:#e07a1f;font-weight:600}</style>
+</head>
+<body>
+  <p>A Matecska új címe: <a href="https://matecska.apasupa.com/adatvedelem/">matecska.apasupa.com</a><br>Ha nem irányít át magától, koppints a linkre.</p>
+  <script>
+    // A régi telepített PWA service workere leiratkozik, hogy ne a gyorsítótárból adja a régi appot.
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.getRegistrations().then(function (rs) { rs.forEach(function (r) { r.unregister(); }); });
+    }
+    location.replace('https://matecska.apasupa.com/adatvedelem/' + location.search + location.hash);
+  </script>
+</body>
+</html>
