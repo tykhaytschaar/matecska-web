@@ -1,27 +1,15 @@
 <script lang="ts">
   import { APP_INFO, SUPPORT_EMAIL } from '../core/appInfo';
-  import type { GameCharacter } from '../core/characters';
 
   interface Props {
-    /** A katalógus küszöbeiből épül a „Mikor nyílik új karakter?” válasz. */
-    characters: readonly GameCharacter[];
     onBack: () => void;
   }
-  let { characters, onBack }: Props = $props();
-
-  const thresholds = $derived(
-    [...new Set(characters.filter((c) => c.unlockAt > 0).map((c) => c.unlockAt))].sort((a, b) => a - b),
-  );
-  const thresholdText = $derived(
-    thresholds.length === 0
-      ? 'Egyelőre egy karakter van.'
-      : `${thresholds.length === 1 ? `${thresholds[0]}` : `${thresholds.slice(0, -1).join(', ')} és ${thresholds.at(-1)}`} pontnál. A pont nem fogy el választáskor.`,
-  );
+  let { onBack }: Props = $props();
 
   const faq = $derived([
-    { q: 'Hogyan kap pontot a gyerek?', a: 'Helyes válaszért alappont jár, plusz gyorsasági bónusz. A nehezebb típusok többet érnek.' },
-    { q: 'Mikor nyílik új karakter?', a: thresholdText },
-    { q: 'Nem jön meg a belépőkód', a: 'Nézd meg a levélszemét mappát, és kérj újat 1 perc után.' },
+    { q: 'Nem jön meg a belépőkód', a: 'Nézd meg a levélszemét mappát, és kérj újat pár perc után, ha ott sincs. Szolgáltatódtól függően percekig is eltarthat, mire megérkezik - de egy óráig él.' },
+    { q: 'Hogyan kapok pontokat?', a: 'Helyes válaszért alappont jár, plusz gyorsasági bónusz. A nehezebb típusok alapból többet érnek, és a bónusz is magasabb.' },
+    { q: 'Mikor nyílik új karakter?', a: 'Amint eléred az alatta látható pontszámot. Új karaktereket folyamatosan alkotunk, ha szeretnél, te is rajzolhatsz egyet ;)' },
   ]);
 
   const mailto = $derived(`mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent(`Matecska ${APP_INFO.version}`)}`);
@@ -56,7 +44,7 @@
   </section>
 
   <section class="card block">
-    <h2>Írj nekünk</h2>
+    <h2>Írj nekem</h2>
     <p class="lead">Hiba, kérés, ötlet – 2 munkanapon belül válaszolunk.</p>
     <a class="chunky" href={mailto}>E-mail: {SUPPORT_EMAIL}</a>
     <p class="fine">Verzió {APP_INFO.version} · a levélbe automatikusan bekerül</p>

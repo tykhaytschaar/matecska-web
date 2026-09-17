@@ -1,28 +1,13 @@
 <script lang="ts">
+  import { KOFI_EMBED_URL, KOFI_URL } from '../core/appInfo';
   import { CAT } from '../core/characters';
   import CharacterSprite from '../sprites/CharacterSprite.svelte';
 
+  /** Csak a webes változatban érhető el (a menü natív appban nem mutatja). */
   interface Props {
     onBack: () => void;
   }
   let { onBack }: Props = $props();
-
-  /**
-   * Az összegek az App Store árszintekhez igazítandók; a végleges árat a StoreKit termékből kell
-   * megjeleníteni. A vásárlás Capacitor IAP pluginnal készül (consumable: tip_small, tip_medium, tip_large);
-   * a plugin még nincs telepítve, a gomb addig tájékoztat.
-   */
-  const tiers = [
-    { id: 'tip_small', amount: '990 Ft', label: 'Egy kávé' },
-    { id: 'tip_medium', amount: '2 490 Ft', label: 'Egy ebéd' },
-    { id: 'tip_large', amount: '4 990 Ft', label: 'Nagy köszönet' },
-  ];
-  let selected = $state(0);
-  let notice = $state<string | null>(null);
-
-  function support() {
-    notice = 'A támogatás hamarosan elérhető az App Store-on keresztül.';
-  }
 
   function handleKey(event: KeyboardEvent) {
     if (event.key === 'Escape') {
@@ -37,33 +22,26 @@
 <div class="screen">
   <header class="top">
     <button type="button" class="back" onclick={onBack} aria-label="Vissza">‹</button>
-    <h1>Támogasd a fejlesztőt</h1>
+    <h1>Támogass!</h1>
     <span class="placeholder"></span>
   </header>
 
   <div class="hero">
     <CharacterSprite character={CAT} size={72} mood="happy" />
-    <h2>Köszönjük, hogy velünk gyakorolsz!</h2>
-    <p>A Matecska ingyenes, reklám nélkül készül egy fejlesztő szabadidejében. Ha hasznos, egy kávé árával sokat segítesz.</p>
+    <h2>Örülök, hogy hasznosnak találod!</h2>
+    <p>A Matecska örökké ingyenes lesz, és reklám nélkül készül a szabadidőmben. Köszönöm, ha egy (vagy akár több) kávé árával segítesz.</p>
   </div>
 
-  <div class="tiers" role="radiogroup" aria-label="Támogatás összege">
-    {#each tiers as tier, i (tier.id)}
-      <button type="button" class="card tier" class:selected={selected === i} role="radio" aria-checked={selected === i} onclick={() => (selected = i)}>
-        <span class="amount">{tier.amount}</span>
-        <span class="label">{tier.label}</span>
-      </button>
-    {/each}
+  <!-- A Ko-fi saját panelje; a fizetés a Ko-fi oldalán történik, az app kártyaadatot nem lát. -->
+  <div class="card panel">
+    <iframe src={KOFI_EMBED_URL} title="Támogatás Ko-fin" loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe>
   </div>
 
-  <button type="button" class="chunky" onclick={support}>Támogatom · {tiers[selected].amount}</button>
-  {#if notice}<p class="notice" role="status">{notice}</p>{/if}
-  <p class="fine">Egyszeri, App Store-on keresztül. Nem nyit fel karaktert és nem ad pontot – a játék mindenkinek ugyanaz marad.</p>
-
-  <div class="spacer"></div>
-
-  <!-- TODO: App Store értékelés / share sheet -->
-  <a class="link" href="https://tykhaytschaar.github.io/matecska-web/" target="_blank" rel="noopener">Más módon segítenék (értékelés, megosztás) →</a>
+  <p class="fine">
+    A támogatás egyszeri és önkéntes, a Ko-fi oldalán keresztül. Nem nyit fel karaktert és nem ad pontot – a játék
+    mindenkinek ugyanaz marad. Ha a panel nem töltődik be:<br />
+    <a href={KOFI_URL} target="_blank" rel="noopener">ko-fi.com oldal megnyitása →</a>
+  </p>
 </div>
 
 <style>
@@ -94,9 +72,6 @@
   .placeholder {
     width: 40px;
   }
-  .spacer {
-    flex: 1;
-  }
   .hero {
     display: flex;
     flex-direction: column;
@@ -116,39 +91,17 @@
     line-height: 1.5;
     color: var(--ink-soft);
   }
-  .tiers {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 10px;
+  .panel {
+    overflow: hidden;
+    padding: 0;
+    background: #f9f9f9;
   }
-  .tier {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 4px;
-    padding: 14px 8px;
-    color: var(--ink);
-  }
-  .tier.selected {
-    border-color: var(--flame);
-    box-shadow: inset 0 0 0 1px var(--flame), var(--shadow);
-  }
-  .amount {
-    font-weight: 700;
-    font-size: 1.15rem;
-    white-space: nowrap;
-  }
-  .label {
-    font-size: 0.8rem;
-    font-weight: 600;
-    color: var(--ink-soft);
-  }
-  .notice {
-    margin: 0;
-    text-align: center;
-    font-size: 0.9rem;
-    font-weight: 600;
-    color: var(--flame);
+  /* A Ko-fi ajánlott magassága 712 px; így a panel görgetés nélkül kifér. */
+  iframe {
+    display: block;
+    width: 100%;
+    height: 712px;
+    border: none;
   }
   .fine {
     margin: 0;
@@ -157,10 +110,8 @@
     line-height: 1.5;
     color: var(--ink-soft);
   }
-  .link {
-    text-align: center;
+  .fine a {
     color: var(--flame);
     font-weight: 600;
-    padding: 8px 0;
   }
 </style>

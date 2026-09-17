@@ -99,13 +99,13 @@
 {:else if screen.kind === 'privacy' && (account.status === 'signedOut' || !store)}
   <Privacy onBack={backFrom('signin')} />
 {:else if screen.kind === 'support' && (account.status === 'signedOut' || !store)}
-  <Support characters={catalog.characters} onBack={backFrom('signin')} />
+  <Support onBack={backFrom('signin')} />
 {:else if account.status === 'signedOut' || !store}
   <SignIn {account} onPrivacy={() => (screen = { kind: 'privacy', from: 'signin' })} onSupport={() => (screen = { kind: 'support', from: 'signin' })} />
 {:else if screen.kind === 'privacy'}
   <Privacy onBack={backFrom(screen.from)} />
 {:else if screen.kind === 'support'}
-  <Support characters={store.catalog.characters} onBack={backFrom(screen.from)} />
+  <Support onBack={backFrom(screen.from)} />
 {:else if screen.kind === 'donate'}
   <Donate onBack={goHome} />
 {:else if screen.kind === 'stats'}
@@ -117,7 +117,15 @@
 {:else if screen.kind === 'signin'}
   <Home {store} onPractice={openOperation} onCollection={() => (screen = { kind: 'collection' })} onMenu={openMenu} onPlayers={() => (screen = { kind: 'players' })} />
 {:else if screen.kind === 'about'}
-  <About {store} {account} {devMode} onBack={() => (screen = store?.active ? { kind: 'home' } : { kind: 'players' })} onSignOut={signOut} onDeleteAccount={deleteAccount} />
+  <About
+    {store}
+    {account}
+    {devMode}
+    onBack={() => (screen = store?.active ? { kind: 'home' } : { kind: 'players' })}
+    onSignOut={signOut}
+    onDeleteAccount={deleteAccount}
+    onDonate={() => (screen = { kind: 'donate' })}
+  />
 {:else if !store.active || screen.kind === 'players'}
   <Players {store} onPick={goHome} onBack={store.active ? goHome : null} onMenu={openMenu} onEdit={(id) => (screen = { kind: 'editPlayer', id })} />
 {:else if screen.kind === 'practice'}

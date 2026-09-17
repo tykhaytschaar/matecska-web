@@ -1,6 +1,6 @@
 # Matecska
 
-Írásbeli alapműveleteket gyakoroltató app gyerekeknek. Egy TypeScript kódbázis (`web/`,
+Alsós matematikát gyakoroltató app gyerekeknek és bárkinek, aki az alapműveleteket gyakorolja. Egy TypeScript kódbázis (`web/`,
 Svelte 5 + Vite PWA), amit Capacitor csomagol natív iOS és később Android appá.
 Az eredeti SwiftUI iOS változat a `2842602` commitig a git-történetben megtalálható.
 
@@ -37,8 +37,9 @@ Az eredeti SwiftUI iOS változat a `2842602` commitig a git-történetben megtal
   a szinkron állapotát.
 - Menü (a főképernyő „Menü" gombja, alulról feljövő lap): játékosváltás, Karakterek, Statisztika, Az alkalmazásról,
   Adatvédelem (rövid összefoglaló + link a teljes tájékoztatóra: `web/public/adatvedelem/index.html`,
-  a Pages-en `/adatvedelem/`), Segítség (GYIK a katalógus küszöbeiből + kapcsolat), natív appban Támogasd a fejlesztőt
-  (a vásárlás StoreKit-plugin nélkül még csak tájékoztat), Kijelentkezés. Adatvédelem és Segítség a
+  a Pages-en `/adatvedelem/`), Segítség (GYIK + kapcsolat), csak weben Támogasd a
+  fejlesztőt (beágyazott Ko-fi panel; natív appban az App Store szabályai miatt nincs támogatásra hívás, az
+  Alkalmazásról képernyőn csak a weboldal címe), Kijelentkezés. Adatvédelem és Segítség a
   belépés előtt is elérhető a belépő képernyő aljáról.
 - Statisztika képernyő: napi, havi és összes bontás, műveletenként és azon belül alkategóriánként a
   megoldott feladatok, a helyes válaszok aránya és az átlagos gyorsasági bónusz a mód maximumához

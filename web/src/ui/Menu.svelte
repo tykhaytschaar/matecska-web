@@ -18,7 +18,7 @@
   }
   let { store, onClose, onPlayers, onCollection, onStats, onAbout, onPrivacy, onSupport, onDonate, onSignOut }: Props = $props();
 
-  /** Az adomány App Store-vásárlás, weben nem érhető el. */
+  /** A támogatás (Ko-fi) csak a webes változatban: az App Store szabályai külső fizetésre terelést nem engednek. */
   const native = Capacitor.isNativePlatform();
 
   const items = $derived<{ label: string; icon: IconName; go: () => void }[]>([
@@ -27,7 +27,7 @@
     { label: 'Az alkalmazásról', icon: 'info', go: onAbout },
     { label: 'Adatvédelem', icon: 'shield', go: onPrivacy },
     { label: 'Segítség', icon: 'help', go: onSupport },
-    ...(native ? [{ label: 'Támogasd a fejlesztőt', icon: 'heart' as IconName, go: onDonate }] : []),
+    ...(native ? [] : [{ label: 'Támogasd a fejlesztőt', icon: 'heart' as IconName, go: onDonate }]),
   ]);
 
   let sheet = $state<HTMLElement | null>(null);

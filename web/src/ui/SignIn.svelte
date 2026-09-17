@@ -83,7 +83,7 @@
         inputmode="email"
         autocapitalize="off"
         spellcheck="false"
-        placeholder="szulo@example.hu"
+        placeholder="email@pelda.hu"
         disabled={busy}
       />
       <p class="hint">Erre a címre küldünk egy belépőkódot.</p>

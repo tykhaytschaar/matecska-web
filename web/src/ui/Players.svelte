@@ -148,11 +148,16 @@
 </div>
 
 <style>
+  /* Három oszlop: a két szélső egyforma, így a cím a Menü gomb mellett is pontosan középen van. */
   .top {
-    display: flex;
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
     align-items: center;
     gap: 8px;
     min-height: 44px;
+  }
+  .top > :last-child {
+    justify-self: end;
   }
   .back {
     width: 40px;
@@ -169,7 +174,6 @@
     width: 40px;
   }
   .title {
-    flex: 1;
     margin: 0;
     font-size: 1.05rem;
     font-weight: 600;

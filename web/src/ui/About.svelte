@@ -1,5 +1,6 @@
 <script lang="ts">
-  import { APP_INFO, formatBuildTime } from '../core/appInfo';
+  import { Capacitor } from '@capacitor/core';
+  import { APP_INFO, formatBuildTime, SUPPORT_EMAIL, WEBSITE_URL } from '../core/appInfo';
   import { CAT } from '../core/characters';
   import { buildProfile, freshState } from '../core/player';
   import CharacterSprite from '../sprites/CharacterSprite.svelte';
@@ -14,8 +15,13 @@
     onBack: () => void;
     onSignOut: () => Promise<void>;
     onDeleteAccount: () => Promise<void>;
+    /** A Támogatás képernyő (csak weben van). */
+    onDonate: () => void;
   }
-  let { store, account, devMode, onBack, onSignOut, onDeleteAccount }: Props = $props();
+  let { store, account, devMode, onBack, onSignOut, onDeleteAccount, onDonate }: Props = $props();
+
+  /** Natív appban nincs támogatásra hívó szöveg vagy link (App Store 3.1.1), csak a weboldal címe. */
+  const native = Capacitor.isNativePlatform();
 
   /** Melyik veszélyes művelet vár megerősítésre: fióktörlés vagy egy játékos nullázása. */
   let confirming = $state<{ kind: 'delete' } | { kind: 'reset'; playerId: string } | null>(null);
@@ -104,8 +110,31 @@
   <div class="hero">
     <CharacterSprite character={CAT} size={96} />
     <span class="name">{APP_INFO.name}</span>
-    <span class="tagline">Alapműveletek gyakorlása pontokért és karakterekért</span>
+    <span class="tagline">Alsós matematika gyakorló</span>
   </div>
+
+  <section class="card story">
+    <p>
+      A célom az volt, hogy a száraz, papíralapú gyakorlás helyett barátságos, motiváló környezetben,
+      visszakövethető statisztikával, akár tanári „felügyelettel” tényleg a tanuló fejlődését segítsem.
+    </p>
+    <p>
+      Fontosnak tartom, hogy a használat zavartalan legyen és ingyenes. Ezért az alkalmazásban nincsenek és nem
+      is lesznek reklámok, paywall-ok és hasonlók, mint ahogy megvásárolható pontok, karakterek sem.
+    </p>
+    {#if native}
+      <p>Weboldal: <a href={WEBSITE_URL} target="_blank" rel="noopener">{WEBSITE_URL.replace(/^https?:\/\//, '').replace(/\/$/, '')}</a></p>
+    {:else}
+      <p>
+        Önkéntes támogatást szívesen veszek, ha hasznosnak találtad az appot:
+        <button type="button" class="link" onclick={onDonate}>Támogatás →</button>
+      </p>
+    {/if}
+    <p>
+      Ha észrevételed, ötleted van az appal kapcsolatban, azt is szívesen fogadom:
+      <a href="mailto:{SUPPORT_EMAIL}?subject={encodeURIComponent(`Matecska ${APP_INFO.version}`)}">{SUPPORT_EMAIL}</a>
+    </p>
+  </section>
 
   <dl class="card info">
     {#each rows as row, i}
@@ -235,6 +264,25 @@
   .tagline {
     font-size: 0.9rem;
     color: var(--ink-soft);
+  }
+  .story {
+    padding: 14px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    font-size: 0.95rem;
+    line-height: 1.5;
+  }
+  .story p {
+    margin: 0;
+  }
+  .story a,
+  .story .link {
+    color: var(--flame);
+    font-weight: 600;
+    text-decoration: none;
+    font-size: inherit;
+    line-height: inherit;
   }
   .info {
     margin: 0;

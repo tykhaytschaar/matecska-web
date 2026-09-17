@@ -41,7 +41,7 @@ export default defineConfig({
       manifest: {
         name: 'Matecska',
         short_name: 'Matecska',
-        description: 'Írásbeli alapműveletek gyakorlása pontokért és karakterekért.',
+        description: 'Alsós matematika gyakorló',
         lang: 'hu',
         display: 'standalone',
         orientation: 'portrait',
