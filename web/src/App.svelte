@@ -10,6 +10,7 @@
   import About from './ui/About.svelte';
   import Collection from './ui/Collection.svelte';
   import Donate from './ui/Donate.svelte';
+  import EditPlayer from './ui/EditPlayer.svelte';
   import Home from './ui/Home.svelte';
   import Menu from './ui/Menu.svelte';
   import ModePicker from './ui/ModePicker.svelte';
@@ -29,6 +30,7 @@
     | { kind: 'privacy'; from: 'home' | 'signin' }
     | { kind: 'support'; from: 'home' | 'signin' }
     | { kind: 'donate' }
+    | { kind: 'editPlayer'; id: string }
     /** Csak kijelentkezve: vissza a belépő képernyőre. */
     | { kind: 'signin' };
 
@@ -104,12 +106,16 @@
   <Support characters={store.catalog.characters} onBack={backFrom(screen.from)} />
 {:else if screen.kind === 'donate'}
   <Donate onBack={goHome} />
+{:else if screen.kind === 'editPlayer'}
+  {#key screen.id}
+    <EditPlayer {store} playerId={screen.id} onDone={() => (screen = { kind: 'players' })} />
+  {/key}
 {:else if screen.kind === 'signin'}
   <Home {store} onPractice={openOperation} onCollection={() => (screen = { kind: 'collection' })} onMenu={openMenu} onPlayers={() => (screen = { kind: 'players' })} />
 {:else if screen.kind === 'about'}
   <About {store} {account} {devMode} onBack={() => (screen = store?.active ? { kind: 'home' } : { kind: 'players' })} onSignOut={signOut} onDeleteAccount={deleteAccount} />
 {:else if !store.active || screen.kind === 'players'}
-  <Players {store} onPick={goHome} onBack={store.active ? goHome : null} onMenu={openMenu} />
+  <Players {store} onPick={goHome} onBack={store.active ? goHome : null} onMenu={openMenu} onEdit={(id) => (screen = { kind: 'editPlayer', id })} />
 {:else if screen.kind === 'practice'}
   {#key screen.mode}
     <Practice {store} mode={screen.mode} onBack={goHome} />

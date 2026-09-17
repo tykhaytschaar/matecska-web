@@ -19,6 +19,8 @@ export interface Backend {
   fetchSummary(playerId: string): Promise<PlayerSummary>;
   /** Fejlesztői mód: a játékos minden eseményének és átvett adatának törlése. */
   resetPlayer(playerId: string): Promise<void>;
+  /** A játékos és minden adata (válaszok) végleges törlése. */
+  deletePlayer(playerId: string): Promise<void>;
 }
 
 export type AuthStatus = 'loading' | 'signedOut' | 'signedIn';

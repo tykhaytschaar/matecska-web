@@ -1,7 +1,9 @@
 <script lang="ts">
   import { buildProfile, freshState } from '../core/player';
+  import { selectedCharacter } from '../core/profile';
   import type { PlayerStore } from '../store/playerStore.svelte';
   import Avatar from './Avatar.svelte';
+  import Icon from './Icon.svelte';
   import MenuButton from './MenuButton.svelte';
   import PointsBadge from './PointsBadge.svelte';
 
@@ -12,8 +14,10 @@
     onBack: (() => void) | null;
     /** A menü; aktív játékos nélkül a fejlécből érhető el, hogy az Infó, Adatvédelem, Segítség ne vesszen el. */
     onMenu: () => void;
+    /** Játékos szerkesztése (név, törlés). */
+    onEdit: (id: string) => void;
   }
-  let { store, onPick, onBack, onMenu }: Props = $props();
+  let { store, onPick, onBack, onMenu, onEdit }: Props = $props();
 
   let adding = $state(false);
   let name = $state('');
@@ -28,7 +32,7 @@
     store.players.map((listing) => {
       const catalog = store.catalog.characters;
       const profile = buildProfile(freshState(listing.player, listing.summary), catalog);
-      return { id: listing.player.id, name: listing.player.name, profile };
+      return { id: listing.player.id, name: listing.player.name, profile, character: selectedCharacter(profile, catalog) };
     }),
   );
 
@@ -91,20 +95,20 @@
 
   <div class="list">
     {#each entries as entry (entry.id)}
-      <button
-        type="button"
-        class="card item"
-        class:active={store.active?.player.id === entry.id}
-        disabled={busy !== null}
-        onclick={() => pick(entry.id)}
-      >
-        <Avatar name={entry.name} size={48} radius="14px" fontSize="1.25rem" />
-        <span class="text">
-          <span class="name">{entry.name}</span>
-          <span class="status">{store.active?.player.id === entry.id ? 'Most játszik' : 'Koppints a váltáshoz'}</span>
-        </span>
-        <PointsBadge points={entry.profile.totalPoints} compact />
-      </button>
+      <!-- Külön kiválasztó és szerkesztő gomb egy kártyában: gombot gombba nem ágyazunk. -->
+      <div class="card item" class:active={store.active?.player.id === entry.id}>
+        <button type="button" class="select" disabled={busy !== null} onclick={() => pick(entry.id)}>
+          <Avatar character={entry.character} size={48} radius="14px" />
+          <span class="text">
+            <span class="name">{entry.name}</span>
+            <span class="status">{store.active?.player.id === entry.id ? 'Most játszik' : 'Koppints a váltáshoz'}</span>
+          </span>
+          <PointsBadge points={entry.profile.totalPoints} compact />
+        </button>
+        <button type="button" class="edit" aria-label="{entry.name} szerkesztése" disabled={busy !== null} onclick={() => onEdit(entry.id)}>
+          <Icon name="pencil" />
+        </button>
+      </div>
     {/each}
 
     {#if adding}
@@ -188,15 +192,44 @@
   .item {
     display: flex;
     align-items: center;
-    gap: 14px;
-    padding: 12px 16px;
+    gap: 8px;
+    padding-right: 8px;
     color: var(--ink);
     min-height: 72px;
-    text-align: left;
-    transition: transform 0.1s ease;
   }
-  .item:active:not(:disabled) {
-    transform: scale(0.98);
+  .select {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 12px 0 12px 16px;
+    text-align: left;
+    color: var(--ink);
+    min-width: 0;
+    transition: opacity 0.1s ease;
+  }
+  .select:active:not(:disabled) {
+    opacity: 0.6;
+  }
+  .edit {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--ink-soft);
+    flex: none;
+  }
+  .edit:active {
+    background: var(--flame-soft);
+    color: var(--flame);
+  }
+  @media (hover: hover) {
+    .edit:hover {
+      background: var(--flame-soft);
+      color: var(--flame);
+    }
   }
   .item.active {
     border-color: var(--flame);
@@ -212,7 +245,9 @@
   .name {
     font-weight: 600;
     font-size: 1.125rem;
-    overflow-wrap: anywhere;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
   .status {
     font-size: 0.85rem;

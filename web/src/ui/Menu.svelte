@@ -70,7 +70,7 @@
     <div class="handle" aria-hidden="true"></div>
 
     <button type="button" class="card player" bind:this={first} onclick={() => pick(onPlayers)}>
-      <Avatar name={store.profile.name} size={44} fontSize="1.1rem" />
+      <Avatar character={store.character} size={44} />
       <span class="player-text">
         <span class="player-name">{store.profile.name}</span>
         <span class="player-meta">{store.profile.totalPoints} pont · Játékos váltása</span>

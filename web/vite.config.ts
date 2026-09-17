@@ -57,6 +57,8 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,png,svg,webmanifest}'],
+        // A statikus tájékoztató oldalt ne helyettesítse az app kezdőlapja, ha nincs a gyorsítótárban.
+        navigateFallbackDenylist: [/\/adatvedelem(\/|$)/],
       },
     }),
   ],

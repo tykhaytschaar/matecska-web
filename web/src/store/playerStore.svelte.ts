@@ -145,6 +145,36 @@ export class PlayerStore {
     this.commit({ ...this.active, player: { ...this.active.player, selectedCharacterID: character.id }, dirty: true });
   }
 
+  /** Játékos átnevezése; az aktívnál helyben és szinkronnal, másnál közvetlenül a szerveren. */
+  async rename(playerId: string, name: string): Promise<void> {
+    const trimmed = name.trim().slice(0, 40);
+    if (!trimmed) return;
+    if (this.active?.player.id === playerId) {
+      if (this.active.player.name === trimmed) return;
+      this.commit({ ...this.active, player: { ...this.active.player, name: trimmed }, dirty: true });
+      await this.flush();
+      return;
+    }
+    const listing = this.players.find((l) => l.player.id === playerId);
+    if (!listing || listing.player.name === trimmed) return;
+    await this.backend.updatePlayer({ ...listing.player, name: trimmed });
+    await this.refreshPlayers();
+  }
+
+  /**
+   * Játékos végleges törlése a szerveren és helyben. Ha az aktívat töröltük, a lista első
+   * megmaradt játékosa lesz aktív; ha nincs több, nincs aktív (a játékoslista marad).
+   */
+  async remove(playerId: string): Promise<void> {
+    if (this.active?.player.id === playerId) await this.deactivate();
+    await this.backend.deletePlayer(playerId);
+    await this.cache.removeState(playerId);
+    this.players = this.players.filter((l) => l.player.id !== playerId);
+    await this.cache.savePlayers(this.players);
+    await this.refreshPlayers();
+    if (!this.active && this.players.length > 0) await this.activate(this.players[0].player.id);
+  }
+
   /** Fejlesztői mód: a játékos összpontja a megadott értékre áll (pontkorrekcióval, a válaszok maradnak). */
   async setPoints(playerId: string, target: number): Promise<void> {
     const goal = Math.max(0, Math.floor(target));

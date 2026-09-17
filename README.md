@@ -29,13 +29,15 @@ Az eredeti SwiftUI iOS változat a `2842602` commitig a git-történetben megtal
 - Fiók és játékosprofilok: a szülő (vagy a felnőtt játékos) e-mail címére kapott kóddal lép be (jelszó nincs,
   regisztráció és belépés ugyanaz a lépés), alatta tetszőleges számú játékos becenévvel.
   Játékosonként külön pont, műveletenkénti statisztika, birtokolt és kiválasztott karakter.
-  A játékosváltó a főképernyőn a játékos nevére koppintva nyílik. A cica a két szél közt sétál,
+  A játékosváltó a főképernyőn a játékos-chipre koppintva nyílik; a játékos átnevezhető és törölhető
+  (Játékosok → ceruza; a törlés a „törlés” szó beírásával erősítendő meg). A cica a két szél közt sétál,
   a szélén megáll; gyakorlás közben is sétál, beküldésre megáll és szívvel vagy könnycseppel reagál.
 - Offline-first: a válaszok helyben mentődnek és rövid késleltetéssel a szerverre kerülnek;
   net nélkül a függő események megmaradnak a következő alkalomig. Az Infó képernyő mutatja
   a szinkron állapotát.
 - Menü (a főképernyő „Menü" gombja, alulról feljövő lap): játékosváltás, Karakterek, Az alkalmazásról,
-  Adatvédelem, Segítség (GYIK a katalógus küszöbeiből + kapcsolat), natív appban Támogasd a fejlesztőt
+  Adatvédelem (rövid összefoglaló + link a teljes tájékoztatóra: `web/public/adatvedelem/index.html`,
+  a Pages-en `/adatvedelem/`), Segítség (GYIK a katalógus küszöbeiből + kapcsolat), natív appban Támogasd a fejlesztőt
   (a vásárlás StoreKit-plugin nélkül még csak tájékoztat), Kijelentkezés. Adatvédelem és Segítség a
   belépés előtt is elérhető a belépő képernyő aljáról.
 - Az alkalmazásról képernyő: verzió, katalógus, szinkron állapota, az aktív játékos statisztikája,

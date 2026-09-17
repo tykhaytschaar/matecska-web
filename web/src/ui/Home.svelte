@@ -32,7 +32,7 @@
   <div class="hero">
     <CharacterStage character={store.character} size={112} mood="walk" walk={HOME_WALK} />
     <button type="button" class="who" onclick={onPlayers} aria-label="Játékos váltása">
-      <Avatar name={store.profile.name} />
+      <Avatar character={store.character} />
       <span class="who-name">{store.profile.name}</span>
       <span class="who-switch">Váltás <Icon name="chevron-down" size={14} /></span>
     </button>

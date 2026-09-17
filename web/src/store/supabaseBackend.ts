@@ -108,6 +108,12 @@ export function supabaseBackend(client: SupabaseClient): Backend {
       const { error } = await client.rpc('reset_player', { pid: playerId });
       if (error) fail(error);
     },
+
+    async deletePlayer(playerId: string): Promise<void> {
+      // A válaszok a players sor törlésével cascade-del mennek (schema.sql).
+      const { error } = await client.from('players').delete().eq('id', playerId);
+      if (error) fail(error);
+    },
   };
 }
 

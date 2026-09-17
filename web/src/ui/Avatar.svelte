@@ -1,25 +1,30 @@
 <script lang="ts">
-  /** A játékos nevének kezdőbetűje színes körben vagy lekerekített négyzetben. */
+  import type { GameCharacter } from '../core/characters';
+  import CharacterSprite from '../sprites/CharacterSprite.svelte';
+
+  /** A játékos aktuális karaktere álló pózban, lágy narancs háttéren; kör vagy lekerekített négyzet. */
   interface Props {
-    name: string;
+    character: GameCharacter;
     size?: number;
     radius?: string;
-    fontSize?: string;
   }
-  let { name, size = 32, radius = '50%', fontSize = '0.95rem' }: Props = $props();
-  const initial = $derived((name.trim().charAt(0) || '?').toUpperCase());
+  let { character, size = 32, radius = '50%' }: Props = $props();
+  /** A sprite kicsit kisebb a doboznál, hogy a kontúr ne érjen a szélére. */
+  const sprite = $derived(Math.round(size * 0.8));
 </script>
 
-<span class="avatar" aria-hidden="true" style:width="{size}px" style:height="{size}px" style:border-radius={radius} style:font-size={fontSize}>{initial}</span>
+<span class="avatar" aria-hidden="true" style:width="{size}px" style:height="{size}px" style:border-radius={radius}>
+  <CharacterSprite {character} mood="stand" size={sprite} />
+</span>
 
 <style>
   .avatar {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    background: var(--flame-soft);
-    color: var(--flame);
-    font-weight: 800;
+    background: var(--avatar);
+    overflow: hidden;
     flex: none;
+    line-height: 0;
   }
 </style>
