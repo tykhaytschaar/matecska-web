@@ -107,7 +107,9 @@ hívja, saját szerver nincs. Beállítás egyszer:
 
 Adatmodell: `players` (szülő, becenév, kiválasztott karakter, a fiók előtti helyi profil egyszeri
 átvétele), `attempts` (egy beküldött válasz: művelet, alkategória, helyes-e, könyvelt pont, bónusz, munkamenet-azonosító,
-és a feladat részletei: operandusok, hiányzó hely, beírt válasz, eltelt idő). A pont
+és a feladat leírása + beírt válasz JSON-ban, feladattípusonként más alakban, eltelt idő). Az
+`operation` témakör; új feladattípus (vegyes, reláció, mértékegység, geometria) szerveroldali változás nélkül
+felvehető. A pont
 és a stat ebből számolódik, a karakterek a pontból; az esemény-azonosítót a kliens adja, így az
 újraküldés idempotens.
 

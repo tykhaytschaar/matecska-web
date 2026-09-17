@@ -69,7 +69,7 @@
   <div class="hero">
     <CharacterSprite character={CAT} size={96} />
     <span class="name">Matecska</span>
-    <span class="tagline">Szülői belépés</span>
+    <span class="tagline">Belépés</span>
   </div>
 
   {#if step === 'email'}
@@ -86,7 +86,7 @@
         placeholder="szulo@example.hu"
         disabled={busy}
       />
-      <p class="hint">Erre a címre küldünk egy belépőkódot. Jelszó nincs, nem is kell megjegyezni.</p>
+      <p class="hint">Erre a címre küldünk egy belépőkódot.</p>
       {#if error}<p class="error" role="alert">{error}</p>{/if}
       <button type="submit" class="chunky" disabled={!emailValid || busy}>{busy ? 'Küldés…' : 'Kód kérése'}</button>
     </form>
@@ -114,8 +114,6 @@
       </div>
     </form>
   {/if}
-
-  <p class="note">A gyerekek egy közös szülői fiók alatt játszanak; róluk csak becenevet és pontokat tárolunk.</p>
 
   <div class="spacer"></div>
 
@@ -207,12 +205,6 @@
     color: var(--ink);
   }
   .pill:disabled {
-    color: var(--ink-soft);
-  }
-  .note {
-    margin: 0;
-    text-align: center;
-    font-size: 0.8rem;
     color: var(--ink-soft);
   }
   .footer {

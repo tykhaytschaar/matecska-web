@@ -27,15 +27,15 @@
   <section class="card body">
     <h2>Mit tárolunk?</h2>
     <p>
-      A szülő e-mail-címét a bejelentkezéshez, a játékosok becenevét, pontjait és a megoldott feladatok
-      statisztikáját. Jelszót nem kérünk, nem tárolunk.
+      Az email címedet a bejelentkezéshez, a létrehozott játékosok becenevét, pontjait és a megoldott feladatok
+      statisztikáit.
     </p>
     <h2>Hol?</h2>
-    <p>A készüléken és a Supabase szerveren, az EU-ban. Harmadik félnek nem adjuk át, hirdetést nem jelenítünk meg.</p>
+    <p>A készülékeden, és a Supabase szerveren, az EU-ban. Harmadik félnek nem adjuk át.</p>
     <h2>Törlés</h2>
     <p>
-      A fiók és minden hozzá tartozó adat bármikor törölhető az <em>Az alkalmazásról</em> képernyőn, a Fiók törlése
-      gombbal.
+      A fiók és minden hozzá tartozó adat bármikor és azonnal törölhető az <em>Az alkalmazásról</em> képernyőn, a
+      Fiók törlése gombbal.
     </p>
     <a class="link" href={PRIVACY_POLICY_URL} target="_blank" rel="noopener">Teljes adatkezelési tájékoztató →</a>
   </section>

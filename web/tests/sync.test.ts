@@ -180,6 +180,23 @@ describe('helyi gyorstár', () => {
     expect(await cache.loadState('p1')).toBeNull();
   });
 
+  it('a függő esemény részletei körutaznak a gyorstáron, hibás alakú részlet kiesik', async () => {
+    const storage = memoryStorage();
+    const cache = new LocalCache(storage, 'u1');
+    const detailed = {
+      ...attemptEvent(buildProfile(freshState(player)), good, true, 'addition-single', new Date(), {
+        sessionId: 's1',
+        detail: { task: { kind: 'binary' as const, operands: [7, 5] as const, blank: 'result' as const }, answer: { kind: 'number' as const, value: 12 }, elapsedMs: 900 },
+      }),
+    };
+    await cache.saveState({ ...freshState(player), pending: [detailed] });
+    const loaded = await cache.loadState('p1');
+    expect(loaded?.pending[0]).toEqual(detailed);
+    const broken = { ...detailed, id: 'x', detail: { elapsedMs: 1 } };
+    await cache.saveState({ ...freshState(player), pending: [broken as never] });
+    expect((await cache.loadState('p1'))?.pending).toEqual([]);
+  });
+
   it('hibás gyorstár-tartalomnál null, nem kivétel', async () => {
     const cache = new LocalCache(memoryStorage({ 'matecska.u1.players': 'nem json', 'matecska.u1.player.p1': '{"player":{}}' }), 'u1');
     expect(await cache.loadPlayers()).toBeNull();

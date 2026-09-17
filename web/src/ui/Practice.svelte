@@ -66,9 +66,8 @@
     mood = outcome.kind === 'correct' ? 'happy' : 'yuck';
     resultFeedback(outcome.kind === 'correct');
     store.record(outcome.score, outcome.kind === 'correct', mode, {
-      operands: session.exercise.operands,
-      blank: session.exercise.blank,
-      given: enteredValue(session),
+      task: { kind: 'binary', operands: session.exercise.operands, blank: session.exercise.blank },
+      answer: { kind: 'number', value: enteredValue(session) },
       elapsedMs: Math.round(((session.submittedAt ?? nowSeconds()) - session.startedAt) * 1000),
     });
   }

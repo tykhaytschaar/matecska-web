@@ -113,6 +113,14 @@ function parseListing(raw: unknown): PlayerListing | null {
   return player ? { player, summary: parseSummary(r.summary) } : null;
 }
 
+function isDetail(raw: unknown): boolean {
+  if (typeof raw !== 'object' || raw === null) return false;
+  const d = raw as Record<string, unknown>;
+  const task = d.task as Record<string, unknown> | undefined;
+  const answer = d.answer as Record<string, unknown> | undefined;
+  return typeof d.elapsedMs === 'number' && typeof task?.kind === 'string' && typeof answer?.kind === 'string';
+}
+
 function isEvent(raw: unknown): raw is PlayerEvent {
   if (typeof raw !== 'object' || raw === null) return false;
   const r = raw as Record<string, unknown>;
@@ -120,7 +128,7 @@ function isEvent(raw: unknown): raw is PlayerEvent {
   if (r.kind !== 'attempt') return false;
   if (r.bonus !== undefined && typeof r.bonus !== 'number') return false;
   if (r.sessionId !== undefined && typeof r.sessionId !== 'string') return false;
-  if (r.detail !== undefined && (typeof r.detail !== 'object' || r.detail === null)) return false;
+  if (r.detail !== undefined && !isDetail(r.detail)) return false;
   return typeof r.operation === 'string' && typeof r.mode === 'string' && typeof r.correct === 'boolean' && typeof r.points === 'number';
 }
 

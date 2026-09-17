@@ -25,11 +25,27 @@ export interface AttemptEvent {
   createdAt: string;
 }
 
-export interface AttemptDetail {
+/**
+ * A feladat leírása és a beírt válasz, feladattípusonként más alakban (a szerveren JSON).
+ * Új típus (vegyes kifejezés, reláció, mértékegység, geometria) egy új `kind` ággal jön;
+ * a szerver oldalán semmit nem kell módosítani.
+ */
+export type TaskDescription = {
+  /** Két operandus, egy művelet, egy hiányzó hely (a mostani alapműveletek). */
+  kind: 'binary';
   operands: readonly [number, number];
   blank: BlankSlot;
+};
+
+export type TaskAnswer = {
+  kind: 'number';
+  value: number;
+};
+
+export interface AttemptDetail {
+  task: TaskDescription;
   /** A beírt válasz. */
-  given: number;
+  answer: TaskAnswer;
   /** A feladat megjelenésétől a beküldésig eltelt idő, ezredmásodpercben. */
   elapsedMs: number;
 }

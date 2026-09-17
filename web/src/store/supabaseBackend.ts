@@ -94,10 +94,8 @@ export function supabaseBackend(client: SupabaseClient): Backend {
           points: e.points,
           bonus: e.bonus ?? null,
           session_id: e.sessionId ?? null,
-          operand_a: e.detail?.operands[0] ?? null,
-          operand_b: e.detail?.operands[1] ?? null,
-          blank: e.detail?.blank ?? null,
-          given: e.detail?.given ?? null,
+          task: e.detail?.task ?? null,
+          answer: e.detail?.answer ?? null,
           elapsed_ms: e.detail?.elapsedMs ?? null,
           created_at: e.createdAt,
         }));

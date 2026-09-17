@@ -24,29 +24,34 @@ create index if not exists players_owner_idx on public.players (owner_id);
 create table if not exists public.attempts (
   id uuid primary key,
   player_id uuid not null references public.players (id) on delete cascade,
-  operation text not null check (operation in ('addition', 'subtraction', 'multiplication', 'division')),
+  -- Témakör (a statisztika felső szintje); a kliens katalógusa dönti el, mi érvényes (később: vegyes,
+  -- reláció, mértékegység, geometria), ezért nincs megszorítás.
+  operation text not null,
   mode text not null,
   correct boolean not null,
   points integer not null,
   -- A megszerzett gyorsasági bónusz; a statisztika átlagolja. Régi soroknál null.
   bonus integer,
-  -- Munkamenet (kliens által adott UUID; 5 perc szünet vagy játékosváltás után új) és a feladat részletei
-  -- a későbbi visszanézéshez (tanári felület). Régi soroknál null. 90 napon túl csak a statisztika marad.
+  -- Munkamenet (kliens által adott UUID; 5 perc szünet vagy játékosváltás után új) és a feladat
+  -- leírása + beírt válasz JSON-ban, feladattípusonként más alakban (kind mező; a kliens events.ts
+  -- típusai írják le). A későbbi visszanézéshez (tanári felület). Régi soroknál null; 90 napon túl
+  -- csak a statisztika marad.
   session_id uuid,
-  operand_a integer,
-  operand_b integer,
-  blank text check (blank is null or blank in ('first', 'second', 'result')),
-  given integer,
+  task jsonb,
+  answer jsonb,
   elapsed_ms integer,
   created_at timestamptz not null default now()
 );
 alter table public.attempts add column if not exists bonus integer;
 alter table public.attempts add column if not exists session_id uuid;
-alter table public.attempts add column if not exists operand_a integer;
-alter table public.attempts add column if not exists operand_b integer;
-alter table public.attempts add column if not exists blank text;
-alter table public.attempts add column if not exists given integer;
+alter table public.attempts add column if not exists task jsonb;
+alter table public.attempts add column if not exists answer jsonb;
 alter table public.attempts add column if not exists elapsed_ms integer;
+alter table public.attempts drop constraint if exists attempts_operation_check;
+alter table public.attempts drop column if exists operand_a;
+alter table public.attempts drop column if exists operand_b;
+alter table public.attempts drop column if exists blank;
+alter table public.attempts drop column if exists given;
 create index if not exists attempts_player_idx on public.attempts (player_id);
 create index if not exists attempts_player_time_idx on public.attempts (player_id, created_at);
 

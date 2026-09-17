@@ -28,10 +28,10 @@ describe('gyerek állapota és a profil levezetése', () => {
     expect(attempt).toMatchObject({ kind: 'attempt', playerId: 'p1', operation: 'addition', mode: 'addition-single', points: 15, bonus: 5 });
     const detailed = attemptEvent(profile, { base: 3, bonus: 2, penalty: 0 }, true, 'addition-single', new Date(), {
       sessionId: 's1',
-      detail: { operands: [7, 5], blank: 'result', given: 12, elapsedMs: 1800 },
+      detail: { task: { kind: 'binary', operands: [7, 5], blank: 'result' }, answer: { kind: 'number', value: 12 }, elapsedMs: 1800 },
     });
     expect(detailed.sessionId).toBe('s1');
-    expect(detailed.detail).toEqual({ operands: [7, 5], blank: 'result', given: 12, elapsedMs: 1800 });
+    expect(detailed.detail).toEqual({ task: { kind: 'binary', operands: [7, 5], blank: 'result' }, answer: { kind: 'number', value: 12 }, elapsedMs: 1800 });
     expect(next.totalPoints).toBe(54);
     expect(next.stats.addition).toEqual({ solved: 5, correct: 4 });
     expect(next.stats.division).toEqual({ solved: 1, correct: 0 });
