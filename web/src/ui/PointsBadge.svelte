@@ -12,11 +12,13 @@
 </div>
 
 <style>
+  /* A főképernyő fejlécében a Menü gombbal azonos, 44 px magas. */
   .badge {
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    padding: 8px 16px;
+    height: 44px;
+    padding: 0 16px;
     border-radius: 999px;
     background: var(--bar);
     color: #fff;
@@ -25,6 +27,7 @@
     flex: none;
   }
   .compact {
+    height: auto;
     padding: 5px 12px;
     font-size: 1rem;
   }

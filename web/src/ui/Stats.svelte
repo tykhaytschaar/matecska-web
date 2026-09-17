@@ -14,6 +14,7 @@
 
   let period = $state<StatsPeriod>('day');
   let stats = $state<ModeStats[] | null>(null);
+  let sessions = $state(0);
   let offline = $state(false);
 
   /** Időszakváltásnál újratöltés; a régi adat marad, amíg az új meg nem jön. */
@@ -22,6 +23,7 @@
     void store.statsFor(current).then((result) => {
       if (period !== current) return;
       stats = result.stats;
+      sessions = result.sessions;
       offline = result.offline;
     });
   });
@@ -57,7 +59,7 @@
 
   <p class="lead">
     <strong>{store.profile.name}</strong> · {PERIOD_LABEL[period].toLowerCase()}
-    {#if stats}· {totalSolved} megoldott feladat{/if}
+    {#if stats}· {totalSolved} megoldott feladat · {sessions} munkamenet{/if}
     {#if offline}· <span class="warn">nincs kapcsolat, csak a helyi adatok</span>{/if}
   </p>
 
@@ -87,7 +89,7 @@
         {/each}
       </section>
     {/each}
-    <p class="meta">Az átlagos bónusz a helyes válaszok gyorsasági bónuszának átlaga a mód maximumához képest; a korábbi, bónusz nélkül rögzített válaszok nem számítanak bele.</p>
+    <p class="meta">Az átlagos bónusz a helyes válaszok gyorsasági bónuszának átlaga a mód maximumához képest; a korábbi, bónusz nélkül rögzített válaszok nem számítanak bele. Munkamenet: összefüggő gyakorlás, 5 perc szünet vagy játékosváltás után új kezdődik.</p>
   {/if}
 </div>
 

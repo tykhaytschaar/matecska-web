@@ -1,3 +1,4 @@
+import type { BlankSlot } from './exercise';
 import { MODE_INFO, type MathOperation, type PracticeMode } from './operation';
 import type { PlayerProfile } from './profile';
 import { totalPoints, type ScoreBreakdown } from './scoring';
@@ -17,7 +18,20 @@ export interface AttemptEvent {
   points: number;
   /** A megszerzett gyorsasági bónusz (helyes válasznál); a statisztika átlagolja. Régi soroknál hiányzik. */
   bonus?: number;
+  /** A munkamenet azonosítója (5 perc szünet vagy játékosváltás után új); régi soroknál hiányzik. */
+  sessionId?: string;
+  /** A feladat részletei a későbbi visszanézéshez; régi soroknál hiányoznak. */
+  detail?: AttemptDetail;
   createdAt: string;
+}
+
+export interface AttemptDetail {
+  operands: readonly [number, number];
+  blank: BlankSlot;
+  /** A beírt válasz. */
+  given: number;
+  /** A feladat megjelenésétől a beküldésig eltelt idő, ezredmásodpercben. */
+  elapsedMs: number;
 }
 
 export type PlayerEvent = AttemptEvent;
@@ -36,6 +50,7 @@ export function attemptEvent(
   correct: boolean,
   mode: PracticeMode,
   now: Date = new Date(),
+  extra: { sessionId?: string; detail?: AttemptDetail } = {},
 ): AttemptEvent {
   const applied = Math.max(0, profile.totalPoints + totalPoints(score)) - profile.totalPoints;
   return {
@@ -47,6 +62,8 @@ export function attemptEvent(
     correct,
     points: applied,
     bonus: correct ? score.bonus : 0,
+    ...(extra.sessionId ? { sessionId: extra.sessionId } : {}),
+    ...(extra.detail ? { detail: extra.detail } : {}),
     createdAt: now.toISOString(),
   };
 }

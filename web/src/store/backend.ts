@@ -20,6 +20,8 @@ export interface Backend {
   fetchSummary(playerId: string): Promise<PlayerSummary>;
   /** Módonkénti statisztika a szerverről egy időponttól (`null` = mindentől). */
   fetchModeStats(playerId: string, since: Date | null): Promise<ModeStats[]>;
+  /** A játékos munkamenet-azonosítói egy időponttól (a helyiekkel uniózva adja a számot). */
+  fetchSessionIds(playerId: string, since: Date | null): Promise<string[]>;
   /** Fejlesztői mód: a játékos minden eseményének és átvett adatának törlése. */
   resetPlayer(playerId: string): Promise<void>;
   /** A játékos és minden adata (válaszok) végleges törlése. */

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { AttemptEvent } from '../src/core/events';
-import { aggregateEvents, averageBonus, correctRatio, groupByOperation, mergeModeStats, periodStart } from '../src/core/stats';
+import { aggregateEvents, averageBonus, correctRatio, groupByOperation, localSessionIds, mergeModeStats, periodStart } from '../src/core/stats';
 
 const at = (iso: string, mode: AttemptEvent['mode'], correct: boolean, bonus?: number): AttemptEvent => ({
   kind: 'attempt', id: iso + mode, playerId: 'p1', operation: mode.startsWith('addition') ? 'addition' : 'division', mode, correct, points: correct ? 6 + (bonus ?? 0) : 0, bonus, createdAt: iso,
@@ -32,6 +32,18 @@ describe('statisztika', () => {
     expect(div.bonusCount).toBe(0);
     expect(averageBonus(div)).toBeNull();
     expect(aggregateEvents(events, null).find((s) => s.mode === 'addition-double')!.solved).toBe(4);
+  });
+
+  it('helyi munkamenet-azonosítók az időszaktól, egyszer', () => {
+    const events = [
+      { ...at('2026-09-17T10:00:00Z', 'addition-single', true, 1), sessionId: 'a' },
+      { ...at('2026-09-17T10:01:00Z', 'addition-single', true, 1), sessionId: 'a' },
+      { ...at('2026-09-17T11:00:00Z', 'addition-single', true, 1), sessionId: 'b' },
+      { ...at('2026-09-16T10:00:00Z', 'addition-single', true, 1), sessionId: 'c' },
+      at('2026-09-17T12:00:00Z', 'addition-single', true, 1), // régi sor, munkamenet nélkül
+    ];
+    expect(localSessionIds(events, new Date('2026-09-17T00:00:00Z')).sort()).toEqual(['a', 'b']);
+    expect(localSessionIds(events, null)).toHaveLength(3);
   });
 
   it('szerver és helyi összesítés összeadódik', () => {

@@ -93,6 +93,12 @@ export function supabaseBackend(client: SupabaseClient): Backend {
           correct: e.correct,
           points: e.points,
           bonus: e.bonus ?? null,
+          session_id: e.sessionId ?? null,
+          operand_a: e.detail?.operands[0] ?? null,
+          operand_b: e.detail?.operands[1] ?? null,
+          blank: e.detail?.blank ?? null,
+          given: e.detail?.given ?? null,
+          elapsed_ms: e.detail?.elapsedMs ?? null,
           created_at: e.createdAt,
         }));
       if (attempts.length) {
@@ -120,6 +126,12 @@ export function supabaseBackend(client: SupabaseClient): Backend {
           bonusSum: Number(r.bonus_sum) || 0,
           bonusCount: Number(r.bonus_count) || 0,
         }));
+    },
+
+    async fetchSessionIds(playerId: string, since: Date | null): Promise<string[]> {
+      const { data, error } = await client.rpc('session_ids', { pid: playerId, since: since ? since.toISOString() : null });
+      if (error) fail(error);
+      return ((data ?? []) as { session_id: string }[]).map((r) => r.session_id).filter((id) => typeof id === 'string');
     },
 
     async resetPlayer(playerId: string): Promise<void> {

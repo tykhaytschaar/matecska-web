@@ -1,10 +1,11 @@
 import { CAT, findCharacter, type GameCharacter } from '../core/characters';
-import { attemptEvent } from '../core/events';
+import { attemptEvent, type AttemptDetail } from '../core/events';
+import { markHidden, markVisible, startTracker, touch, type SessionTracker } from '../core/sessionTracker';
 import type { PracticeMode } from '../core/operation';
 import { buildProfile, EMPTY_SUMMARY, freshState, importFrom, type ImportedProfile, type PlayerState } from '../core/player';
 import { dummyProfile, ownsCharacter, type PlayerProfile } from '../core/profile';
 import type { ScoreBreakdown } from '../core/scoring';
-import { aggregateEvents, mergeModeStats, periodStart, type ModeStats, type StatsPeriod } from '../core/stats';
+import { aggregateEvents, localSessionIds, mergeModeStats, periodStart, type ModeStats, type StatsPeriod } from '../core/stats';
 import type { Backend, PlayerListing } from './backend';
 import type { CatalogStore } from './catalogStore.svelte';
 import { LocalCache, loadLegacyProfile, removeLegacyProfile } from './localCache';
@@ -45,6 +46,12 @@ export class PlayerStore {
   private syncing: Promise<void> | null = null;
   private rerun = false;
   private readonly onOnline = () => void this.sync();
+  /** Munkamenet-követő: rejtett app vagy 5 perc tétlenség után új azonosító. */
+  private tracker: SessionTracker = startTracker(Date.now());
+  private readonly onVisibility = () => {
+    const now = Date.now();
+    this.tracker = typeof document !== 'undefined' && document.hidden ? markHidden(this.tracker, now) : markVisible(this.tracker, now);
+  };
 
   constructor(
     private readonly storage: KeyValueStorage,
@@ -55,6 +62,7 @@ export class PlayerStore {
     this.catalog = catalog;
     this.cache = new LocalCache(storage, userId);
     globalThis.addEventListener?.('online', this.onOnline);
+    globalThis.document?.addEventListener('visibilitychange', this.onVisibility);
     void this.load();
   }
 
@@ -114,6 +122,7 @@ export class PlayerStore {
 
   async activate(playerId: string): Promise<void> {
     await this.flush();
+    this.tracker = startTracker(Date.now());
     const listing = this.players.find((l) => l.player.id === playerId);
     if (!listing) return;
     const cached = await this.cache.loadState(playerId);
@@ -130,9 +139,10 @@ export class PlayerStore {
     await this.cache.saveActiveId(null);
   }
 
-  record(score: ScoreBreakdown, correct: boolean, mode: PracticeMode): void {
+  record(score: ScoreBreakdown, correct: boolean, mode: PracticeMode, detail?: AttemptDetail): void {
     if (!this.active) return;
-    const event = attemptEvent(this.profile, score, correct, mode);
+    this.tracker = touch(this.tracker, Date.now());
+    const event = attemptEvent(this.profile, score, correct, mode, new Date(), { sessionId: this.tracker.id, detail });
     this.commit({ ...this.active, pending: [...this.active.pending, event] });
   }
 
@@ -150,17 +160,21 @@ export class PlayerStore {
    * Az aktív játékos módonkénti statisztikája egy időszakra: a szerver összesítése plusz a még fel nem
    * töltött helyi válaszok. Net nélkül csak a helyi rész jön vissza, `offline: true` jelzéssel.
    */
-  async statsFor(period: StatsPeriod, now: Date = new Date()): Promise<{ stats: ModeStats[]; offline: boolean }> {
-    if (!this.active) return { stats: [], offline: false };
+  async statsFor(period: StatsPeriod, now: Date = new Date()): Promise<{ stats: ModeStats[]; sessions: number; offline: boolean }> {
+    if (!this.active) return { stats: [], sessions: 0, offline: false };
     const since = periodStart(period, now);
     const local = aggregateEvents(this.active.pending, since);
+    const localSessions = localSessionIds(this.active.pending, since);
     try {
-      const remote = await this.backend.fetchModeStats(this.active.player.id, since);
+      const [remote, remoteSessions] = await Promise.all([
+        this.backend.fetchModeStats(this.active.player.id, since),
+        this.backend.fetchSessionIds(this.active.player.id, since),
+      ]);
       this.offline = false;
-      return { stats: mergeModeStats(remote, local), offline: false };
+      return { stats: mergeModeStats(remote, local), sessions: new Set([...remoteSessions, ...localSessions]).size, offline: false };
     } catch {
       this.offline = true;
-      return { stats: local, offline: true };
+      return { stats: local, sessions: localSessions.length, offline: true };
     }
   }
 
@@ -232,6 +246,7 @@ export class PlayerStore {
 
   dispose(): void {
     globalThis.removeEventListener?.('online', this.onOnline);
+    globalThis.document?.removeEventListener('visibilitychange', this.onVisibility);
     if (this.timer) clearTimeout(this.timer);
   }
 

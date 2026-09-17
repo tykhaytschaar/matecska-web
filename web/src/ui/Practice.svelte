@@ -6,6 +6,7 @@
     createSession,
     deleteDigit,
     elapsedSeconds,
+    enteredValue,
     enterDigit,
     isSubmitted,
     nextExercise,
@@ -64,7 +65,12 @@
     if (!outcome) return;
     mood = outcome.kind === 'correct' ? 'happy' : 'yuck';
     resultFeedback(outcome.kind === 'correct');
-    store.record(outcome.score, outcome.kind === 'correct', mode);
+    store.record(outcome.score, outcome.kind === 'correct', mode, {
+      operands: session.exercise.operands,
+      blank: session.exercise.blank,
+      given: enteredValue(session),
+      elapsedMs: Math.round(((session.submittedAt ?? nowSeconds()) - session.startedAt) * 1000),
+    });
   }
 
   function handleNext() {

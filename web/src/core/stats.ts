@@ -25,6 +25,16 @@ export function emptyModeStats(mode: PracticeMode): ModeStats {
   return { mode, solved: 0, correct: 0, bonusSum: 0, bonusCount: 0 };
 }
 
+/** A helyi válaszok munkamenet-azonosítói az időszaktól (a szerverével uniózva adja a számot). */
+export function localSessionIds(events: readonly AttemptEvent[], since: Date | null): string[] {
+  const ids = new Set<string>();
+  for (const e of events) {
+    if (since && new Date(e.createdAt) < since) continue;
+    if (e.sessionId) ids.add(e.sessionId);
+  }
+  return [...ids];
+}
+
 /** Helyi (még fel nem töltött) válaszok összesítése módonként, az időszak kezdetétől. */
 export function aggregateEvents(events: readonly AttemptEvent[], since: Date | null): ModeStats[] {
   const byMode = new Map<PracticeMode, ModeStats>();

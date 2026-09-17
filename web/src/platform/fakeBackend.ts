@@ -1,6 +1,6 @@
 import type { PlayerEvent } from '../core/events';
 import { EMPTY_SUMMARY, type ImportedProfile, type PlayerRecord, type PlayerSummary } from '../core/player';
-import { aggregateEvents } from '../core/stats';
+import { aggregateEvents, localSessionIds } from '../core/stats';
 import type { AuthClient, AuthUser, Backend, PlayerListing } from '../store/backend';
 import type { KeyValueStorage } from '../store/storage';
 
@@ -111,6 +111,10 @@ export function fakeServices(storage: KeyValueStorage): { auth: AuthClient; back
     async fetchModeStats(playerId, since) {
       await latency();
       return aggregateEvents([...events.values()].filter((e) => e.playerId === playerId), since);
+    },
+    async fetchSessionIds(playerId, since) {
+      await latency();
+      return localSessionIds([...events.values()].filter((e) => e.playerId === playerId), since);
     },
     async deletePlayer(playerId) {
       await latency();

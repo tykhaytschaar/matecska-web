@@ -44,16 +44,18 @@ Az eredeti SwiftUI iOS változat a `2842602` commitig a git-történetben megtal
   megoldott feladatok, a helyes válaszok aránya és az átlagos gyorsasági bónusz a mód maximumához
   képest. A szerver a válaszokat módonként összesíti egy időponttól (`mode_stats` függvény), az app
   hozzáadja a még fel nem töltött helyi válaszokat. A bónusz 0.2.3-tól külön oszlopban (`attempts.bonus`)
-  rögzül; a korábbi válaszok az átlagba nem számítanak.
+  rögzül; a korábbi válaszok az átlagba nem számítanak. Munkamenet: az app indításától, játékosváltástól,
+  vagy 5 perc szünet (háttérben töltött idő vagy tétlenség) után új azonosító; a válaszok ezt hordozzák, a
+  Statisztika a munkamenetek számát is mutatja. A részletek a későbbi tanári felület alapja.
 - Az alkalmazásról képernyő: verzió, katalógus, szinkron állapota, kijelentkezés és fióktörlés. Rejtett
   fejlesztői mód (7 koppintás a verziósorra): játékosonként a pont tetszőleges értékre állítása
   (a válaszok maradnak, egy pontkorrekció kerül a játékosra) és a statisztika, pont nullázása.
 - Karakterek képernyő: a karakterek pontküszöbre oldódnak fel, a pont nem fogy, a lista küszöb szerint
   rendezett. A katalógus és a sprite-csíkok a `characters/` mappában
   (`catalog.json` + PNG-k), lásd lent.
-- Infó képernyő a főképernyő MATECSKA feliratára koppintva: verzió (a `web/package.json`-ból), a build ideje és a
-  fejlesztő neve; a verziót és az időbélyeget a Vite fordításkor injektálja. Ugyanitt a
-  műveletenkénti statisztika (megoldott, helyes, arány) és a nullázása, ami a pontokat nem érinti.
+- Az alkalmazásról képernyő (menüből): verzió (a `web/package.json`-ból), a build ideje és a fejlesztő
+  neve; a verziót és az időbélyeget a Vite fordításkor injektálja. A főképernyő fejlécében bal oldalt a
+  pontszám, jobb oldalt a Menü gomb áll.
   A verzió forrása a `web/package.json`; az `ios:sync` átírja az Xcode-projekt MARKETING_VERSION-jét.
 - A macska sprite és az animációk a GameBoy-os [matecska](../matecska) projektből.
 
@@ -104,7 +106,8 @@ hívja, saját szerver nincs. Beállítás egyszer:
    néhány levelet enged.
 
 Adatmodell: `players` (szülő, becenév, kiválasztott karakter, a fiók előtti helyi profil egyszeri
-átvétele), `attempts` (egy beküldött válasz: művelet, alkategória, helyes-e, könyvelt pont, bónusz). A pont
+átvétele), `attempts` (egy beküldött válasz: művelet, alkategória, helyes-e, könyvelt pont, bónusz, munkamenet-azonosító,
+és a feladat részletei: operandusok, hiányzó hely, beírt válasz, eltelt idő). A pont
 és a stat ebből számolódik, a karakterek a pontból; az esemény-azonosítót a kliens adja, így az
 újraküldés idempotens.
 

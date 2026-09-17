@@ -20,11 +20,8 @@
 
 <div class="screen">
   <header class="hud">
-    <span class="logo">MATECSKA</span>
-    <div class="right">
-      <PointsBadge points={store.profile.totalPoints} />
-      <MenuButton onclick={onMenu} />
-    </div>
+    <PointsBadge points={store.profile.totalPoints} />
+    <MenuButton onclick={onMenu} />
   </header>
 
   <div class="spacer"></div>
@@ -60,18 +57,6 @@
     align-items: center;
     justify-content: space-between;
     min-height: 44px;
-  }
-  .logo {
-    font-weight: 900;
-    letter-spacing: 0.2em;
-    font-size: 1.05rem;
-    padding: 8px 0;
-    color: var(--ink);
-  }
-  .right {
-    display: flex;
-    align-items: center;
-    gap: 8px;
   }
   .spacer {
     flex: 1;

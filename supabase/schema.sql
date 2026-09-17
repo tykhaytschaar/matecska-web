@@ -30,9 +30,23 @@ create table if not exists public.attempts (
   points integer not null,
   -- A megszerzett gyorsasági bónusz; a statisztika átlagolja. Régi soroknál null.
   bonus integer,
+  -- Munkamenet (kliens által adott UUID; 5 perc szünet vagy játékosváltás után új) és a feladat részletei
+  -- a későbbi visszanézéshez (tanári felület). Régi soroknál null. 90 napon túl csak a statisztika marad.
+  session_id uuid,
+  operand_a integer,
+  operand_b integer,
+  blank text check (blank is null or blank in ('first', 'second', 'result')),
+  given integer,
+  elapsed_ms integer,
   created_at timestamptz not null default now()
 );
 alter table public.attempts add column if not exists bonus integer;
+alter table public.attempts add column if not exists session_id uuid;
+alter table public.attempts add column if not exists operand_a integer;
+alter table public.attempts add column if not exists operand_b integer;
+alter table public.attempts add column if not exists blank text;
+alter table public.attempts add column if not exists given integer;
+alter table public.attempts add column if not exists elapsed_ms integer;
 create index if not exists attempts_player_idx on public.attempts (player_id);
 create index if not exists attempts_player_time_idx on public.attempts (player_id, created_at);
 
@@ -91,6 +105,21 @@ as $$
 $$;
 revoke execute on function public.mode_stats(uuid, timestamptz) from public, anon;
 grant execute on function public.mode_stats(uuid, timestamptz) to authenticated;
+
+-- A játékos munkamenet-azonosítói egy időponttól (since null = minden); a kliens a helyiekkel uniózza.
+create or replace function public.session_ids(pid uuid, since timestamptz default null)
+returns table (session_id uuid)
+language sql
+stable
+security invoker
+set search_path = public
+as $$
+  select distinct a.session_id
+  from public.attempts a
+  where a.player_id = pid and a.session_id is not null and (since is null or a.created_at >= since);
+$$;
+revoke execute on function public.session_ids(uuid, timestamptz) from public, anon;
+grant execute on function public.session_ids(uuid, timestamptz) to authenticated;
 
 -- Fejlesztői mód: egy játékos statisztikájának és pontjának törlése (a karakterek a ponttal együtt záródnak vissza).
 create or replace function public.reset_player(pid uuid)

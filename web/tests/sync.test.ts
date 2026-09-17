@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { attemptEvent, type PlayerEvent } from '../src/core/events';
 import { buildProfile, EMPTY_SUMMARY, freshState, type ImportedProfile, type PlayerRecord, type PlayerSummary } from '../src/core/player';
-import { aggregateEvents } from '../src/core/stats';
+import { aggregateEvents, localSessionIds } from '../src/core/stats';
 import type { Backend, PlayerListing } from '../src/store/backend';
 import { LocalCache } from '../src/store/localCache';
 import { memoryStorage } from '../src/store/storage';
@@ -51,6 +51,10 @@ class FakeBackend implements Backend {
   async fetchModeStats(playerId: string, since: Date | null) {
     this.guard('stats');
     return aggregateEvents([...this.events.values()].filter((e) => e.playerId === playerId), since);
+  }
+  async fetchSessionIds(playerId: string, since: Date | null) {
+    this.guard('sessions');
+    return localSessionIds([...this.events.values()].filter((e) => e.playerId === playerId), since);
   }
   async deletePlayer(playerId: string): Promise<void> {
     this.guard('delete');

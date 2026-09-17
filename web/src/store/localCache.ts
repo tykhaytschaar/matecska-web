@@ -119,6 +119,8 @@ function isEvent(raw: unknown): raw is PlayerEvent {
   if (typeof r.id !== 'string' || typeof r.playerId !== 'string' || typeof r.createdAt !== 'string') return false;
   if (r.kind !== 'attempt') return false;
   if (r.bonus !== undefined && typeof r.bonus !== 'number') return false;
+  if (r.sessionId !== undefined && typeof r.sessionId !== 'string') return false;
+  if (r.detail !== undefined && (typeof r.detail !== 'object' || r.detail === null)) return false;
   return typeof r.operation === 'string' && typeof r.mode === 'string' && typeof r.correct === 'boolean' && typeof r.points === 'number';
 }
 
