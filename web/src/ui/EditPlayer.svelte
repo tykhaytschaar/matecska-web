@@ -3,6 +3,7 @@
   import { selectedCharacter } from '../core/profile';
   import type { PlayerStore } from '../store/playerStore.svelte';
   import Avatar from './Avatar.svelte';
+  import DeleteCodeStep from './DeleteCodeStep.svelte';
 
   interface Props {
     store: PlayerStore;
@@ -24,13 +25,12 @@
 
   // svelte-ignore state_referenced_locally
   let name = $state(listing?.player.name ?? '');
-  let confirming = $state(false);
-  let confirmWord = $state('');
+  /** Törlés: rákérdezés (Nem kiemelve), és csak Igen után megy a megerősítő e-mail. */
+  let step = $state<'idle' | 'ask' | 'code'>('idle');
   let busy = $state(false);
   let error = $state<string | null>(null);
 
   const nameValid = $derived(name.trim().length > 0 && name.trim() !== (listing?.player.name ?? ''));
-  const confirmed = $derived(confirmWord.trim().toLowerCase() === 'törlés');
 
   async function run(action: () => Promise<void>, failure: string) {
     if (busy) return;
@@ -51,15 +51,15 @@
     void run(() => store.rename(playerId, name), 'A mentés nem sikerült. Van internetkapcsolat?');
   }
 
-  function removePlayer() {
-    if (!confirmed) return;
-    void run(() => store.remove(playerId), 'A törlés nem sikerült. Van internetkapcsolat?');
+  async function removeWithCode(code: string) {
+    await store.remove(playerId, code);
+    onDone();
   }
 
   function handleKey(event: KeyboardEvent) {
     if (event.key === 'Escape') {
       event.preventDefault();
-      if (confirming) confirming = false;
+      if (step !== 'idle') step = 'idle';
       else onDone();
     }
   }
@@ -92,20 +92,28 @@
 
     <section class="card block" aria-labelledby="delete-title">
       <h2 id="delete-title">Játékos törlése</h2>
-      {#if confirming}
-        <form class="confirm" onsubmit={(e) => { e.preventDefault(); removePlayer(); }}>
+      {#if step === 'ask'}
+        <div class="confirm">
+          <p class="warn">Biztos vagy benne?</p>
+          <p>A törlés azonnali és végleges!</p>
+          <p class="soft">A pontok, a statisztika és a feloldott karakterek is elvesznek. Ha igen, e-mailben küldünk egy megerősítő kódot.</p>
+          <div class="actions">
+            <button type="button" class="pill dark" onclick={() => (step = 'code')}>Igen</button>
+            <button type="button" class="pill safe" onclick={() => (step = 'idle')}>Nem</button>
+          </div>
+        </div>
+      {:else if step === 'code'}
+        <div class="confirm">
           <p class="warn">Vigyázat!</p>
           <p>A törlés azonnali és végleges!</p>
-          <p class="soft">A pontok, a statisztika és a feloldott karakterek is elvesznek.</p>
-          <p>Írd be, hogy „törlés”, ha komolyan gondolod:</p>
-          <input type="text" bind:value={confirmWord} placeholder="törlés" autocapitalize="none" autocomplete="off" disabled={busy} class="confirm-input" />
-          <div class="actions">
-            <button type="button" class="pill" onclick={() => { confirming = false; confirmWord = ''; }} disabled={busy}>Mégse</button>
-            <button type="submit" class="pill danger" disabled={!confirmed || busy}>{busy ? 'Törlés…' : 'Végleges törlés'}</button>
-          </div>
-        </form>
+          <DeleteCodeStep
+            request={() => store.requestDeletionCode('player', playerId)}
+            confirm={removeWithCode}
+            onCancel={() => (step = 'idle')}
+          />
+        </div>
       {:else}
-        <button type="button" class="pill outline-danger" onclick={() => (confirming = true)} disabled={busy}>Törlés…</button>
+        <button type="button" class="pill outline-danger" onclick={() => (step = 'ask')} disabled={busy}>Törlés…</button>
       {/if}
     </section>
   {:else}
@@ -182,12 +190,6 @@
     outline: none;
     border-color: var(--flame);
   }
-  .confirm-input {
-    font-weight: 500;
-  }
-  .confirm-input:focus {
-    border-color: var(--red);
-  }
   h2 {
     margin: 0;
     font-size: 1rem;
@@ -209,11 +211,25 @@
     border-color: var(--red);
     color: var(--red);
   }
-  .danger {
-    background: var(--red);
+  /* Igen: visszafogott sötét; Nem: kiemelt, zöld – ez az alapértelmezett, biztonságos választás. */
+  .dark {
+    background: var(--bar);
+    border-color: transparent;
+    color: #fff;
+  }
+  .safe {
+    background: var(--green);
     border-color: transparent;
     color: #fff;
     font-weight: 700;
+  }
+  .actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+  }
+  .actions .pill {
+    align-self: auto;
   }
   .confirm {
     display: flex;
@@ -236,14 +252,6 @@
   }
   .soft {
     color: var(--ink-soft);
-  }
-  .actions {
-    display: flex;
-    justify-content: flex-end;
-    gap: 8px;
-  }
-  .actions .pill {
-    align-self: auto;
   }
   .error {
     margin: 0;

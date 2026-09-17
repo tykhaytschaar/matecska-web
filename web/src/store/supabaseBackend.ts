@@ -3,7 +3,7 @@ import type { PlayerEvent } from '../core/events';
 import { EMPTY_SUMMARY, parseImported, parseStats, type ImportedProfile, type PlayerRecord, type PlayerSummary } from '../core/player';
 import { isPracticeMode } from '../core/operation';
 import type { ModeStats } from '../core/stats';
-import type { AuthClient, AuthUser, Backend, PlayerListing } from './backend';
+import { DeletionCodeError, type AuthClient, type AuthUser, type Backend, type PlayerListing } from './backend';
 
 interface PlayerRow {
   id: string;
@@ -42,6 +42,24 @@ function toSummary(row: SummaryRow): PlayerSummary {
 
 function fail(error: { message: string } | null): never {
   throw new Error(error?.message ?? 'ismeretlen hiba');
+}
+
+/** Megerősítő kód kérése a request-deletion Edge Functiontől; a hibákat a felület üzeneteire fordítja. */
+export async function requestDeletionCode(client: SupabaseClient, kind: 'account' | 'player', playerId?: string): Promise<void> {
+  const { error } = await client.functions.invoke('request-deletion', { body: { kind, playerId } });
+  if (!error) return;
+  const status = (error as { context?: { status?: number } }).context?.status;
+  if (status === 429) throw new DeletionCodeError('Túl gyakori kérés, várj egy percet.', 'rate-limit');
+  if (status === 502) throw new DeletionCodeError('A levél küldése nem sikerült.', 'send-failed');
+  if (/fetch|network/i.test(error.message ?? '')) throw new DeletionCodeError('Nincs internetkapcsolat.', 'network');
+  throw new DeletionCodeError('A kód kérése nem sikerült.', 'other');
+}
+
+/** A törlő függvények hibái: érvénytelen/lejárt kód vagy más. */
+function toDeletionError(error: { message: string; code?: string }): DeletionCodeError {
+  if (error.code === '22023' || /érvénytelen|lejárt/i.test(error.message)) return new DeletionCodeError('Hibás vagy lejárt kód.', 'invalid-code');
+  if (/fetch|network/i.test(error.message)) return new DeletionCodeError('Nincs internetkapcsolat.', 'network');
+  return new DeletionCodeError('A törlés nem sikerült.', 'other');
 }
 
 export function supabaseBackend(client: SupabaseClient): Backend {
@@ -137,10 +155,12 @@ export function supabaseBackend(client: SupabaseClient): Backend {
       if (error) fail(error);
     },
 
-    async deletePlayer(playerId: string): Promise<void> {
-      // A válaszok a players sor törlésével cascade-del mennek (schema.sql).
-      const { error } = await client.from('players').delete().eq('id', playerId);
-      if (error) fail(error);
+    requestDeletionCode: (kind, playerId) => requestDeletionCode(client, kind, playerId),
+
+    async deletePlayer(playerId: string, code: string): Promise<void> {
+      // Csak megerősítő kóddal, a delete_player függvényen át (a táblán nincs törlési jog).
+      const { error } = await client.rpc('delete_player', { pid: playerId, code: code.trim() });
+      if (error) throw toDeletionError(error);
     },
   };
 }
@@ -172,9 +192,9 @@ export function supabaseAuth(client: SupabaseClient): AuthClient {
       const { error } = await client.auth.signOut();
       if (error) fail(error);
     },
-    async deleteAccount() {
-      const { error } = await client.rpc('delete_account');
-      if (error) fail(error);
+    async deleteAccount(code) {
+      const { error } = await client.rpc('delete_account', { code: code.trim() });
+      if (error) throw toDeletionError(error);
       await client.auth.signOut({ scope: 'local' }).catch(() => {});
     },
   };

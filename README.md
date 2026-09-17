@@ -30,7 +30,7 @@ Az eredeti SwiftUI iOS változat a `2842602` commitig a git-történetben megtal
   regisztráció és belépés ugyanaz a lépés), alatta tetszőleges számú játékos becenévvel.
   Játékosonként külön pont, műveletenkénti statisztika, birtokolt és kiválasztott karakter.
   A játékosváltó a főképernyőn a játékos-chipre koppintva nyílik; a játékos átnevezhető és törölhető
-  (Játékosok → ceruza; a törlés a „törlés” szó beírásával erősítendő meg). A cica a két szél közt sétál,
+  (Játékosok → ceruza; a törlés e-mailes megerősítő kóddal). A cica a két szél közt sétál,
   a szélén megáll; gyakorlás közben is sétál, beküldésre megáll és szívvel vagy könnycseppel reagál.
 - Offline-first: a válaszok helyben mentődnek és rövid késleltetéssel a szerverre kerülnek;
   net nélkül a függő események megmaradnak a következő alkalomig. Az Infó képernyő mutatja
@@ -48,7 +48,13 @@ Az eredeti SwiftUI iOS változat a `2842602` commitig a git-történetben megtal
   rögzül; a korábbi válaszok az átlagba nem számítanak. Munkamenet: az app indításától, játékosváltástól,
   vagy 5 perc szünet (háttérben töltött idő vagy tétlenség) után új azonosító; a válaszok ezt hordozzák, a
   Statisztika a munkamenetek számát is mutatja. A részletek a későbbi tanári felület alapja.
-- Az alkalmazásról képernyő: verzió, katalógus, szinkron állapota, kijelentkezés és fióktörlés. Rejtett
+- Az alkalmazásról képernyő: verzió, katalógus, szinkron állapota, kijelentkezés és fióktörlés.
+- Törlés e-mailes megerősítéssel: a fiók és a játékos törléséhez a szerver hatjegyű kódot küld a fiók
+  e-mail címére (`request-deletion` Edge Function, Resend API), és a `delete_account(code)` /
+  `delete_player(pid, code)` függvények csak érvényes, 10 percen belüli, egyszer használt kóddal
+  törölnek; a `players` táblán nincs közvetlen törlési jog. Így a bejelentkezett eszközön sem
+  törölhet a játékos, csak aki a postafiókot is eléri. Kódkérés percenként egyszer. Az Edge Function
+  titkai: `RESEND_API_KEY`, `RESEND_FROM` (feladó; alapból matecska@mail.almos.me). Rejtett
   fejlesztői mód (7 koppintás a verziósorra): játékosonként a pont tetszőleges értékre állítása
   (a válaszok maradnak, egy pontkorrekció kerül a játékosra) és a statisztika, pont nullázása.
 - Karakterek képernyő: a karakterek pontküszöbre oldódnak fel, a pont nem fogy, a lista küszöb szerint
@@ -97,7 +103,9 @@ hívja, saját szerver nincs. Beállítás egyszer:
 
 1. Projekt a [supabase.com](https://supabase.com) oldalon (ingyenes szint, EU régió).
 2. SQL Editor: a `supabase/schema.sql` tartalmát futtasd le (táblák, RLS, `player_summaries`
-   nézet, `reset_player` és `delete_account` függvények). Újrafuttatható.
+   nézet, `reset_player`, `delete_account`, `delete_player`, `mode_stats`, `session_ids` függvények).
+   Újrafuttatható. Az Edge Function: `supabase/functions/request-deletion`, telepítés a Supabase MCP-vel
+   vagy a CLI-vel; titkok: `RESEND_API_KEY`, `RESEND_FROM`.
 3. Authentication → Sign In / Providers → Email: bekapcsolva, „Confirm email" ki.
    Authentication → Emails → Magic Link sablon: a link helyett a `{{ .Token }}` kód legyen a levélben.
 4. Project Settings → API: a Project URL és a publishable (anon) kulcs a `web/.env.local`-ba

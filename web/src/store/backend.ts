@@ -24,8 +24,13 @@ export interface Backend {
   fetchSessionIds(playerId: string, since: Date | null): Promise<string[]>;
   /** Fejlesztői mód: a játékos minden eseményének és átvett adatának törlése. */
   resetPlayer(playerId: string): Promise<void>;
-  /** A játékos és minden adata (válaszok) végleges törlése. */
-  deletePlayer(playerId: string): Promise<void>;
+  /**
+   * Törlési megerősítő kód kérése e-mailben (fiókra vagy egy játékosra). A szerver percenként
+   * egyet enged; a kód 10 percig érvényes. Hiba: `DeletionCodeError`.
+   */
+  requestDeletionCode(kind: 'account' | 'player', playerId?: string): Promise<void>;
+  /** A játékos és minden adata (válaszok) végleges törlése, a kapott megerősítő kóddal. */
+  deletePlayer(playerId: string, code: string): Promise<void>;
 }
 
 export type AuthStatus = 'loading' | 'signedOut' | 'signedIn';
@@ -42,5 +47,16 @@ export interface AuthClient {
   requestCode(email: string): Promise<void>;
   verifyCode(email: string, code: string): Promise<AuthUser>;
   signOut(): Promise<void>;
-  deleteAccount(): Promise<void>;
+  /** A fiók és minden adata törlése, a kapott megerősítő kóddal. */
+  deleteAccount(code: string): Promise<void>;
+}
+
+/** A megerősítő kódos folyamat hibái, emberi üzenettel a felületnek. */
+export class DeletionCodeError extends Error {
+  constructor(
+    message: string,
+    readonly reason: 'rate-limit' | 'invalid-code' | 'send-failed' | 'network' | 'other',
+  ) {
+    super(message);
+  }
 }

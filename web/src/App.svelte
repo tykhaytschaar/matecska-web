@@ -60,6 +60,8 @@
       store = null;
       return;
     }
+    // Ugyanaz a fiók (pl. token-frissítés után): a meglévő store és képernyő marad.
+    if (store?.userId === userId) return;
     const next = new PlayerStore(storage, backend, catalog, userId);
     store = next;
     screen = { kind: 'home' };
@@ -80,10 +82,12 @@
     screen = { kind: 'signin' };
   }
 
-  async function deleteAccount() {
+  async function deleteAccount(code: string) {
+    menuOpen = false;
+    // Először a szerveren (kóddal); csak siker után takarítjuk a helyi adatokat.
+    await account?.deleteAccount(code);
     await store?.clearLocal();
-    await account?.deleteAccount();
-    goHome();
+    screen = { kind: 'signin' };
   }
 </script>
 

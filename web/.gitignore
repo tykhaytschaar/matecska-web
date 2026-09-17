@@ -9,3 +9,4 @@ public/sprites/
 *.log
 .env.local
 .env.*.local
+*.swp

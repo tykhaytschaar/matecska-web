@@ -7,6 +7,7 @@
   import type { AccountStore } from '../store/account.svelte';
   import { DEV_MODE_TAPS, type DevMode } from '../store/devMode.svelte';
   import type { PlayerStore } from '../store/playerStore.svelte';
+  import DeleteCodeStep from './DeleteCodeStep.svelte';
 
   interface Props {
     store: PlayerStore;
@@ -14,7 +15,8 @@
     devMode: DevMode;
     onBack: () => void;
     onSignOut: () => Promise<void>;
-    onDeleteAccount: () => Promise<void>;
+    /** Fiók törlése a kapott megerősítő kóddal. */
+    onDeleteAccount: (code: string) => Promise<void>;
     /** A Támogatás képernyő (csak weben van). */
     onDonate: () => void;
   }
@@ -24,7 +26,7 @@
   const native = Capacitor.isNativePlatform();
 
   /** Melyik veszélyes művelet vár megerősítésre: fióktörlés vagy egy játékos nullázása. */
-  let confirming = $state<{ kind: 'delete' } | { kind: 'reset'; playerId: string } | null>(null);
+  let confirming = $state<{ kind: 'delete'; step: 'ask' | 'code' } | { kind: 'reset'; playerId: string } | null>(null);
   let busy = $state(false);
   let error = $state<string | null>(null);
   let taps = 0;
@@ -156,22 +158,29 @@
   <section class="card block" aria-labelledby="account-title">
     <h2 id="account-title">Fiók</h2>
     <span class="email">{account.user?.email}</span>
-    {#if confirming?.kind === 'delete'}
+    {#if confirming?.kind === 'delete' && confirming.step === 'ask'}
       <div class="confirm">
-        <span>Biztosan törlöd a fiókot? Minden játékos, pont és statisztika végleg elvész.</span>
+        <span>Biztos vagy benne? Minden játékos, pont és statisztika végleg elvész. Ha igen, e-mailben küldünk egy megerősítő kódot.</span>
         <div class="actions">
-          <button type="button" class="pill" onclick={() => (confirming = null)} disabled={busy}>Mégse</button>
-          <button type="button" class="pill danger" disabled={busy} onclick={() => run(onDeleteAccount, 'A törlés nem sikerült. Van internetkapcsolat?')}>
-            {busy ? 'Törlés…' : 'Végleges törlés'}
-          </button>
+          <button type="button" class="pill dark" onclick={() => (confirming = { kind: 'delete', step: 'code' })}>Igen</button>
+          <button type="button" class="pill safe" onclick={() => (confirming = null)}>Nem</button>
         </div>
+      </div>
+    {:else if confirming?.kind === 'delete'}
+      <div class="confirm">
+        <span>A fiók törléséhez írd be az e-mailben kapott kódot.</span>
+        <DeleteCodeStep
+          request={() => store.requestDeletionCode('account')}
+          confirm={(code) => onDeleteAccount(code)}
+          onCancel={() => (confirming = null)}
+        />
       </div>
     {:else}
       <div class="actions">
         <button type="button" class="pill" disabled={busy} onclick={() => run(onSignOut, 'A kijelentkezés nem sikerült.')}>
           {busy ? 'Kijelentkezés…' : 'Kijelentkezés'}
         </button>
-        <button type="button" class="pill danger" disabled={busy} onclick={() => (confirming = { kind: 'delete' })}>Fiók törlése</button>
+        <button type="button" class="pill danger" disabled={busy} onclick={() => (confirming = { kind: 'delete', step: 'ask' })}>Fiók törlése</button>
       </div>
     {/if}
     {#if error}<p class="error" role="alert">{error}</p>{/if}
@@ -349,6 +358,18 @@
     background: var(--red);
     border-color: transparent;
     color: #fff;
+  }
+  /* Igen: visszafogott sötét; Nem: kiemelt, zöld – ez az alapértelmezett, biztonságos választás. */
+  .pill.dark {
+    background: var(--bar);
+    border-color: transparent;
+    color: #fff;
+  }
+  .pill.safe {
+    background: var(--green);
+    border-color: transparent;
+    color: #fff;
+    font-weight: 700;
   }
   .self-end {
     align-self: flex-end;

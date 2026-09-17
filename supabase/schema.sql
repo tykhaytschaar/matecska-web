@@ -142,22 +142,99 @@ begin
 end;
 $$;
 
--- Fiók törlése az appból (App Store és GDPR követelmény). A játékosok és adataik cascade-del mennek.
-create or replace function public.delete_account()
+-- Törlés e-mailes megerősítéssel. A kódot a request-deletion Edge Function generálja, hash-elve
+-- tárolja és a Resend API-val küldi (supabase/functions/request-deletion); a törlő függvények csak
+-- érvényes, 10 percen belüli, egyszer használatos kóddal futnak. Így a bejelentkezett eszközön sem
+-- törölhet a játékos, csak aki a fiók postafiókját is eléri.
+create extension if not exists pgcrypto with schema extensions;
+
+create table if not exists public.deletion_codes (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users (id) on delete cascade,
+  kind text not null check (kind in ('account', 'player')),
+  target_id uuid,
+  code_hash text not null,
+  expires_at timestamptz not null,
+  used_at timestamptz,
+  created_at timestamptz not null default now()
+);
+create index if not exists deletion_codes_user_idx on public.deletion_codes (user_id, created_at desc);
+-- Nincs policy: a táblát csak a service role (Edge Function) és a security definer függvények érik el.
+alter table public.deletion_codes enable row level security;
+
+-- Egy kód felhasználása: igaz, ha volt érvényes, egyező, még nem használt kód; ekkor megjelöli.
+create or replace function public.consume_deletion_code(p_kind text, p_target uuid, p_code text)
+returns boolean
+language plpgsql
+security definer
+set search_path = public, extensions
+as $$
+declare
+  v_id uuid;
+begin
+  if auth.uid() is null then
+    return false;
+  end if;
+  select id into v_id
+    from public.deletion_codes
+   where user_id = auth.uid()
+     and kind = p_kind
+     and (p_target is null or target_id = p_target)
+     and used_at is null
+     and expires_at > now()
+     and code_hash = encode(digest(p_code || ':' || auth.uid()::text, 'sha256'), 'hex')
+   order by created_at desc
+   limit 1;
+  if v_id is null then
+    return false;
+  end if;
+  update public.deletion_codes set used_at = now() where id = v_id;
+  return true;
+end;
+$$;
+revoke execute on function public.consume_deletion_code(text, uuid, text) from public, anon, authenticated;
+
+-- Fiók törlése az appból (App Store és GDPR követelmény), csak megerősítő kóddal.
+drop function if exists public.delete_account();
+create or replace function public.delete_account(code text)
 returns void
 language plpgsql
 security definer
-set search_path = public
+set search_path = public, extensions
 as $$
 begin
   if auth.uid() is null then
     raise exception 'nincs bejelentkezett felhasználó';
   end if;
+  if not public.consume_deletion_code('account', null, code) then
+    raise exception 'érvénytelen vagy lejárt kód' using errcode = '22023';
+  end if;
   delete from auth.users where id = auth.uid();
 end;
 $$;
+revoke execute on function public.delete_account(text) from public, anon;
+grant execute on function public.delete_account(text) to authenticated;
 
-revoke execute on function public.delete_account() from public, anon;
-grant execute on function public.delete_account() to authenticated;
+-- Játékos törlése csak megerősítő kóddal; a táblán a közvetlen törlés joga elvéve.
+create or replace function public.delete_player(pid uuid, code text)
+returns void
+language plpgsql
+security definer
+set search_path = public, extensions
+as $$
+begin
+  if not exists (select 1 from public.players where id = pid and owner_id = auth.uid()) then
+    raise exception 'nem a te játékosod';
+  end if;
+  if not public.consume_deletion_code('player', pid, code) then
+    raise exception 'érvénytelen vagy lejárt kód' using errcode = '22023';
+  end if;
+  delete from public.players where id = pid and owner_id = auth.uid();
+end;
+$$;
+revoke execute on function public.delete_player(uuid, text) from public, anon;
+grant execute on function public.delete_player(uuid, text) to authenticated;
+revoke delete on public.players from authenticated;
+
 revoke execute on function public.reset_player(uuid) from public, anon;
 grant execute on function public.reset_player(uuid) to authenticated;

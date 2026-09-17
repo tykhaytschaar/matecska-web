@@ -1,10 +1,12 @@
 import type { PlayerEvent } from '../core/events';
 import { EMPTY_SUMMARY, type ImportedProfile, type PlayerRecord, type PlayerSummary } from '../core/player';
 import { aggregateEvents, localSessionIds } from '../core/stats';
-import type { AuthClient, AuthUser, Backend, PlayerListing } from '../store/backend';
+import { DeletionCodeError, type AuthClient, type AuthUser, type Backend, type PlayerListing } from '../store/backend';
 import type { KeyValueStorage } from '../store/storage';
 
 const USER_KEY = 'matecska.fake.user';
+/** Az utánzat törlési megerősítő kódja (levél nincs). */
+export const FAKE_DELETION_CODE = '123456';
 const DB_KEY = 'matecska.fake.db';
 
 /**
@@ -65,7 +67,9 @@ export function fakeServices(storage: KeyValueStorage): { auth: AuthClient; back
       await storage.remove(USER_KEY);
       emit(null);
     },
-    async deleteAccount() {
+    async deleteAccount(code) {
+      await latency();
+      if (code.trim() !== FAKE_DELETION_CODE) throw new DeletionCodeError('Hibás vagy lejárt kód.', 'invalid-code');
       players = [];
       events.clear();
       await Promise.all([storage.remove(USER_KEY), storage.remove(DB_KEY)]);
@@ -116,8 +120,12 @@ export function fakeServices(storage: KeyValueStorage): { auth: AuthClient; back
       await latency();
       return localSessionIds([...events.values()].filter((e) => e.playerId === playerId), since);
     },
-    async deletePlayer(playerId) {
+    async requestDeletionCode() {
       await latency();
+    },
+    async deletePlayer(playerId, code) {
+      await latency();
+      if (code.trim() !== FAKE_DELETION_CODE) throw new DeletionCodeError('Hibás vagy lejárt kód.', 'invalid-code');
       players = players.filter((p) => p.id !== playerId);
       for (const [id, e] of events) if (e.playerId === playerId) events.delete(id);
       await persist();

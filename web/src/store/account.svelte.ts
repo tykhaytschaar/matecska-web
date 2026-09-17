@@ -21,6 +21,9 @@ export class AccountStore {
   }
 
   private apply(user: AuthUser | null): void {
+    // Token-frissítésnél (pl. előtérbe kerüléskor) ugyanaz a felhasználó jön újra: nem cseréljük az
+    // objektumot, különben a képernyők újraépülnének és a folyamatban lévő lépés (pl. törlés) elveszne.
+    if (user && this.user && user.id === this.user.id && user.email === this.user.email) return;
     this.user = user;
     this.status = user ? 'signedIn' : 'signedOut';
   }
@@ -38,8 +41,8 @@ export class AccountStore {
     this.apply(null);
   }
 
-  async deleteAccount(): Promise<void> {
-    await this.auth.deleteAccount();
+  async deleteAccount(code: string): Promise<void> {
+    await this.auth.deleteAccount(code);
     this.apply(null);
   }
 

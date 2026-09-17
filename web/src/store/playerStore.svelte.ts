@@ -23,6 +23,8 @@ const SYNC_DELAY_MS = 1500;
 export class PlayerStore {
   /** A karakter-katalógus (beépített, mentett vagy szerverről töltött); a profil ebből számol. */
   readonly catalog: CatalogStore;
+  /** A fiók, amihez a store tartozik; fiókváltásnál újraépül. */
+  readonly userId: string;
   players = $state<PlayerListing[]>([]);
   active = $state<PlayerState | null>(null);
   /** Igaz, ha a helyi gyorstár (és ha volt net, a szerver) már betöltődött. */
@@ -60,6 +62,7 @@ export class PlayerStore {
     userId: string,
   ) {
     this.catalog = catalog;
+    this.userId = userId;
     this.cache = new LocalCache(storage, userId);
     globalThis.addEventListener?.('online', this.onOnline);
     globalThis.document?.addEventListener('visibilitychange', this.onVisibility);
@@ -93,7 +96,8 @@ export class PlayerStore {
       if (this.active) {
         const adopted = adoptListing(this.active, listing);
         if (!adopted) {
-          await this.deactivate();
+          // Máshol törölték: nincs mit feltölteni, és a flush itt a futó szinkronra várna (holtpont).
+          await this.clearActive();
         } else {
           this.active = adopted;
           await this.cache.saveState(adopted);
@@ -135,6 +139,15 @@ export class PlayerStore {
 
   async deactivate(): Promise<void> {
     await this.flush();
+    await this.clearActive();
+  }
+
+  /** Az aktív játékos elengedése feltöltés nélkül. */
+  private async clearActive(): Promise<void> {
+    if (this.timer) {
+      clearTimeout(this.timer);
+      this.timer = null;
+    }
     this.active = null;
     await this.cache.saveActiveId(null);
   }
@@ -198,14 +211,19 @@ export class PlayerStore {
    * Játékos végleges törlése a szerveren és helyben. Ha az aktívat töröltük, a lista első
    * megmaradt játékosa lesz aktív; ha nincs több, nincs aktív (a játékoslista marad).
    */
-  async remove(playerId: string): Promise<void> {
-    if (this.active?.player.id === playerId) await this.deactivate();
-    await this.backend.deletePlayer(playerId);
+  async remove(playerId: string, code: string): Promise<void> {
+    await this.backend.deletePlayer(playerId, code);
+    if (this.active?.player.id === playerId) await this.clearActive();
     await this.cache.removeState(playerId);
     this.players = this.players.filter((l) => l.player.id !== playerId);
     await this.cache.savePlayers(this.players);
     await this.refreshPlayers();
     if (!this.active && this.players.length > 0) await this.activate(this.players[0].player.id);
+  }
+
+  /** Törlési megerősítő kód kérése e-mailben (fiókra vagy játékosra). */
+  requestDeletionCode(kind: 'account' | 'player', playerId?: string): Promise<void> {
+    return this.backend.requestDeletionCode(kind, playerId);
   }
 
   /** Fejlesztői mód: a játékos összpontja a megadott értékre áll (pontkorrekcióval, a válaszok maradnak). */
