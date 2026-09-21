@@ -45,7 +45,7 @@
 
   <section class="card block">
     <h2>Írj nekem</h2>
-    <p class="lead">Hiba, kérés, ötlet – 2 munkanapon belül válaszolunk.</p>
+    <p class="lead">Hiba, kérés, ötlet – amint lehet, válaszolok.</p>
     <a class="chunky" href={mailto}>E-mail: {SUPPORT_EMAIL}</a>
     <p class="fine">Verzió {APP_INFO.version} · a levélbe automatikusan bekerül</p>
   </section>

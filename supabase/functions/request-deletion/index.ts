@@ -1,6 +1,7 @@
 // Törlési megerősítő kód kérése: hatjegyű kódot generál, hash-elve tárolja (deletion_codes),
 // és a Resend API-val elküldi a fiók e-mail címére. A törlő SQL-függvények csak ezzel a kóddal futnak.
-// Titkok: RESEND_API_KEY (kötelező), RESEND_FROM (feladó; alapból a hitelesített matecska@mail.almos.me).
+// Titkok: RESEND_API_KEY (kötelező), RESEND_FROM (feladó; alapból a hitelesített matecska@mail.apasupa.com).
+// A válaszcím (Reply-To) az ideiglenes fogadó cím, ivanyi.almos@gmail.com.
 // Telepítés: Supabase MCP deploy_edge_function vagy `supabase functions deploy request-deletion`.
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
@@ -12,6 +13,7 @@ const CORS = {
 };
 const EXPIRES_SEC = 10 * 60;
 const MIN_INTERVAL_SEC = 60;
+const REPLY_TO = "ivanyi.almos@gmail.com";
 
 function json(status: number, body: unknown): Response {
   return new Response(JSON.stringify(body), { status, headers: { ...CORS, "Content-Type": "application/json" } });
@@ -35,7 +37,7 @@ Deno.serve(async (req: Request) => {
   const anon = Deno.env.get("SUPABASE_ANON_KEY")!;
   const service = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
   const resendKey = Deno.env.get("RESEND_API_KEY");
-  const from = Deno.env.get("RESEND_FROM") ?? "Matecska <matecska@mail.almos.me>";
+  const from = Deno.env.get("RESEND_FROM") ?? "Matecska <matecska@mail.apasupa.com>";
   if (!resendKey) return json(500, { error: "RESEND_API_KEY nincs beállítva" });
 
   const authHeader = req.headers.get("Authorization") ?? "";
@@ -92,7 +94,7 @@ Deno.serve(async (req: Request) => {
   const sent = await fetch("https://api.resend.com/emails", {
     method: "POST",
     headers: { Authorization: `Bearer ${resendKey}`, "Content-Type": "application/json" },
-    body: JSON.stringify({ from, to: [user.email], subject, text, html }),
+    body: JSON.stringify({ from, to: [user.email], reply_to: REPLY_TO, subject, text, html }),
   });
   if (!sent.ok) {
     const detail = await sent.text();

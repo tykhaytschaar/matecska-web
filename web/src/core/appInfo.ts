@@ -7,8 +7,8 @@ export interface AppInfo {
   developer: string;
 }
 
-/** Kapcsolat a Segítség képernyőn. TODO: valódi cím. */
-export const SUPPORT_EMAIL = 'hello@matecska.hu';
+/** Kapcsolat a Segítség képernyőn. Ideiglenes cím, amíg nincs saját levelező szerver. */
+export const SUPPORT_EMAIL = 'ivanyi.almos@gmail.com';
 /** Önkéntes támogatás Ko-fin (csak a webes változatban). */
 export const KOFI_USER = 'almosivanyi';
 export const KOFI_URL = `https://ko-fi.com/${KOFI_USER}`;

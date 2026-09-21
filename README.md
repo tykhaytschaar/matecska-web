@@ -54,7 +54,7 @@ Az eredeti SwiftUI iOS változat a `2842602` commitig a git-történetben megtal
   `delete_player(pid, code)` függvények csak érvényes, 10 percen belüli, egyszer használt kóddal
   törölnek; a `players` táblán nincs közvetlen törlési jog. Így a bejelentkezett eszközön sem
   törölhet a játékos, csak aki a postafiókot is eléri. Kódkérés percenként egyszer. Az Edge Function
-  titkai: `RESEND_API_KEY`, `RESEND_FROM` (feladó; alapból matecska@mail.almos.me). Rejtett
+  titkai: `RESEND_API_KEY`, `RESEND_FROM` (feladó; alapból matecska@mail.apasupa.com, válaszcím ivanyi.almos@gmail.com). Rejtett
   fejlesztői mód (7 koppintás a verziósorra): játékosonként a pont tetszőleges értékre állítása
   (a válaszok maradnak, egy pontkorrekció kerül a játékosra) és a statisztika, pont nullázása.
 - Karakterek képernyő: a karakterek pontküszöbre oldódnak fel, a pont nem fogy, a lista küszöb szerint
