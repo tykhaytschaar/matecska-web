@@ -254,9 +254,12 @@ export class PlayerStore {
     await this.refreshPlayers();
   }
 
-  /** Kijelentkezés előtt: feltöltés, majd a fiók helyi adatainak törlése. */
-  async clearLocal(): Promise<void> {
-    await this.flush();
+  /**
+   * A fiók helyi adatainak törlése (kijelentkezés, fióktörlés). `upload`: előbb feltöltés; hamis, ha a
+   * fiók már nem él a szerveren (kijelentkezés vagy törlés után), mert akkor a feltöltés csak hibázna.
+   */
+  async clearLocal(upload = true): Promise<void> {
+    if (upload) await this.flush();
     await this.cache.clear(this.players.map((l) => l.player.id));
     this.active = null;
     this.players = [];
@@ -279,8 +282,8 @@ export class PlayerStore {
     this.timer = setTimeout(() => void this.sync(), SYNC_DELAY_MS);
   }
 
-  /** Azonnali feltöltés, a késleltetést átugorva; a hibát elnyeli. */
-  private async flush(): Promise<void> {
+  /** Azonnali feltöltés, a késleltetést átugorva; a hibát elnyeli (net nélkül a függő események maradnak). */
+  async flush(): Promise<void> {
     if (this.timer) {
       clearTimeout(this.timer);
       this.timer = null;

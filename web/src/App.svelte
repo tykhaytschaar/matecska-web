@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { untrack } from 'svelte';
   import { modesOf, type MathOperation, type PracticeMode } from './core/operation';
   import { createServices } from './platform/services';
   import { platformStorage } from './platform/storage';
@@ -52,20 +53,24 @@
   /** Adatvédelem és Segítség a belépés előtt is elérhető; a vissza gomb oda visz, ahonnan jött. */
   const backFrom = (from: 'home' | 'signin') => () => (screen = from === 'home' ? { kind: 'home' } : { kind: 'signin' });
 
-  /** A bejelentkezett fiókhoz tartozó játékosok; fiókváltásnál újraépül. */
+  /**
+   * A bejelentkezett fiókhoz tartozó játékosok; fiókváltásnál újraépül. Az effekt csak a fiókot olvassa:
+   * ha a `store`-t is olvasná, a saját írása újrafuttatná, és a takarító azonnal dispose-olná az új store-t.
+   * Token-frissítésnél az AccountStore ugyanazt a user objektumot tartja, így itt nem kell külön őr.
+   */
   let store = $state<PlayerStore | null>(null);
   $effect(() => {
     const userId = account?.user?.id ?? null;
     if (!userId || !backend) {
-      store = null;
+      untrack(() => (store = null));
       return;
     }
-    // Ugyanaz a fiók (pl. token-frissítés után): a meglévő store és képernyő marad.
-    if (store?.userId === userId) return;
     const next = new PlayerStore(storage, backend, catalog, userId);
-    store = next;
-    screen = { kind: 'home' };
-    menuOpen = false;
+    untrack(() => {
+      store = next;
+      screen = { kind: 'home' };
+      menuOpen = false;
+    });
     return () => next.dispose();
   });
 
@@ -75,18 +80,27 @@
     screen = modes.length === 1 ? { kind: 'practice', mode: modes[0] } : { kind: 'modes', operation };
   }
 
+  /**
+   * Kijelentkezés: a függő válaszok még a tokennel felmennek, aztán a szerveren kijelentkezünk, és csak
+   * siker után törlődnek a helyi adatok. A `store` referenciát előre megfogjuk, mert a kijelentkezés
+   * effektje nullázza; hibánál a hívó (Menü, Alkalmazásról) mutat üzenetet, a helyi adatok maradnak.
+   */
   async function signOut() {
-    menuOpen = false;
-    await store?.clearLocal();
+    const current = store;
+    await current?.flush();
     await account?.signOut();
+    menuOpen = false;
+    await current?.clearLocal(false);
     screen = { kind: 'signin' };
   }
 
   async function deleteAccount(code: string) {
+    // Először a szerveren (kóddal); csak siker után takarítjuk a helyi adatokat. A `store`-t előre megfogjuk,
+    // mert a kijelentkezett állapot effektje nullázza, mielőtt az await folytatódna.
+    const current = store;
     menuOpen = false;
-    // Először a szerveren (kóddal); csak siker után takarítjuk a helyi adatokat.
     await account?.deleteAccount(code);
-    await store?.clearLocal();
+    await current?.clearLocal(false);
     screen = { kind: 'signin' };
   }
 </script>
@@ -161,7 +175,7 @@
     onPrivacy={() => (screen = { kind: 'privacy', from: 'home' })}
     onSupport={() => (screen = { kind: 'support', from: 'home' })}
     onDonate={() => (screen = { kind: 'donate' })}
-    onSignOut={() => void signOut()}
+    onSignOut={signOut}
   />
 {/if}
 

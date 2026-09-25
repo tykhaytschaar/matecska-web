@@ -1,19 +1,30 @@
 #!/usr/bin/env python3
 """PWA- és bolti ikonok a macska sprite 0. kockájából, papír háttéren, nearest-neighbor nagyítással.
 
-Bemenet: characters/cat.png (a színezett sprite-csík).
+Bemenet: characters/cat.png (a színezett sprite-csík, 32×32-es kockák, lásd catalog.json frameSize).
 Kimenet: web/public/icons/{icon-192,icon-512,icon-512-maskable,apple-touch-icon,favicon}.png,
 és ha létezik az iOS-projekt: AppIcon-512@2x.png (1024) és a Splash 2732×2732 képek.
-Futtatás: ../matecska/.venv/bin/python tools/make_icons.py
+Futtatás (Pillow kell, a repó saját .venv-jéből): .venv/bin/python tools/make_icons.py
 """
+import json
 from pathlib import Path
 from PIL import Image
 
 ROOT = Path(__file__).resolve().parent.parent
 SRC = ROOT / "characters" / "cat.png"
+CATALOG = ROOT / "characters" / "catalog.json"
 OUT = ROOT / "web" / "public" / "icons"
 PAPER = (0xFD, 0xF6, 0xE3, 255)
-FRAME = 16
+
+
+def frame_size() -> int:
+    """A macska kockamérete a katalógusból, hogy a csík átméretezése ne törje el az ikont."""
+    catalog = json.loads(CATALOG.read_text())
+    cat = next(c for c in catalog["characters"] if c["id"] == "cat")
+    return int(cat["frameSize"])
+
+
+FRAME = frame_size()
 
 
 IOS_ASSETS = ROOT / "web" / "ios" / "App" / "App" / "Assets.xcassets"

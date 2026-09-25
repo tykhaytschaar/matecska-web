@@ -61,20 +61,21 @@ drop view if exists public.player_summaries;
 drop table if exists public.purchases;
 
 -- Jogosultság: mindenki csak a saját játékosait és azok adatait látja, írja.
+-- `(select auth.uid())`: így a tervező egyszer értékeli ki, nem soronként (Supabase advisor: auth_rls_initplan).
 alter table public.players enable row level security;
 alter table public.attempts enable row level security;
 
 drop policy if exists "own players" on public.players;
 create policy "own players" on public.players
   for all to authenticated
-  using (owner_id = auth.uid())
-  with check (owner_id = auth.uid());
+  using (owner_id = (select auth.uid()))
+  with check (owner_id = (select auth.uid()));
 
 drop policy if exists "own attempts" on public.attempts;
 create policy "own attempts" on public.attempts
   for all to authenticated
-  using (exists (select 1 from public.players p where p.id = player_id and p.owner_id = auth.uid()))
-  with check (exists (select 1 from public.players p where p.id = player_id and p.owner_id = auth.uid()));
+  using (exists (select 1 from public.players p where p.id = player_id and p.owner_id = (select auth.uid())))
+  with check (exists (select 1 from public.players p where p.id = player_id and p.owner_id = (select auth.uid())));
 
 -- Játékosonkénti összesítés, hogy a kliensnek ne kelljen a teljes naplót letöltenie.
 -- security_invoker: a hívó jogosultságával fut, így a players RLS-e érvényes rá.

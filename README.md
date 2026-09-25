@@ -160,7 +160,7 @@ A macska csíkját a `tools/recolor_sprites.py` színezi át a GameBoy-projekt 1
 nagyítja kétszeresre a `characters/cat.png` fájlba. A hatás-kocka (szív, könnycsepp) minden karakter csíkjában szerepel, a `fxFrame`
 mutat rá.
 
-Ikonok: `../matecska/.venv/bin/python tools/make_icons.py` a `web/public/icons` mappába
+Ikonok: `.venv/bin/python tools/make_icons.py` (Pillow kell a repó `.venv`-jében) a `web/public/icons` mappába
 (és az iOS-projekt AppIcon + Splash képeibe, ha a `web/ios` létezik).
 
 ## iOS változat Capacitorral (`web/ios/`)

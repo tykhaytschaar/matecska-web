@@ -14,7 +14,8 @@
     onPrivacy: () => void;
     onSupport: () => void;
     onDonate: () => void;
-    onSignOut: () => void;
+    /** Hibát dobhat (pl. nincs net); a lap ekkor nyitva marad és üzenetet mutat. */
+    onSignOut: () => Promise<void>;
   }
   let { store, onClose, onPlayers, onCollection, onStats, onAbout, onPrivacy, onSupport, onDonate, onSignOut }: Props = $props();
 
@@ -32,6 +33,21 @@
 
   let sheet = $state<HTMLElement | null>(null);
   let first = $state<HTMLButtonElement | null>(null);
+  let signingOut = $state(false);
+  let error = $state<string | null>(null);
+
+  async function signOut() {
+    if (signingOut) return;
+    signingOut = true;
+    error = null;
+    try {
+      await onSignOut();
+    } catch {
+      error = 'A kijelentkezés nem sikerült. Van internetkapcsolat?';
+    } finally {
+      signingOut = false;
+    }
+  }
 
   /** Nyitáskor a fókusz a játékos-kártyára; a fókusz a lapon belül marad. */
   $effect(() => {
@@ -91,7 +107,8 @@
     </div>
 
     <div class="bottom">
-      <button type="button" class="pill" onclick={() => pick(onSignOut)}>Kijelentkezés</button>
+      <button type="button" class="pill" disabled={signingOut} onclick={signOut}>Kijelentkezés</button>
+      {#if error}<p class="error" role="alert">{error}</p>{/if}
     </div>
   </div>
 </div>
@@ -223,7 +240,8 @@
   }
   .bottom {
     display: flex;
-    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
     padding: 0 4px;
   }
   .pill {
@@ -233,5 +251,14 @@
     font-weight: 600;
     font-size: 0.9rem;
     color: var(--ink);
+  }
+  .pill:disabled {
+    opacity: 0.5;
+  }
+  .error {
+    margin: 0;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--red);
   }
 </style>

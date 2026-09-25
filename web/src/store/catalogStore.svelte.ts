@@ -76,12 +76,18 @@ export class CatalogStore {
       const sprites = { ...known };
       for (const name of missingSprites(fetched, sprites)) {
         const image = await fetch(`${this.baseUrl}${name}`, { cache: 'no-cache' });
-        if (!image.ok) return;
+        if (!image.ok) {
+          this.check = 'unreachable';
+          return;
+        }
         sprites[name] = await toDataUrl(await image.blob());
       }
       const stored: StoredCatalog = { ...fetched, sprites: pruneSprites(fetched, sprites) };
       const catalog = withSprites(stored);
-      if (!catalog) return;
+      if (!catalog) {
+        this.check = 'unreachable';
+        return;
+      }
       await this.storage.set(KEY, JSON.stringify(stored));
       this.apply(catalog, 'remote');
       this.check = 'current';
