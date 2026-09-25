@@ -20,7 +20,7 @@ export interface BonusTiming {
   decayIntervalMs: number;
 }
 
-export const DEFAULT_DECAY_INTERVAL_MS = 1000;
+const DEFAULT_DECAY_INTERVAL_MS = 1000;
 
 /** Egyjegyű, fejben számolós feladatok: 1 másodperc türelmi idő, utána másodpercenként eggyel kevesebb. */
 export const INSTANT_TIMING: BonusTiming = { fullBonusUntil: 1, decayIntervalMs: DEFAULT_DECAY_INTERVAL_MS };
@@ -30,10 +30,10 @@ export const QUICK_TIMING: BonusTiming = { fullBonusUntil: 3, decayIntervalMs: D
 export const PATIENT_TIMING: BonusTiming = { fullBonusUntil: 5, decayIntervalMs: DEFAULT_DECAY_INTERVAL_MS };
 
 /** Alappont a háromjegyű típusoknál; a többi típus a saját `basePoints` értékét adja át. */
-export const BASE_POINTS = 10;
+const BASE_POINTS = 10;
 /** A bónusz maximuma a típus alappontja; ez a háromjegyű alap. */
-export const MAX_BONUS = BASE_POINTS;
-export const WRONG_ANSWER_PENALTY = 1;
+const MAX_BONUS = BASE_POINTS;
+const WRONG_ANSWER_PENALTY = 1;
 /** Vegyes (operandust is kérdező) gyakorlásnál a bónusz ennyiszer lassabban fogy. */
 export const MIXED_SLOWDOWN = 1.5;
 

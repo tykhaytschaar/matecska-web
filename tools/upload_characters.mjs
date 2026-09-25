@@ -13,6 +13,9 @@
  * A service role kulcs a Dashboardon: Project Settings → API. Titkos, soha ne kerüljön a repóba.
  */
 import { createClient } from '../web/node_modules/@supabase/supabase-js/dist/index.mjs';
+// Az app saját katalógus-olvasója (Node 24+ natívan futtatja a csak típus-annotációs .ts fájlt), így a
+// feltöltés ugyanazt a szabályt tartja, mint a kliens: ami itt átmegy, azt az app is elfogadja.
+import { parseCatalog } from '../web/src/core/catalog.ts';
 import { existsSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -41,33 +44,6 @@ function fail(message) {
   process.exit(1);
 }
 
-/** A katalógus szerkezeti ellenőrzése, hogy hibás fájl ne kerüljön fel. */
-function validate(catalog) {
-  if (!Number.isInteger(catalog.version) || catalog.version < 1) fail('a version pozitív egész legyen');
-  if (!Array.isArray(catalog.characters) || catalog.characters.length === 0) fail('a characters nem üres lista legyen');
-  const ids = new Set();
-  for (const c of catalog.characters) {
-    const where = `karakter "${c.id ?? '?'}"`;
-    if (typeof c.id !== 'string' || !/^[a-z0-9-]+$/.test(c.id)) fail(`${where}: az id kisbetű, szám, kötőjel`);
-    if (ids.has(c.id)) fail(`${where}: ismétlődő id`);
-    ids.add(c.id);
-    if (typeof c.name !== 'string' || !c.name.trim()) fail(`${where}: hiányzó név`);
-    if (!Number.isInteger(c.unlockAt) || c.unlockAt < 0) fail(`${where}: unlockAt nemnegatív egész legyen`);
-    if (typeof c.spriteSheet !== 'string' || !c.spriteSheet.endsWith('.png')) fail(`${where}: spriteSheet .png fájlnév legyen`);
-    if (!Number.isInteger(c.frameSize) || !Number.isInteger(c.frameCount)) fail(`${where}: frameSize és frameCount egész legyen`);
-    const f = c.frames ?? {};
-    for (const key of ['idle', 'walk', 'happy', 'yuck']) {
-      if (!Array.isArray(f[key]) || f[key].length === 0) fail(`${where}: frames.${key} nem üres lista legyen`);
-      if (f[key].some((i) => !Number.isInteger(i) || i < 0 || i >= c.frameCount)) fail(`${where}: frames.${key} a csíkon belül legyen`);
-    }
-    if (!Array.isArray(f.happyOffsets) || f.happyOffsets.length !== f.happy.length) fail(`${where}: happyOffsets hossza a happy hosszával egyezzen`);
-    if (!Array.isArray(f.yuckOffsets) || f.yuckOffsets.length !== f.yuck.length) fail(`${where}: yuckOffsets hossza a yuck hosszával egyezzen`);
-    if (!Number.isInteger(c.fxFrame) || c.fxFrame < 0 || c.fxFrame >= c.frameCount) fail(`${where}: fxFrame a csíkon belül legyen`);
-    if (!c.fx?.heart || !c.fx?.drop || typeof c.fx.drop.fall !== 'number') fail(`${where}: fx.heart, fx.drop és fx.drop.fall kell`);
-  }
-  if (!ids.has('cat')) fail('a beépített "cat" karakter nem hagyható ki');
-}
-
 function spritePath(name) {
   const path = resolve(DIR, name);
   if (!existsSync(path)) fail(`nincs meg a sprite: characters/${name}`);
@@ -75,8 +51,8 @@ function spritePath(name) {
 }
 
 async function main() {
-  const catalog = JSON.parse(readFileSync(CATALOG, 'utf-8'));
-  validate(catalog);
+  const catalog = parseCatalog(JSON.parse(readFileSync(CATALOG, 'utf-8')));
+  if (!catalog) fail('a catalog.json szerkezete hibás (a szabályok: web/src/core/catalog.ts parseCatalog)');
   if (expectVersion !== null && catalog.version !== expectVersion) {
     fail(`a tag verziója (${expectVersion}) nem egyezik a catalog.json version mezőjével (${catalog.version})`);
   }

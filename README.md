@@ -2,7 +2,7 @@
 
 Alsós matematikát gyakoroltató app gyerekeknek és bárkinek, aki az alapműveleteket gyakorolja. Egy TypeScript kódbázis (`web/`,
 Svelte 5 + Vite PWA), amit Capacitor csomagol natív iOS és később Android appá.
-Az eredeti SwiftUI iOS változat a `2842602` commitig a git-történetben megtalálható.
+Az eredeti SwiftUI iOS változat az `e54fbb6` commitig a git-történetben megtalálható (a `42c8fba` törölte).
 
 ## Funkciók
 
@@ -33,7 +33,7 @@ Az eredeti SwiftUI iOS változat a `2842602` commitig a git-történetben megtal
   (Játékosok → ceruza; a törlés e-mailes megerősítő kóddal). A cica a két szél közt sétál,
   a szélén megáll; gyakorlás közben is sétál, beküldésre megáll és szívvel vagy könnycseppel reagál.
 - Offline-first: a válaszok helyben mentődnek és rövid késleltetéssel a szerverre kerülnek;
-  net nélkül a függő események megmaradnak a következő alkalomig. Az Infó képernyő mutatja
+  net nélkül a függő események megmaradnak a következő alkalomig. Az alkalmazásról képernyő mutatja
   a szinkron állapotát.
 - Menü (a főképernyő „Menü" gombja, alulról feljövő lap): játékosváltás, Karakterek, Statisztika, Az alkalmazásról,
   Adatvédelem (rövid összefoglaló + link a teljes tájékoztatóra: `web/public/adatvedelem/index.html`,
@@ -48,7 +48,6 @@ Az eredeti SwiftUI iOS változat a `2842602` commitig a git-történetben megtal
   rögzül; a korábbi válaszok az átlagba nem számítanak. Munkamenet: az app indításától, játékosváltástól,
   vagy 5 perc szünet (háttérben töltött idő vagy tétlenség) után új azonosító; a válaszok ezt hordozzák, a
   Statisztika a munkamenetek számát is mutatja. A részletek a későbbi tanári felület alapja.
-- Az alkalmazásról képernyő: verzió, katalógus, szinkron állapota, kijelentkezés és fióktörlés.
 - Törlés e-mailes megerősítéssel: a fiók és a játékos törléséhez a szerver hatjegyű kódot küld a fiók
   e-mail címére (`request-deletion` Edge Function, Resend API), és a `delete_account(code)` /
   `delete_player(pid, code)` függvények csak érvényes, 10 percen belüli, egyszer használt kóddal
@@ -60,11 +59,11 @@ Az eredeti SwiftUI iOS változat a `2842602` commitig a git-történetben megtal
 - Karakterek képernyő: a karakterek pontküszöbre oldódnak fel, a pont nem fogy, a lista küszöb szerint
   rendezett. A katalógus és a sprite-csíkok a `characters/` mappában
   (`catalog.json` + PNG-k), lásd lent.
-- Az alkalmazásról képernyő (menüből): verzió (a `web/package.json`-ból), a build ideje és a fejlesztő
-  neve; a verziót és az időbélyeget a Vite fordításkor injektálja. A főképernyő fejlécében bal oldalt a
-  pontszám, jobb oldalt a Menü gomb áll.
-  A verzió forrása a `web/package.json`; az `ios:sync` átírja az Xcode-projekt MARKETING_VERSION-jét.
-- A macska sprite és az animációk a GameBoy-os [matecska](../matecska) projektből.
+- Az alkalmazásról képernyő (menüből): verzió (a `web/package.json`-ból; az `ios:sync` átírja az
+  Xcode-projekt MARKETING_VERSION-jét), a build ideje, a fejlesztő neve, a karakter-katalógus verziója és
+  forrása, a szinkron állapota, kijelentkezés és fióktörlés. A verziót és az időbélyeget a Vite fordításkor
+  injektálja. A főképernyő fejlécében bal oldalt a pontszám, jobb oldalt a Menü gomb áll.
+- A macska sprite és az animációk a GameBoy-os matecska projektből valók (külön repó, lásd `tools/recolor_sprites.py`).
 
 ## Webes változat (`web/`)
 
@@ -90,11 +89,14 @@ Három workflow a `.github/workflows` mappában:
   készít egy előnézeti URL-re. Titkok: `NETLIFY_AUTH_TOKEN`, `NETLIFY_SITE_ID`; a Supabase-adatok a repó
   Actions-változóiból (`SUPABASE_URL`, `SUPABASE_KEY`). Az iOS build kézzel megy Xcode-ból, a verziót a
   `package.json`-ból veszi.
-- `pages-redirect.yml`: egyszeri, kézzel indítható; a régi GitHub Pages címre átirányító oldalt tesz
-  (`web/redirect`), a régi PWA-k service workere leiratkozik.
 - `characters.yml`: a karakterek kiadása a Supabase Storage `characters` bucketbe, **csak
   `characters-v*` tagre** (pl. `characters-v2`). A tag számának egyeznie kell a `catalog.json`
-  `version` mezőjével. Titok: `SUPABASE_SERVICE_ROLE_KEY`.
+  `version` mezőjével. Titok: `SUPABASE_SERVICE_ROLE_KEY`; változó: `SUPABASE_URL`. A katalógust
+  ugyanaz a `parseCatalog` ellenőrzi, mint az appban (`web/src/core/catalog.ts`), így nem kerülhet fel olyan
+  fájl, amit a kliens elutasítana.
+
+A régi GitHub Pages cím (`tykhaytschaar.github.io/matecska-web`) a Netlify-címre irányít; az átirányító
+oldalt 2026. szeptember 17-én egyszer tettük fel (a forrás és a workflow a git-történetben, `796f612` előtt).
 
 Kiadás lépései: verzió emelése a `web/package.json`-ban, commit, majd
 `git tag v0.1.1 && git push origin v0.1.1`. Karaktereknél: `version` emelése a `catalog.json`-ban,
@@ -106,8 +108,9 @@ A fiók, a játékosok és az eseménynapló egy Supabase-projektben él; a klie
 hívja, saját szerver nincs. Beállítás egyszer:
 
 1. Projekt a [supabase.com](https://supabase.com) oldalon (ingyenes szint, EU régió).
-2. SQL Editor: a `supabase/schema.sql` tartalmát futtasd le (táblák, RLS, `player_summaries`
-   nézet, `reset_player`, `delete_account`, `delete_player`, `mode_stats`, `session_ids` függvények).
+2. SQL Editor: a `supabase/schema.sql` tartalmát futtasd le (táblák: `players`, `attempts`, `deletion_codes`;
+   RLS; `player_summaries` nézet; `reset_player`, `consume_deletion_code`, `delete_account`, `delete_player`,
+   `mode_stats`, `session_ids` függvények).
    Újrafuttatható. Az Edge Function: `supabase/functions/request-deletion`, telepítés a Supabase MCP-vel
    vagy a CLI-vel; titkok: `RESEND_API_KEY`, `RESEND_FROM`.
 3. Authentication → Sign In / Providers → Email: bekapcsolva, „Confirm email" ki.
@@ -119,7 +122,7 @@ hívja, saját szerver nincs. Beállítás egyszer:
    néhány levelet enged.
 
 Adatmodell: `players` (szülő, becenév, kiválasztott karakter, a fiók előtti helyi profil egyszeri
-átvétele), `attempts` (egy beküldött válasz: művelet, alkategória, helyes-e, könyvelt pont, bónusz, munkamenet-azonosító,
+átvétele, fejlesztői pontkorrekció `point_adjustment`, a hiányzó-szám kapcsoló `ask_operands`), `attempts` (egy beküldött válasz: művelet, alkategória, helyes-e, könyvelt pont, bónusz, munkamenet-azonosító,
 és a feladat leírása + beírt válasz JSON-ban, feladattípusonként más alakban, eltelt idő). Az
 `operation` témakör; új feladattípus (vegyes, reláció, mértékegység, geometria) szerveroldali változás nélkül
 felvehető. A pont
@@ -137,16 +140,17 @@ A `tools/upload_characters.mjs` ugyanezt ellenőrzi és tölti a Storage bucketb
 Az app a beépített katalógussal indul, majd lekéri a bucket `catalog.json`-jét (URL a Supabase
 projektből, felülírható a `VITE_CATALOG_URL` változóval). Ha a szerveré nagyobb verziójú, letölti a
 hiányzó csíkokat, `data:` URL-ként a helyi tárolóba menti (natívan Preferences, weben localStorage), és
-csak akkor vált át, ha minden csík megvan; így net nélkül is a legutóbb letöltött katalógus él. Az Infó
-képernyő „Karakterek" sora mutatja a verziót és a forrást (beépített, mentett, szerver). Régi kiadás
+csak akkor vált át, ha minden csík megvan; így net nélkül is a legutóbb letöltött katalógus él.
+Az alkalmazásról képernyő „Karakterek" sora mutatja a verziót és a forrást (beépített, mentett, szerver). Régi kiadás
 soha nem ír felül újabbat, hibás JSON-nál marad a mostani.
 
 A karakter azonosítója (`id`) állandó, ez van a játékos `selected_character_id` mezőjében; a név és a
 fájlnév szabadon változhat. Kép cseréjénél új fájlnevet adj (pl. `blackcat-2.png`), mert a CDN egy
 napig tartja a régit. A formátum csak bővülhet, mert régi app-verziók is kapnak új katalógust.
 
-Szerver nélküli fejlesztéshez `VITE_FAKE_BACKEND=1` a `.env.local`-ban: memóriabeli utánzat,
-bármilyen hatjegyű kód belép, az adatok a böngésző localStorage-ában maradnak.
+Szerver nélküli fejlesztéshez `VITE_FAKE_BACKEND=1` a `.env.local`-ban (csak `npm run dev` alatt hat):
+memóriabeli utánzat, bármilyen hatjegyű kód belép, a törlés megerősítő kódja `123456`, az adatok a böngésző
+localStorage-ában maradnak.
 
 Szerkezet: `src/core` (tiszta TypeScript modell: műveletek és alkategóriák, feladatok,
 pontozás, gyakorlás-állapot, karakterek, profil, események és a játékos állapotának levezetése),
@@ -156,8 +160,9 @@ vagy fejlesztői utánzat), `src/sprites` (animált sprite), `src/ui` (képerny�
 
 Sprite-ok: 32×32-es kockák egy vízszintes csíkban, tetszőleges palettával. A karakter `frameSize`
 mezője adja a rácsot, az animációs eltolások és a szív/csepp helye (`fx`) ebben a rácsban értendők.
-A macska csíkját a `tools/recolor_sprites.py` színezi át a GameBoy-projekt 16×16-os forrásából és
-nagyítja kétszeresre a `characters/cat.png` fájlba. A hatás-kocka (szív, könnycsepp) minden karakter csíkjában szerepel, a `fxFrame`
+A macska csíkját a `tools/recolor_sprites.py` színezi át a GameBoy-projekt 16×16-os forrásából
+(a `../matecska` testvérrepó, csak ezen a gépen) és nagyítja kétszeresre a `characters/cat.png` fájlba.
+A többi karakter (Ferike, Marika, Petike) Piskelben készült, a források a `piskel/` mappában. A hatás-kocka (szív, könnycsepp) minden karakter csíkjában szerepel, a `fxFrame`
 mutat rá.
 
 Ikonok: `.venv/bin/python tools/make_icons.py` (Pillow kell a repó `.venv`-jében) a `web/public/icons` mappába
@@ -166,7 +171,7 @@ Ikonok: `.venv/bin/python tools/make_icons.py` (Pillow kell a repó `.venv`-jéb
 ## iOS változat Capacitorral (`web/ios/`)
 
 A webes build natív iOS appként, Capacitor 8-cal, Swift Package Managerrel (nem CocoaPods).
-Bundle ID `com.matecska.Matecska`, a tárolás natívan Capacitor Preferences, haptika beküldésnél.
+Bundle ID `com.matecska.Matecska`, a tárolás natívan Capacitor Preferences, haptika gombnyomásnál és beküldésnél.
 
 ```bash
 cd web

@@ -1,6 +1,7 @@
 import type { PlayerEvent } from '../core/events';
-import { EMPTY_SUMMARY, parseImported, parseStats, type PlayerRecord, type PlayerState, type PlayerSummary } from '../core/player';
-import { parseProfile, type PlayerProfile } from '../core/profile';
+import { asRecord } from '../core/parse';
+import { EMPTY_SUMMARY, parseImported, type PlayerRecord, type PlayerState, type PlayerSummary } from '../core/player';
+import { parseProfile, parseStats, type PlayerProfile } from '../core/profile';
 import type { PlayerListing } from './backend';
 import { LEGACY_PROFILE_KEY, type KeyValueStorage } from './storage';
 
@@ -83,9 +84,8 @@ export async function removeLegacyProfile(storage: KeyValueStorage): Promise<voi
 }
 
 function parseRecord(raw: unknown): PlayerRecord | null {
-  if (typeof raw !== 'object' || raw === null) return null;
-  const r = raw as Record<string, unknown>;
-  if (typeof r.id !== 'string' || typeof r.name !== 'string') return null;
+  const r = asRecord(raw);
+  if (!r || typeof r.id !== 'string' || typeof r.name !== 'string') return null;
   return {
     id: r.id,
     name: r.name,
@@ -98,8 +98,8 @@ function parseRecord(raw: unknown): PlayerRecord | null {
 }
 
 function parseSummary(raw: unknown): PlayerSummary {
-  if (typeof raw !== 'object' || raw === null) return EMPTY_SUMMARY;
-  const r = raw as Record<string, unknown>;
+  const r = asRecord(raw);
+  if (!r) return EMPTY_SUMMARY;
   return {
     pointsDelta: typeof r.pointsDelta === 'number' ? r.pointsDelta : 0,
     stats: parseStats(r.stats),
@@ -107,23 +107,21 @@ function parseSummary(raw: unknown): PlayerSummary {
 }
 
 function parseListing(raw: unknown): PlayerListing | null {
-  if (typeof raw !== 'object' || raw === null) return null;
-  const r = raw as Record<string, unknown>;
+  const r = asRecord(raw);
+  if (!r) return null;
   const player = parseRecord(r.player);
   return player ? { player, summary: parseSummary(r.summary) } : null;
 }
 
 function isDetail(raw: unknown): boolean {
-  if (typeof raw !== 'object' || raw === null) return false;
-  const d = raw as Record<string, unknown>;
-  const task = d.task as Record<string, unknown> | undefined;
-  const answer = d.answer as Record<string, unknown> | undefined;
-  return typeof d.elapsedMs === 'number' && typeof task?.kind === 'string' && typeof answer?.kind === 'string';
+  const d = asRecord(raw);
+  if (!d) return false;
+  return typeof d.elapsedMs === 'number' && typeof asRecord(d.task)?.kind === 'string' && typeof asRecord(d.answer)?.kind === 'string';
 }
 
 function isEvent(raw: unknown): raw is PlayerEvent {
-  if (typeof raw !== 'object' || raw === null) return false;
-  const r = raw as Record<string, unknown>;
+  const r = asRecord(raw);
+  if (!r) return false;
   if (typeof r.id !== 'string' || typeof r.playerId !== 'string' || typeof r.createdAt !== 'string') return false;
   if (r.kind !== 'attempt') return false;
   if (r.bonus !== undefined && typeof r.bonus !== 'number') return false;
@@ -133,8 +131,8 @@ function isEvent(raw: unknown): raw is PlayerEvent {
 }
 
 function parseState(raw: unknown): PlayerState | null {
-  if (typeof raw !== 'object' || raw === null) return null;
-  const r = raw as Record<string, unknown>;
+  const r = asRecord(raw);
+  if (!r) return null;
   const player = parseRecord(r.player);
   if (!player) return null;
   return {

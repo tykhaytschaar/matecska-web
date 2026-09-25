@@ -5,7 +5,7 @@ const MIN = 60_000;
 
 describe('munkamenet-követő', () => {
   it('rövid háttérbe kerülés nem szakítja meg, 5 perc igen', () => {
-    const t0 = startTracker(0, 's1');
+    const t0 = startTracker('s1');
     const short = markVisible(markHidden(t0, 1000), 1000 + 2 * MIN);
     expect(short.id).toBe('s1');
     expect(short.hiddenSince).toBeNull();
@@ -15,7 +15,7 @@ describe('munkamenet-követő', () => {
   });
 
   it('tétlenség: 5 percen belüli válaszok egy munkamenet, utána új', () => {
-    let t = touch(startTracker(0, 's1'), 10_000);
+    let t = touch(startTracker('s1'), 10_000);
     t = touch(t, 10_000 + 4 * MIN);
     expect(t.id).toBe('s1');
     t = touch(t, 10_000 + 4 * MIN + SESSION_GAP_MS);
@@ -24,8 +24,8 @@ describe('munkamenet-követő', () => {
   });
 
   it('ismételt elrejtés nem írja felül az első elrejtés idejét', () => {
-    const t = markHidden(markHidden(startTracker(0, 's1'), 500), 900);
+    const t = markHidden(markHidden(startTracker('s1'), 500), 900);
     expect(t.hiddenSince).toBe(500);
-    expect(markVisible(startTracker(0, 's1'), 5).id).toBe('s1');
+    expect(markVisible(startTracker('s1'), 5).id).toBe('s1');
   });
 });

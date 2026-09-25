@@ -30,15 +30,14 @@
     store: PlayerStore;
     mode: PracticeMode;
     onBack: () => void;
-    /** Tesztelhetőség: előre beállított kezdőállapot. */
-    initial?: SessionState;
   }
-  let { store, mode, onBack, initial }: Props = $props();
+  let { store, mode, onBack }: Props = $props();
 
   const nowSeconds = () => performance.now() / 1000;
 
+  // A játékos beállítása szándékosan csak induláskor számít: a menet közben nem vált feladattípust.
   // svelte-ignore state_referenced_locally
-  let session = $state.raw<SessionState>(initial ?? createSession(mode, nowSeconds(), undefined, store.askOperands));
+  let session = $state.raw<SessionState>(createSession(mode, nowSeconds(), undefined, store.askOperands));
   /** Sétál, amíg nincs beküldve; beküldésre megáll és az eredmény szerint reagál. */
   let mood = $state<Mood>('walk');
   let now = $state(nowSeconds());

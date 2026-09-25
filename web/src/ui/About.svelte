@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { Capacitor } from '@capacitor/core';
+  import { IS_NATIVE as native } from '../platform/native';
   import { APP_INFO, formatBuildTime, SUPPORT_EMAIL, WEBSITE_URL } from '../core/appInfo';
   import { CAT } from '../core/characters';
   import { buildProfile, freshState } from '../core/player';
@@ -22,8 +22,7 @@
   }
   let { store, account, devMode, onBack, onSignOut, onDeleteAccount, onDonate }: Props = $props();
 
-  /** Natív appban nincs támogatásra hívó szöveg vagy link (App Store 3.1.1), csak a weboldal címe. */
-  const native = Capacitor.isNativePlatform();
+  // Natív appban nincs támogatásra hívó szöveg vagy link (App Store 3.1.1), csak a weboldal címe.
 
   /** Melyik veszélyes művelet vár megerősítésre: fióktörlés vagy egy játékos nullázása. */
   let confirming = $state<{ kind: 'delete'; step: 'ask' | 'code' } | { kind: 'reset'; playerId: string } | null>(null);

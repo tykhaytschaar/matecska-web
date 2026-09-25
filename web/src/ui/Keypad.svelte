@@ -9,7 +9,7 @@
   const rows = [[1, 2, 3], [4, 5, 6], [7, 8, 9]];
 </script>
 
-<div class="keypad" class:disabled>
+<div class="keypad">
   {#each rows as row}
     <div class="row">
       {#each row as digit}

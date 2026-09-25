@@ -12,7 +12,7 @@
     /** Egy játékos kiválasztása után; `onBack` csak akkor, ha van aktív játékos, akihez visszatérhetünk. */
     onPick: () => void;
     onBack: (() => void) | null;
-    /** A menü; aktív játékos nélkül a fejlécből érhető el, hogy az Infó, Adatvédelem, Segítség ne vesszen el. */
+    /** A menü; aktív játékos nélkül a fejlécből érhető el, hogy az Alkalmazásról, Adatvédelem, Segítség ne vesszen el. */
     onMenu: () => void;
     /** Játékos szerkesztése (név, törlés). */
     onEdit: (id: string) => void;

@@ -1,5 +1,7 @@
 import { CAT, CATALOG, findCharacter, unlockedCharacterIDs, type GameCharacter } from './characters';
+import { newId } from './events';
 import { isMathOperation, type MathOperation } from './operation';
+import { asRecord } from './parse';
 import { totalPoints, type ScoreBreakdown } from './scoring';
 
 export interface OperationStats {
@@ -20,17 +22,34 @@ export interface PlayerProfile {
   stats: Partial<Record<MathOperation, OperationStats>>;
 }
 
-function uuid(): string {
-  if (typeof crypto !== 'undefined' && 'randomUUID' in crypto) return crypto.randomUUID();
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
-    const r = (Math.random() * 16) | 0;
-    return (c === 'x' ? r : (r & 0x3) | 0x8).toString(16);
-  });
+/** Egy válasz hozzáadása a műveletenkénti statisztikához; új objektumot ad vissza. */
+export function withAttempt(
+  stats: Partial<Record<MathOperation, OperationStats>>,
+  operation: MathOperation,
+  correct: boolean,
+): Partial<Record<MathOperation, OperationStats>> {
+  const prev = stats[operation] ?? { solved: 0, correct: 0 };
+  return { ...stats, [operation]: { solved: prev.solved + 1, correct: prev.correct + (correct ? 1 : 0) } };
+}
+
+/** Óvatos beolvasás JSON-értékből: csak ismert művelet, számszerű `solved` és `correct`. */
+export function parseStats(raw: unknown): Partial<Record<MathOperation, OperationStats>> {
+  const stats: Partial<Record<MathOperation, OperationStats>> = {};
+  const r = asRecord(raw);
+  if (!r) return stats;
+  for (const [key, value] of Object.entries(r)) {
+    const v = asRecord(value);
+    if (!isMathOperation(key) || !v) continue;
+    if (typeof v.solved === 'number' && typeof v.correct === 'number') {
+      stats[key] = { solved: v.solved, correct: v.correct };
+    }
+  }
+  return stats;
 }
 
 export function dummyProfile(): PlayerProfile {
   return {
-    id: uuid(),
+    id: newId(),
     name: 'Játékos',
     totalPoints: 0,
     ownedCharacterIDs: [CAT.id],
@@ -54,16 +73,12 @@ export function recordScore(
   correct: boolean,
   operation: MathOperation,
 ): PlayerProfile {
-  const previous = profile.stats[operation] ?? { solved: 0, correct: 0 };
   const total = Math.max(0, profile.totalPoints + totalPoints(score));
   return {
     ...profile,
     totalPoints: total,
     ownedCharacterIDs: unlockedCharacterIDs(total),
-    stats: {
-      ...profile.stats,
-      [operation]: { solved: previous.solved + 1, correct: previous.correct + (correct ? 1 : 0) },
-    },
+    stats: withAttempt(profile.stats, operation, correct),
   };
 }
 
@@ -80,28 +95,17 @@ export function selectCharacter(profile: PlayerProfile, character: GameCharacter
 /** Óvatos beolvasás: hibás vagy hiányos adatnál `null`. */
 export function parseProfile(json: string): PlayerProfile | null {
   try {
-    const raw: unknown = JSON.parse(json);
-    if (typeof raw !== 'object' || raw === null) return null;
-    const r = raw as Record<string, unknown>;
+    const r = asRecord(JSON.parse(json));
+    if (!r) return null;
     if (typeof r.id !== 'string' || typeof r.name !== 'string' || typeof r.totalPoints !== 'number') return null;
     if (!Array.isArray(r.ownedCharacterIDs) || typeof r.selectedCharacterID !== 'string') return null;
-    const stats: PlayerProfile['stats'] = {};
-    if (typeof r.stats === 'object' && r.stats !== null) {
-      for (const [key, value] of Object.entries(r.stats as Record<string, unknown>)) {
-        if (!isMathOperation(key) || typeof value !== 'object' || value === null) continue;
-        const v = value as Record<string, unknown>;
-        if (typeof v.solved === 'number' && typeof v.correct === 'number') {
-          stats[key] = { solved: v.solved, correct: v.correct };
-        }
-      }
-    }
     return {
       id: r.id,
       name: r.name,
       totalPoints: Math.max(0, Math.floor(r.totalPoints)),
       ownedCharacterIDs: r.ownedCharacterIDs.filter((id): id is string => typeof id === 'string'),
       selectedCharacterID: r.selectedCharacterID,
-      stats,
+      stats: parseStats(r.stats),
     };
   } catch {
     return null;

@@ -3,13 +3,11 @@ import { MODE_INFO, type MathOperation, type PracticeMode } from './operation';
 /** Melyik helyet kell kitölteni: az első vagy a második operandust, vagy az eredményt. */
 export type BlankSlot = 'first' | 'second' | 'result';
 
-export const BLANK_SLOTS: readonly BlankSlot[] = ['first', 'second', 'result'];
-
 /**
  * Súlyozott választék: az eredménykeresős feladat 50%, az operandusok 25-25%.
  * Négy elemből választunk egyenletesen, kettő az eredmény.
  */
-export const WEIGHTED_BLANK_SLOTS: readonly BlankSlot[] = ['first', 'second', 'result', 'result'];
+const WEIGHTED_BLANK_SLOTS: readonly BlankSlot[] = ['first', 'second', 'result', 'result'];
 
 /**
  * Egy konkrét feladat: gyakorlástípus, művelet, operandusok, a művelet eredménye,
@@ -33,7 +31,7 @@ export function answerCellCount(exercise: Exercise): number {
 /** Véletlenszám-forrás a [0, 1) tartományban; tesztben seedelhető. */
 export type Rng = () => number;
 
-export function randomInt(min: number, max: number, rng: Rng): number {
+function randomInt(min: number, max: number, rng: Rng): number {
   return min + Math.floor(rng() * (max - min + 1));
 }
 

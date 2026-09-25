@@ -1,12 +1,13 @@
 import type { PlayerEvent } from '../core/events';
 import { EMPTY_SUMMARY, type ImportedProfile, type PlayerRecord, type PlayerSummary } from '../core/player';
+import { withAttempt } from '../core/profile';
 import { aggregateEvents, localSessionIds } from '../core/stats';
 import { DeletionCodeError, type AuthClient, type AuthUser, type Backend, type PlayerListing } from '../store/backend';
 import type { KeyValueStorage } from '../store/storage';
 
 const USER_KEY = 'matecska.fake.user';
 /** Az utánzat törlési megerősítő kódja (levél nincs). */
-export const FAKE_DELETION_CODE = '123456';
+const FAKE_DELETION_CODE = '123456';
 const DB_KEY = 'matecska.fake.db';
 
 /**
@@ -35,8 +36,7 @@ export function fakeServices(storage: KeyValueStorage): { auth: AuthClient; back
     for (const e of events.values()) {
       if (e.playerId !== playerId) continue;
       summary.pointsDelta += e.points;
-      const prev = summary.stats[e.operation] ?? { solved: 0, correct: 0 };
-      summary.stats[e.operation] = { solved: prev.solved + 1, correct: prev.correct + (e.correct ? 1 : 0) };
+      summary.stats = withAttempt(summary.stats, e.operation, e.correct);
     }
     return summary;
   };

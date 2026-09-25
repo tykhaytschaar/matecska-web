@@ -52,7 +52,7 @@ export class CatalogStore {
   }
 
   /** Lekéri a szerver katalógusát; újabb verziónál letölti a hiányzó csíkokat, ment és átvált. */
-  async refresh(known: Record<string, string> = {}): Promise<void> {
+  private async refresh(known: Record<string, string> = {}): Promise<void> {
     if (!this.baseUrl) {
       this.check = 'unreachable';
       return;

@@ -2,8 +2,8 @@ import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import type { KeyValueStorage } from '../store/storage';
 
 /** A Supabase-projekt nyilvános adatai; `.env.local`-ból (fejlesztés) vagy CI-változóból. */
-export const SUPABASE_URL: string = import.meta.env.VITE_SUPABASE_URL ?? '';
-export const SUPABASE_KEY: string = import.meta.env.VITE_SUPABASE_KEY ?? '';
+const SUPABASE_URL: string = import.meta.env.VITE_SUPABASE_URL ?? '';
+const SUPABASE_KEY: string = import.meta.env.VITE_SUPABASE_KEY ?? '';
 
 /** A karakter-katalógus nyilvános bucketje; felülírható a VITE_CATALOG_URL változóval. */
 export function catalogBaseUrl(): string | null {

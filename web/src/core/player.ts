@@ -1,7 +1,8 @@
 import { CAT, CATALOG, findCharacter, unlockedCharacterIDs, type GameCharacter } from './characters';
 import type { PlayerEvent } from './events';
 import { isMathOperation, type MathOperation } from './operation';
-import type { OperationStats, PlayerProfile } from './profile';
+import { asRecord } from './parse';
+import { parseStats, withAttempt, type OperationStats, type PlayerProfile } from './profile';
 
 /** Egy játékos sora a szerveren. */
 export interface PlayerRecord {
@@ -62,7 +63,7 @@ function addStats(
 /** Az összesítésből, az átvett adatból és a függő eseményekből a megjelenített profil. */
 export function buildProfile(state: PlayerState, catalog: readonly GameCharacter[] = CATALOG): PlayerProfile {
   const { player, summary, pending } = state;
-  const stats: PlayerProfile['stats'] = {};
+  let stats: PlayerProfile['stats'] = {};
   let points = 0;
 
   if (player.imported) {
@@ -74,8 +75,7 @@ export function buildProfile(state: PlayerState, catalog: readonly GameCharacter
 
   for (const event of pending) {
     points += event.points;
-    const prev = stats[event.operation] ?? { solved: 0, correct: 0 };
-    stats[event.operation] = { solved: prev.solved + 1, correct: prev.correct + (event.correct ? 1 : 0) };
+    stats = withAttempt(stats, event.operation, event.correct);
   }
 
   // A karakterek pontküszöbre oldódnak fel, a pont nem fogy: a birtoklás az összpontból következik.
@@ -107,9 +107,8 @@ export function importFrom(profile: PlayerProfile): ImportedProfile | null {
 
 /** Óvatos beolvasás JSON-értékből (szerver `imported` oszlop vagy helyi gyorstár). */
 export function parseImported(raw: unknown): ImportedProfile | null {
-  if (typeof raw !== 'object' || raw === null) return null;
-  const r = raw as Record<string, unknown>;
-  if (typeof r.totalPoints !== 'number') return null;
+  const r = asRecord(raw);
+  if (!r || typeof r.totalPoints !== 'number') return null;
   return {
     totalPoints: Math.max(0, Math.floor(r.totalPoints)),
     stats: parseStats(r.stats),
@@ -117,17 +116,4 @@ export function parseImported(raw: unknown): ImportedProfile | null {
       ? r.ownedCharacterIDs.filter((id): id is string => typeof id === 'string')
       : [],
   };
-}
-
-export function parseStats(raw: unknown): Partial<Record<MathOperation, OperationStats>> {
-  const stats: Partial<Record<MathOperation, OperationStats>> = {};
-  if (typeof raw !== 'object' || raw === null) return stats;
-  for (const [key, value] of Object.entries(raw as Record<string, unknown>)) {
-    if (!isMathOperation(key) || typeof value !== 'object' || value === null) continue;
-    const v = value as Record<string, unknown>;
-    if (typeof v.solved === 'number' && typeof v.correct === 'number') {
-      stats[key] = { solved: Number(v.solved), correct: Number(v.correct) };
-    }
-  }
-  return stats;
 }

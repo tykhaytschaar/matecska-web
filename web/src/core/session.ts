@@ -42,10 +42,6 @@ export interface SessionState {
   submittedAt: number | null;
 }
 
-export function cellCount(state: SessionState): number {
-  return state.cells.length;
-}
-
 function startIndex(mode: PracticeMode, count: number): number {
   return MODE_INFO[mode].entryDirection === 'ltr' ? 0 : count - 1;
 }

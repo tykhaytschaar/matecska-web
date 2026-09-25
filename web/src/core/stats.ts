@@ -1,5 +1,5 @@
 import type { AttemptEvent } from './events';
-import { MODE_INFO, OPERATIONS, PRACTICE_MODES, type MathOperation, type PracticeMode } from './operation';
+import { modesOf, OPERATIONS, type MathOperation, type PracticeMode } from './operation';
 
 /** Egy alkategória összesítése egy időszakra. A bónusz csak azoknál a soroknál gyűlik, ahol el van tárolva. */
 export interface ModeStats {
@@ -21,7 +21,7 @@ export function periodStart(period: StatsPeriod, now: Date = new Date()): Date |
   return null;
 }
 
-export function emptyModeStats(mode: PracticeMode): ModeStats {
+function emptyModeStats(mode: PracticeMode): ModeStats {
   return { mode, solved: 0, correct: 0, bonusSum: 0, bonusCount: 0 };
 }
 
@@ -94,7 +94,7 @@ export interface OperationStatsGroup {
 export function groupByOperation(stats: readonly ModeStats[]): OperationStatsGroup[] {
   const byMode = new Map(stats.map((s) => [s.mode, s]));
   return OPERATIONS.map((operation) => {
-    const modes = PRACTICE_MODES.filter((m) => MODE_INFO[m].operation === operation).map((m) => byMode.get(m) ?? emptyModeStats(m));
+    const modes = modesOf(operation).map((m) => byMode.get(m) ?? emptyModeStats(m));
     const total = modes.reduce(
       (acc, s) => ({ solved: acc.solved + s.solved, correct: acc.correct + s.correct, bonusSum: acc.bonusSum + s.bonusSum, bonusCount: acc.bonusCount + s.bonusCount }),
       { solved: 0, correct: 0, bonusSum: 0, bonusCount: 0 },

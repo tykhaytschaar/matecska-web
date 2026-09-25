@@ -49,7 +49,7 @@ export class PlayerStore {
   private rerun = false;
   private readonly onOnline = () => void this.sync();
   /** Munkamenet-követő: rejtett app vagy 5 perc tétlenség után új azonosító. */
-  private tracker: SessionTracker = startTracker(Date.now());
+  private tracker: SessionTracker = startTracker();
   private readonly onVisibility = () => {
     const now = Date.now();
     this.tracker = typeof document !== 'undefined' && document.hidden ? markHidden(this.tracker, now) : markVisible(this.tracker, now);
@@ -87,7 +87,7 @@ export class PlayerStore {
   }
 
   /** A játékoslista frissítése a szerverről; net nélkül a gyorstár marad. */
-  async refreshPlayers(): Promise<void> {
+  private async refreshPlayers(): Promise<void> {
     try {
       const listing = await this.backend.listPlayers();
       this.offline = false;
@@ -126,7 +126,7 @@ export class PlayerStore {
 
   async activate(playerId: string): Promise<void> {
     await this.flush();
-    this.tracker = startTracker(Date.now());
+    this.tracker = startTracker();
     const listing = this.players.find((l) => l.player.id === playerId);
     if (!listing) return;
     const cached = await this.cache.loadState(playerId);
@@ -135,11 +135,6 @@ export class PlayerStore {
       : freshState(listing.player, listing.summary);
     await Promise.all([this.cache.saveActiveId(playerId), this.cache.saveState(this.active)]);
     void this.sync();
-  }
-
-  async deactivate(): Promise<void> {
-    await this.flush();
-    await this.clearActive();
   }
 
   /** Az aktív játékos elengedése feltöltés nélkül. */
@@ -295,7 +290,7 @@ export class PlayerStore {
    * Egyeztetés a szerverrel. Ha épp fut egy menet, a kérés nem veszik el: a futó menet végén
    * még egy indul, hogy a közben módosult sor és a közben keletkezett események is felmenjenek.
    */
-  async sync(): Promise<void> {
+  private async sync(): Promise<void> {
     if (this.syncing) {
       this.rerun = true;
       return this.syncing;

@@ -1,5 +1,5 @@
 // A package.json verzióját átírja az Xcode-projekt MARKETING_VERSION beállításába,
-// hogy az Infó képernyő és az App Store verziója ugyanaz legyen. Az ios:sync futtatja.
+// hogy az Alkalmazásról képernyő és az App Store verziója ugyanaz legyen. Az ios:sync futtatja.
 import { readFileSync, writeFileSync } from 'node:fs';
 
 const { version } = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf-8'));

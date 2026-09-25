@@ -23,19 +23,23 @@
     <span class="placeholder"></span>
   </header>
 
-  <!-- TODO: a szövegek a hivatalos adatkezelési tájékoztatóval helyettesítendők. -->
+  <!-- Rövid összefoglaló; a mérvadó szöveg a linkelt teljes tájékoztató (web/public/adatvedelem). -->
   <section class="card body">
     <h2>Mit tárolunk?</h2>
     <p>
-      Az email címedet a bejelentkezéshez, a létrehozott játékosok becenevét, pontjait és a megoldott feladatok
-      statisztikáit.
+      A fiók e-mail-címét a bejelentkezéshez, a létrehozott játékosok becenevét, pontjait, beállításait és a
+      megoldott feladatok statisztikáit. Jelszót, születési dátumot, fotót nem kérünk.
     </p>
     <h2>Hol?</h2>
-    <p>A készülékeden, és a Supabase szerveren, az EU-ban. Harmadik félnek nem adjuk át.</p>
+    <p>
+      A készülékeden és a Supabase szerverén, az EU-ban. Adatfeldolgozókat használunk (Supabase, a levelek
+      küldéséhez Resend, a webes változat tárhelyéhez Netlify); másnak nem adjuk át, hirdetés és elemzés nincs.
+    </p>
     <h2>Törlés</h2>
     <p>
-      A fiók és minden hozzá tartozó adat bármikor és azonnal törölhető az <em>Az alkalmazásról</em> képernyőn, a
-      Fiók törlése gombbal.
+      A fiók és minden hozzá tartozó adat bármikor törölhető a Menü → <em>Az alkalmazásról</em> képernyőn, a
+      Fiók törlése gombbal; egy játékos külön is (Játékosok → ceruza). A törlést a fiók e-mail-címére küldött
+      kóddal kell megerősíteni, és azonnal, véglegesen megtörténik.
     </p>
     <a class="link" href={PRIVACY_POLICY_URL} target="_blank" rel="noopener">Teljes adatkezelési tájékoztató →</a>
   </section>

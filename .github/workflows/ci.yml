@@ -1,11 +1,10 @@
 name: CI
 
-# Minden pushra és pull requestre: teszt, típusellenőrzés, build, katalógus-ellenőrzés.
-# Kiadás (Pages, karakterek) nincs itt; azok tagre futnak (release.yml, characters.yml).
+# Minden ág minden pushjára: teszt, típusellenőrzés, build, katalógus-ellenőrzés. (Pull request külön nem
+# indítja, mert az ág pushja már lefuttatta.) Kiadás (Netlify, karakterek) nincs itt; azok tagre futnak.
 on:
   push:
     branches: ["**"]
-  pull_request:
   workflow_dispatch:
 
 permissions:

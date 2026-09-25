@@ -5,14 +5,13 @@ export class AccountStore {
   status = $state<AuthStatus>('loading');
   user = $state<AuthUser | null>(null);
 
-  private unsubscribe: (() => void) | null = null;
-
   constructor(private readonly auth: AuthClient) {
     void this.start();
   }
 
   private async start(): Promise<void> {
-    this.unsubscribe = this.auth.onChange((user) => this.apply(user));
+    // Egy példány az app élettartamára; a feliratkozást nem kell bontani.
+    this.auth.onChange((user) => this.apply(user));
     try {
       this.apply(await this.auth.currentUser());
     } catch {
@@ -44,9 +43,5 @@ export class AccountStore {
   async deleteAccount(code: string): Promise<void> {
     await this.auth.deleteAccount(code);
     this.apply(null);
-  }
-
-  dispose(): void {
-    this.unsubscribe?.();
   }
 }

@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { Capacitor } from '@capacitor/core';
+  import { IS_NATIVE as native } from '../platform/native';
   import type { PlayerStore } from '../store/playerStore.svelte';
   import Avatar from './Avatar.svelte';
   import Icon, { type IconName } from './Icon.svelte';
@@ -19,8 +19,7 @@
   }
   let { store, onClose, onPlayers, onCollection, onStats, onAbout, onPrivacy, onSupport, onDonate, onSignOut }: Props = $props();
 
-  /** A támogatás (Ko-fi) csak a webes változatban: az App Store szabályai külső fizetésre terelést nem engednek. */
-  const native = Capacitor.isNativePlatform();
+  // A támogatás (Ko-fi) csak a webes változatban: az App Store szabályai külső fizetésre terelést nem engednek.
 
   const items = $derived<{ label: string; icon: IconName; go: () => void }[]>([
     { label: 'Karakterek', icon: 'chars', go: onCollection },

@@ -4,7 +4,19 @@ Készült: 2026. szeptember 22., a `270f3d8` commit állapotán.
 
 **Állapot (2026. szeptember 25.): az 1. fázis elkészült** — H1, H2, H3, H5, H6, H7 javítva, az RLS-policy a
 `schema.sql`-ben átírva `(select auth.uid())`-ra (a távoli adatbázisra alkalmazása külön lépés). Új teszt:
-`web/tests/catalogStore.test.ts` (H5). A H4, H8, H9 többi pontja és a 2–4. fázis még nyitott.
+`web/tests/catalogStore.test.ts` (H5). Az RLS-policy a távoli adatbázisra is alkalmazva
+(`rls_auth_uid_initplan` migráció, 2026. szeptember 25.).
+
+**A 2. fázis is elkészült (2026. szeptember 25.)**: README és elavult megjegyzések javítva; holt kód törölve
+(`BLANK_SLOTS`, `cellCount`, `deactivate`, `AccountStore.dispose`, a `startTracker` `now` paramétere, a
+`Practice` `initial` propja, `Keypad` `class:disabled`, `.sr-only`, az App.svelte elérhetetlen `signin` ága),
+a csak helyben használt értékek nem exportáltak, `refreshPlayers`/`sync`/`refresh` privát; core duplikációk
+összevonva (`newId`, `parseStats` és `withAttempt` a `profile.ts`-ben, `modesOf`, `core/parse.ts` `asRecord`,
+`platform/native.ts` `IS_NATIVE`); a feltöltő szkript az app `parseCatalog`-ját használja; Privacy.svelte a
+tájékoztatóval összhangban; `pages-redirect.yml` és `web/redirect/` törölve; CI nem fut duplán PR-on;
+`netlify-cli@27` rögzítve; `.gitignore`-ok rendben; `piskel/` fájlok átnevezve.
+Nyitva maradt döntés: `.agents/skills` + `skills-lock.json` sorsa; a gmail-cím véglegessége; a tájékoztató
+székhely-TODO-ja; a `profile.ts` örökölt egyprofilos API-ja (megtartva, tesztelt). A 3–4. fázis nyitott.
 
 Módszer: a teljes `web/src`, `supabase/`, `tools/`, a workflow-k és a README kézi átolvasása; a Svelte-effektekre
 vonatkozó két gyanút a projekt saját Svelte 5.57-ével fordított kísérleti modul igazolta; a Supabase-projekt

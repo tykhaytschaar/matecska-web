@@ -132,8 +132,6 @@
   {#key screen.id}
     <EditPlayer {store} playerId={screen.id} onDone={() => (screen = { kind: 'players' })} />
   {/key}
-{:else if screen.kind === 'signin'}
-  <Home {store} onPractice={openOperation} onCollection={() => (screen = { kind: 'collection' })} onMenu={openMenu} onPlayers={() => (screen = { kind: 'players' })} />
 {:else if screen.kind === 'about'}
   <About
     {store}

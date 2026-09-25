@@ -16,7 +16,7 @@ export interface SessionTracker {
   hiddenSince: number | null;
 }
 
-export function startTracker(now: number, id: string = newId()): SessionTracker {
+export function startTracker(id: string = newId()): SessionTracker {
   return { id, lastActivity: null, hiddenSince: null };
 }
 

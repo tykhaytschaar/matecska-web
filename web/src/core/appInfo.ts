@@ -1,4 +1,4 @@
-/** Az alkalmazás adatai az Infó képernyőhöz. A verzió és a build ideje fordításkor kerül be. */
+/** Az alkalmazás adatai az Alkalmazásról képernyőhöz. A verzió és a build ideje fordításkor kerül be. */
 export interface AppInfo {
   name: string;
   version: string;
@@ -10,7 +10,7 @@ export interface AppInfo {
 /** Kapcsolat a Segítség képernyőn. Ideiglenes cím, amíg nincs saját levelező szerver. */
 export const SUPPORT_EMAIL = 'ivanyi.almos@gmail.com';
 /** Önkéntes támogatás Ko-fin (csak a webes változatban). */
-export const KOFI_USER = 'almosivanyi';
+const KOFI_USER = 'almosivanyi';
 export const KOFI_URL = `https://ko-fi.com/${KOFI_USER}`;
 /** A Ko-fi beágyazott panelje a Támogatás képernyőn. */
 export const KOFI_EMBED_URL = `https://ko-fi.com/${KOFI_USER}/?hidefeed=true&widget=true&embed=true&preview=true`;

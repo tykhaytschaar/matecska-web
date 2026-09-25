@@ -1,7 +1,8 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { PlayerEvent } from '../core/events';
-import { EMPTY_SUMMARY, parseImported, parseStats, type ImportedProfile, type PlayerRecord, type PlayerSummary } from '../core/player';
+import { EMPTY_SUMMARY, parseImported, type ImportedProfile, type PlayerRecord, type PlayerSummary } from '../core/player';
 import { isPracticeMode } from '../core/operation';
+import { parseStats } from '../core/profile';
 import type { ModeStats } from '../core/stats';
 import { DeletionCodeError, type AuthClient, type AuthUser, type Backend, type PlayerListing } from './backend';
 

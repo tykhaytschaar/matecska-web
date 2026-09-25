@@ -1,5 +1,10 @@
 import type { FrameOffset, GameCharacter } from './characters';
 
+// Ezt a fájlt a tools/upload_characters.mjs Node-ból közvetlenül importálja (típus-eltávolítással), ezért
+// nem hivatkozhat kiterjesztés nélküli, futásidejű importra; a kis objektum-őr itt helyben van.
+const asRecord = (raw: unknown): Record<string, unknown> | null =>
+  typeof raw === 'object' && raw !== null ? (raw as Record<string, unknown>) : null;
+
 /**
  * A karakter-katalógus JSON-formátuma (characters/catalog.json). Ugyanezt tölti majd az app a
  * szerverről is, ezért az olvasás óvatos: hibás elemnél `null`, ismeretlen mezőt átugor.
@@ -19,8 +24,8 @@ const isOffsetList = (v: unknown, length: number): v is FrameOffset[] =>
   Array.isArray(v) && v.length === length && v.every(isOffset);
 
 export function parseCharacter(raw: unknown): GameCharacter | null {
-  if (typeof raw !== 'object' || raw === null) return null;
-  const r = raw as Record<string, unknown>;
+  const r = asRecord(raw);
+  if (!r) return null;
   if (typeof r.id !== 'string' || !/^[a-z0-9-]+$/.test(r.id) || typeof r.name !== 'string' || !r.name.trim()) return null;
   if (!isInt(r.unlockAt) || r.unlockAt < 0 || typeof r.spriteSheet !== 'string' || !r.spriteSheet) return null;
   if (!isInt(r.frameSize) || r.frameSize <= 0 || !isInt(r.frameCount) || r.frameCount <= 0) return null;
@@ -47,8 +52,8 @@ export function parseCharacter(raw: unknown): GameCharacter | null {
 
 /** Teljes katalógus; `null`, ha a szerkezet hibás, nincs `cat`, vagy ismétlődik egy azonosító. */
 export function parseCatalog(raw: unknown): Catalog | null {
-  if (typeof raw !== 'object' || raw === null) return null;
-  const r = raw as Record<string, unknown>;
+  const r = asRecord(raw);
+  if (!r) return null;
   if (!isInt(r.version) || r.version < 1 || !Array.isArray(r.characters)) return null;
   const characters: GameCharacter[] = [];
   for (const item of r.characters) {

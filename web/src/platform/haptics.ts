@@ -1,7 +1,5 @@
-import { Capacitor } from '@capacitor/core';
 import { Haptics, ImpactStyle, NotificationType } from '@capacitor/haptics';
-
-const native = Capacitor.isNativePlatform();
+import { IS_NATIVE as native } from './native';
 
 /** Finom rezgés számjegy beírásakor; weben nem csinál semmit. */
 export function tapFeedback(): void {
