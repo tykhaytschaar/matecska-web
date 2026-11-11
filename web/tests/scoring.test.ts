@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { MODE_INFO } from '../src/core/operation';
-import { bonus, bonusFraction, INSTANT_TIMING, MIXED_SLOWDOWN, PATIENT_TIMING, points, QUICK_TIMING, scaledTiming, totalPoints, type BonusTiming } from '../src/core/scoring';
+import { bonus, INSTANT_TIMING, MIXED_SLOWDOWN, PATIENT_TIMING, points, QUICK_TIMING, scaledTiming, totalPoints, type BonusTiming } from '../src/core/scoring';
 
 describe('pontozás', () => {
   it.each([
@@ -34,7 +34,7 @@ describe('pontozás', () => {
     expect(totalPoints(points(true, elapsed, INSTANT_TIMING))).toBe(expected);
   });
 
-  it('az alappont a típus számjegyszáma szerint 3, 6, 10, és a bónusz ugyanonnan indul', () => {
+  it('az alappont a típus számjegyszáma szerint 3, 6, 10, 15, és a bónusz ugyanonnan indul', () => {
     expect(MODE_INFO['addition-single'].basePoints).toBe(3);
     expect(MODE_INFO['subtraction-single'].basePoints).toBe(3);
     expect(MODE_INFO['addition-double'].basePoints).toBe(6);
@@ -43,11 +43,13 @@ describe('pontozás', () => {
     expect(MODE_INFO['division-table'].basePoints).toBe(6);
     expect(MODE_INFO['addition-written'].basePoints).toBe(10);
     expect(MODE_INFO['division-written'].basePoints).toBe(10);
+    expect(MODE_INFO['addition-four'].basePoints).toBe(15);
+    expect(MODE_INFO['subtraction-four'].basePoints).toBe(15);
     expect(points(true, 0, INSTANT_TIMING, 3)).toEqual({ base: 3, bonus: 3, penalty: 0 });
     expect(totalPoints(points(true, 1.9, INSTANT_TIMING, 3))).toBe(6);
     expect(totalPoints(points(true, 3, INSTANT_TIMING, 3))).toBe(4);
     expect(totalPoints(points(true, 4, INSTANT_TIMING, 3))).toBe(3);
-    expect(bonusFraction(2.5, INSTANT_TIMING, 6)).toBeCloseTo(5 / 6);
+    expect(bonus(2.5, INSTANT_TIMING, 6)).toBe(5);
   });
 
   it('a lassított időzítésnél a periódus 1,5-szeres, a türelmi idő nem változik', () => {
@@ -72,6 +74,8 @@ describe('pontozás', () => {
     expect(MODE_INFO['subtraction-written'].bonusTiming).toBe(QUICK_TIMING);
     expect(MODE_INFO['multiplication-written'].bonusTiming).toBe(PATIENT_TIMING);
     expect(MODE_INFO['division-written'].bonusTiming).toBe(PATIENT_TIMING);
+    expect(MODE_INFO['addition-four'].bonusTiming).toBe(PATIENT_TIMING);
+    expect(MODE_INFO['subtraction-four'].bonusTiming).toBe(PATIENT_TIMING);
     expect(INSTANT_TIMING.fullBonusUntil).toBe(1);
     expect(INSTANT_TIMING.decayIntervalMs).toBe(1000);
     expect(QUICK_TIMING.decayIntervalMs).toBe(1000);
@@ -84,13 +88,13 @@ describe('pontozás', () => {
     expect(totalPoints(s)).toBe(-1);
   });
 
-  it('a bónuszarány a bónusz tizede, lépcsőzve', () => {
-    expect(bonusFraction(0, QUICK_TIMING)).toBe(1);
-    expect(bonusFraction(3.99, QUICK_TIMING)).toBe(1);
-    expect(bonusFraction(4, QUICK_TIMING)).toBeCloseTo(0.9);
-    expect(bonusFraction(8, QUICK_TIMING)).toBeCloseTo(0.5);
-    expect(bonusFraction(13, QUICK_TIMING)).toBe(0);
-    expect(bonusFraction(10, PATIENT_TIMING)).toBeCloseTo(0.5);
-    expect(bonusFraction(99, PATIENT_TIMING)).toBe(0);
+  it('a bónusz a türelmi idő után másodpercenként eggyel fogy, lépcsőzve', () => {
+    expect(bonus(0, QUICK_TIMING)).toBe(10);
+    expect(bonus(3.99, QUICK_TIMING)).toBe(10);
+    expect(bonus(4, QUICK_TIMING)).toBe(9);
+    expect(bonus(8, QUICK_TIMING)).toBe(5);
+    expect(bonus(13, QUICK_TIMING)).toBe(0);
+    expect(bonus(10, PATIENT_TIMING)).toBe(5);
+    expect(bonus(99, PATIENT_TIMING)).toBe(0);
   });
 });

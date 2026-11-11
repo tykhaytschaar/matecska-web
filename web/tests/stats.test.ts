@@ -59,7 +59,7 @@ describe('statisztika', () => {
     const groups = groupByOperation([{ mode: 'addition-double', solved: 3, correct: 2, bonusSum: 6, bonusCount: 2 }]);
     expect(groups.map((g) => g.operation)).toEqual(['addition', 'subtraction', 'multiplication', 'division']);
     const add = groups[0];
-    expect(add.modes.map((m) => m.mode)).toEqual(['addition-single', 'addition-double', 'addition-written']);
+    expect(add.modes.map((m) => m.mode)).toEqual(['addition-single', 'addition-double', 'addition-written', 'addition-four']);
     expect(add.total).toEqual({ solved: 3, correct: 2, bonusSum: 6, bonusCount: 2 });
     expect(groups[1].total.solved).toBe(0);
     expect(correctRatio(groups[1].total)).toBeNull();

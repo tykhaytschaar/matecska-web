@@ -1,6 +1,5 @@
 <script lang="ts">
-  import { MODE_INFO, type PracticeMode } from '../core/operation';
-  import { bonus, bonusFraction } from '../core/scoring';
+  import type { PracticeMode } from '../core/operation';
   import {
     canSubmit,
     createSession,
@@ -20,7 +19,6 @@
   import CharacterStage from '../sprites/CharacterStage.svelte';
   import { type Mood } from '../sprites/CharacterSprite.svelte';
   import type { PlayerStore } from '../store/playerStore.svelte';
-  import BonusBar from './BonusBar.svelte';
   import Keypad from './Keypad.svelte';
   import PointsBadge from './PointsBadge.svelte';
   import Problem from './Problem.svelte';
@@ -40,22 +38,10 @@
   let session = $state.raw<SessionState>(createSession(mode, nowSeconds(), undefined, store.askOperands));
   /** Sétál, amíg nincs beküldve; beküldésre megáll és az eredmény szerint reagál. */
   let mood = $state<Mood>('walk');
-  let now = $state(nowSeconds());
 
-  const info = $derived(MODE_INFO[mode]);
   const submitted = $derived(isSubmitted(session));
-  const elapsed = $derived(elapsedSeconds(session, now));
-  const fraction = $derived(bonusFraction(elapsed, session.timing, info.basePoints));
-  const bonusNow = $derived(bonus(elapsed, session.timing, info.basePoints));
-
-  // A bónuszcsík ketyeg, amíg nincs beküldve.
-  $effect(() => {
-    if (submitted) return;
-    const id = setInterval(() => {
-      now = nowSeconds();
-    }, 100);
-    return () => clearInterval(id);
-  });
+  // A gyorsasági bónusz a háttérben számít, de nincs kijelezve: a fogyó csík sürgetett és elvonta a
+  // figyelmet. Beküldés után az eredménysáv mutatja, mennyi bónusz járt.
 
   function handleSubmit() {
     if (!canSubmit(session)) return;
@@ -67,14 +53,13 @@
     store.record(outcome.score, outcome.kind === 'correct', mode, {
       task: { kind: 'binary', operands: session.exercise.operands, blank: session.exercise.blank },
       answer: { kind: 'number', value: enteredValue(session) },
-      elapsedMs: Math.round(((session.submittedAt ?? nowSeconds()) - session.startedAt) * 1000),
+      elapsedMs: Math.round(elapsedSeconds(session, nowSeconds()) * 1000),
     });
   }
 
   function handleNext() {
     mood = 'walk';
     session = nextExercise(session, nowSeconds());
-    now = nowSeconds();
   }
 
   function handleKey(event: KeyboardEvent) {
@@ -122,7 +107,6 @@
     />
   </div>
 
-  <BonusBar {fraction} bonus={bonusNow} />
   <ResultBanner outcome={session.outcome} />
 
   <div class="spacer"></div>

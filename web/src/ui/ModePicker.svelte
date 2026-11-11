@@ -22,9 +22,11 @@
       case 'addition-single': return '7 + 5 = ▢';
       case 'addition-double': return '47 + 38';
       case 'addition-written': return '352 + 636';
+      case 'addition-four': return '4352 + 2636';
       case 'subtraction-single': return '12 − 5 = ▢';
       case 'subtraction-double': return '82 − 35';
       case 'subtraction-written': return '805 − 347';
+      case 'subtraction-four': return '8053 − 3479';
       case 'multiplication-table': return '6 · 7 = ▢';
       case 'multiplication-written': return '352 · 6';
       case 'division-table': return '42 : 6 = ▢';
@@ -193,5 +195,15 @@
   .meta {
     font-size: 0.85rem;
     color: var(--ink-soft);
+  }
+  /* Alacsony kijelzőn (pl. iPhone SE) a négy kártya és a kapcsoló így fér ki görgetés nélkül;
+     a műveletet a kártyák példái is mutatják, a nagy jel elhagyható. */
+  @media (max-height: 700px) {
+    .hero {
+      display: none;
+    }
+    .item {
+      padding-block: 10px;
+    }
   }
 </style>

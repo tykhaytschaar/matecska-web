@@ -74,7 +74,8 @@ export function makeExercise(mode: PracticeMode, a: number, b: number, blank: Bl
  * (és nem 0): összeadás 2…9 + 2…9; kivonásnál a kivonandó és a különbség 2…9, a kisebbítendő így
  * 4…18; a szorzótábla és a visszafelé változata (a szorzatot osztjuk egyik tényezőjével) 2…9 közti
  * tényezőkkel.
- * A kétjegyű típusok 10…99 közti számokkal dolgoznak, a kivonás különbsége nemnegatív.
+ * A kétjegyű típusok 10…99, a négyjegyű összeadás és kivonás 1000…9999 közti számokkal dolgozik,
+ * a kivonás különbsége nemnegatív.
  * Az üres hely akkor véletlen (50% eredmény, 25-25% operandus), ha a típus engedi (`randomBlank`)
  * és a játékos is kéri (`askOperands`); egyébként mindig az eredmény.
  */
@@ -87,6 +88,8 @@ export function randomExercise(mode: PracticeMode, rng: Rng = Math.random, askOp
       return makeExercise(mode, randomInt(10, 99, rng), randomInt(10, 99, rng), blank);
     case 'addition-written':
       return makeExercise(mode, randomInt(100, 999, rng), randomInt(100, 999, rng), blank);
+    case 'addition-four':
+      return makeExercise(mode, randomInt(1000, 9999, rng), randomInt(1000, 9999, rng), blank);
     case 'subtraction-single': {
       const subtrahend = randomInt(2, 9, rng);
       const difference = randomInt(2, 9, rng);
@@ -99,6 +102,10 @@ export function randomExercise(mode: PracticeMode, rng: Rng = Math.random, askOp
     case 'subtraction-written': {
       const a = randomInt(100, 999, rng);
       return makeExercise(mode, a, randomInt(100, a, rng), blank);
+    }
+    case 'subtraction-four': {
+      const a = randomInt(1000, 9999, rng);
+      return makeExercise(mode, a, randomInt(1000, a, rng), blank);
     }
     case 'multiplication-table':
       return makeExercise(mode, randomInt(2, 9, rng), randomInt(2, 9, rng), blank);

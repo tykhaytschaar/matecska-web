@@ -24,15 +24,18 @@ export function isMathOperation(value: unknown): value is MathOperation {
 
 /**
  * Alkategóriák: egy műveleten belül a konkrét gyakorlástípus. A „written” a háromjegyű,
- * füzetszerű feladat, a „double” a kétjegyű, a „single” és „table” az egyjegyű, fejben számolós.
+ * füzetszerű feladat, a „four” a négyjegyű, a „double” a kétjegyű, a „single” és „table” az
+ * egyjegyű, fejben számolós.
  */
 export type PracticeMode =
   | 'addition-single'
   | 'addition-double'
   | 'addition-written'
+  | 'addition-four'
   | 'subtraction-single'
   | 'subtraction-double'
   | 'subtraction-written'
+  | 'subtraction-four'
   | 'multiplication-table'
   | 'multiplication-written'
   | 'division-table'
@@ -42,9 +45,11 @@ export const PRACTICE_MODES: readonly PracticeMode[] = [
   'addition-single',
   'addition-double',
   'addition-written',
+  'addition-four',
   'subtraction-single',
   'subtraction-double',
   'subtraction-written',
+  'subtraction-four',
   'multiplication-table',
   'multiplication-written',
   'division-table',
@@ -73,7 +78,7 @@ export interface ModeInfo {
   /** Hány rubrikába kell beírni az eredményt. */
   answerCellCount: number;
   bonusTiming: BonusTiming;
-  /** Alappont helyes válaszért; a sebességbónusz maximuma is ennyi. Számjegyszám szerint 3, 6, 10. */
+  /** Alappont helyes válaszért; a sebességbónusz maximuma is ennyi. Számjegyszám szerint 3, 6, 10, 15. */
   basePoints: number;
   entryDirection: EntryDirection;
   /**
@@ -117,6 +122,17 @@ export const MODE_INFO: Record<PracticeMode, ModeInfo> = {
     entryDirection: 'rtl',
     randomBlank: true,
   },
+  'addition-four': {
+    operation: 'addition',
+    title: 'Négyjegyűek',
+    description: 'Két négyjegyű szám összege, füzetszerűen.',
+    layout: 'stacked',
+    answerCellCount: 5,
+    bonusTiming: PATIENT_TIMING,
+    basePoints: 15,
+    entryDirection: 'rtl',
+    randomBlank: true,
+  },
   'subtraction-single': {
     operation: 'subtraction',
     title: 'Egyjegyűek',
@@ -147,6 +163,17 @@ export const MODE_INFO: Record<PracticeMode, ModeInfo> = {
     answerCellCount: 3,
     bonusTiming: QUICK_TIMING,
     basePoints: 10,
+    entryDirection: 'rtl',
+    randomBlank: true,
+  },
+  'subtraction-four': {
+    operation: 'subtraction',
+    title: 'Négyjegyűek',
+    description: 'Két négyjegyű szám különbsége, füzetszerűen.',
+    layout: 'stacked',
+    answerCellCount: 4,
+    bonusTiming: PATIENT_TIMING,
+    basePoints: 15,
     entryDirection: 'rtl',
     randomBlank: true,
   },

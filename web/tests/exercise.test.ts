@@ -28,6 +28,32 @@ describe('feladatgenerátorok', () => {
     }
   });
 
+  it('négyjegyű összeadás: két négyjegyű, az eredmény öt rubrikába fér', () => {
+    const rng = seededRng(41);
+    for (let i = 0; i < 1000; i++) {
+      const e = randomExercise('addition-four', rng);
+      const [a, b] = e.operands;
+      expect(e.operation).toBe('addition');
+      expect(a).toBeGreaterThanOrEqual(1000); expect(a).toBeLessThanOrEqual(9999);
+      expect(b).toBeGreaterThanOrEqual(1000); expect(b).toBeLessThanOrEqual(9999);
+      expect(e.result).toBe(a + b);
+      expect(String(e.result).length).toBeLessThanOrEqual(MODE_INFO['addition-four'].answerCellCount);
+    }
+  });
+
+  it('négyjegyű kivonás: eredmény nemnegatív, négy rubrikába fér', () => {
+    const rng = seededRng(42);
+    for (let i = 0; i < 1000; i++) {
+      const e = randomExercise('subtraction-four', rng);
+      const [a, b] = e.operands;
+      expect(a).toBeGreaterThanOrEqual(1000); expect(a).toBeLessThanOrEqual(9999);
+      expect(b).toBeGreaterThanOrEqual(1000); expect(b).toBeLessThanOrEqual(a);
+      expect(e.result).toBe(a - b);
+      expect(e.result).toBeGreaterThanOrEqual(0);
+      expect(String(e.result).length).toBeLessThanOrEqual(MODE_INFO['subtraction-four'].answerCellCount);
+    }
+  });
+
   it('egyjegyű összeadás: 2…9 + 2…9, az összeg két rubrikába fér', () => {
     const rng = seededRng(11);
     for (let i = 0; i < 1000; i++) {
@@ -194,9 +220,9 @@ describe('feladatgenerátorok', () => {
     expect(blanks).toEqual(new Set(['first', 'second', 'result']));
   });
 
-  it('alkategóriák: összeadás és kivonás egy-, két- és háromjegyű; a többi egyjegyű és háromjegyű', () => {
-    expect(modesOf('addition')).toEqual(['addition-single', 'addition-double', 'addition-written']);
-    expect(modesOf('subtraction')).toEqual(['subtraction-single', 'subtraction-double', 'subtraction-written']);
+  it('alkategóriák: összeadás és kivonás egy-, két-, három- és négyjegyű; a többi egyjegyű és háromjegyű', () => {
+    expect(modesOf('addition')).toEqual(['addition-single', 'addition-double', 'addition-written', 'addition-four']);
+    expect(modesOf('subtraction')).toEqual(['subtraction-single', 'subtraction-double', 'subtraction-written', 'subtraction-four']);
     expect(modesOf('multiplication')).toEqual(['multiplication-table', 'multiplication-written']);
     expect(modesOf('division')).toEqual(['division-table', 'division-written']);
     expect(OPERATIONS.flatMap(modesOf)).toEqual(PRACTICE_MODES);

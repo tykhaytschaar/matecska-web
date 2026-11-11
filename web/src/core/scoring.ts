@@ -49,11 +49,6 @@ export function bonus(elapsed: number, timing: BonusTiming, max: number = MAX_BO
   return Math.max(0, max - lostPoints);
 }
 
-/** A még elérhető bónusz aránya 0…1 között; a bónuszcsík ezt rajzolja. */
-export function bonusFraction(elapsed: number, timing: BonusTiming, max: number = MAX_BONUS): number {
-  return bonus(elapsed, timing, max) / max;
-}
-
 /**
  * Helyes válasz: a típus alappontja + ugyanannyi maximumú sebességbónusz.
  * Helytelen válasz: 1 pont levonás.

@@ -7,10 +7,10 @@ Az eredeti SwiftUI iOS változat az `e54fbb6` commitig a git-történetben megta
 ## Funkciók
 
 - Négy fő kategória, alattuk alkategóriák:
-  - Összeadás: egyjegyűek (2…9 + 2…9, fejben), kétjegyűek (10…99 + 10…99) és háromjegyűek,
-    a két utóbbi füzetszerűen.
-  - Kivonás: egyjegyűek (a kivonandó és a különbség 2…9, a kisebbítendő 4…18), kétjegyűek és
-    háromjegyűek (nemnegatív különbség), füzetszerűen.
+  - Összeadás: egyjegyűek (2…9 + 2…9, fejben), kétjegyűek (10…99 + 10…99), háromjegyűek és
+    négyjegyűek, az utóbbi három füzetszerűen.
+  - Kivonás: egyjegyűek (a kivonandó és a különbség 2…9, a kisebbítendő 4…18), kétjegyűek,
+    háromjegyűek és négyjegyűek (nemnegatív különbség), füzetszerűen.
   - Szorzás: szorzótábla (2…9 · 2…9, az 1-es sor kimarad) és háromjegyű · egyjegyű.
   - Osztás: szorzótábla visszafelé (2…9 közti számok szorzatából az egyik tényező) és
     háromjegyű : egyjegyű, maradék nélkül, nem kötelező maradék-ráccsal.
@@ -22,10 +22,12 @@ Az eredeti SwiftUI iOS változat az `e54fbb6` commitig a git-történetben megta
   25-25% valamelyik operandus hiányzik, és a bónusz 50%-kal lassabban fogy. Háromjegyű szorzásnál
   és osztásnál mindig az eredmény.
 - Pontozás: helyes válasz alappont + ugyanannyi maximumú gyorsasági bónusz. Az alappont
-  egyjegyűeknél 3, kétjegyűeknél és a szorzótáblás típusoknál 6, háromjegyűeknél 10. A bónusz az
-  egyjegyű és szorzótáblás feladatoknál 1 s, a kétjegyű és háromjegyű összeadásnál/kivonásnál
-  3 s, háromjegyű szorzásnál/osztásnál 5 s után kezd fogyni, periódusonként (alapból
-  másodpercenként) eggyel. Helytelen válasz −1; az összpont nem megy nulla alá.
+  egyjegyűeknél 3, kétjegyűeknél és a szorzótáblás típusoknál 6, háromjegyűeknél 10, négyjegyűeknél
+  15. A bónusz az egyjegyű és szorzótáblás feladatoknál 1 s, a kétjegyű és háromjegyű
+  összeadásnál/kivonásnál 3 s, háromjegyű szorzásnál/osztásnál és négyjegyű összeadásnál/kivonásnál
+  5 s után kezd fogyni, periódusonként (alapból másodpercenként) eggyel. A bónusz gyakorlás közben
+  nem látszik (ne sürgessen), beküldés után az eredménysáv mutatja. Helytelen válasz −1; az
+  összpont nem megy nulla alá.
 - Fiók és játékosprofilok: a szülő (vagy a felnőtt játékos) e-mail címére kapott kóddal lép be (jelszó nincs,
   regisztráció és belépés ugyanaz a lépés), alatta tetszőleges számú játékos becenévvel.
   Játékosonként külön pont, műveletenkénti statisztika, birtokolt és kiválasztott karakter.
